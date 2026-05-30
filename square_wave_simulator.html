@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Square Wave Simulator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0d14;
+      --panel: #0f1420;
+      --border: #1e2d4a;
+      --accent: #00e5ff;
+      --accent2: #ff6b35;
+      --grid: rgba(0, 229, 255, 0.06);
+      --text: #c8d8e8;
+      --label: #5a7a9a;
+      --glow: 0 0 20px rgba(0, 229, 255, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-shadow: 0 0 30px rgba(0, 229, 255, 0.5);
+      text-transform: uppercase;
+    }
+
+    header p {
+      margin-top: 0.5rem;
+      color: var(--label);
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .main-layout {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: auto auto;
+      gap: 1.5rem;
+    }
+
+    .controls {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+    }
+
+    .chart-area {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--label);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .control-group .value-display {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      margin-bottom: 0.6rem;
+      line-height: 1;
+    }
+
+    .control-group .unit {
+      font-size: 0.75rem;
+      color: var(--label);
+      margin-left: 4px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.3);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+      border: none;
+      cursor: pointer;
+    }
+
+    .range-limits {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: var(--label);
+      margin-top: 4px;
+      opacity: 0.6;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
+    .info-block {
+      font-size: 0.72rem;
+      color: var(--label);
+      line-height: 1.7;
+    }
+
+    .info-block span {
+      color: var(--accent2);
+    }
+
+    .btn-download {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.6rem 1rem;
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      border-radius: 3px;
+      color: var(--accent);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-download:hover {
+      background: rgba(0, 229, 255, 0.18);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .chart-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--label);
+      text-transform: uppercase;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      border-radius: 2px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .badge-cyan {
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--accent);
+    }
+
+    .badge-orange {
+      background: rgba(255, 107, 53, 0.1);
+      border: 1px solid rgba(255, 107, 53, 0.3);
+      color: var(--accent2);
+    }
+
+    canvas {
+      width: 100%;
+      border-radius: 2px;
+      display: block;
+    }
+
+    .harmonic-viz {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 1200px;
+      margin-top: 0;
+      overflow: visible;
+    }
+
+    .harmonic-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--label);
+      text-transform: uppercase;
+      margin-bottom: 5rem;
+    }
+
+    .harmonic-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 160px;
+      overflow: visible;
+    }
+
+    .h-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex: 1;
+    }
+
+    .h-bar {
+      width: 100%;
+      background: var(--accent);
+      border-radius: 2px 2px 0 0;
+      transition: height 0.3s ease, opacity 0.3s;
+      min-height: 2px;
+    }
+
+    .h-bar.inactive {
+      opacity: 0.12;
+      background: var(--label);
+    }
+
+    .h-label {
+      font-size: 0.6rem;
+      color: var(--label);
+    }
+
+    .sine-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.65rem;
+      color: var(--label);
+    }
+
+    .legend-swatch {
+      width: 20px;
+      height: 3px;
+      border-radius: 2px;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.65rem;
+      color: var(--label);
+      opacity: 0.5;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 700px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        grid-row: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Square Wave Simulator</h1>
+    <p>Fourier Series Approximation · Adjust parameters below</p>
+  </header>
+
+  <div class="main-layout">
+
+    <div class="controls">
+      <div class="control-group">
+        <label>Frequency</label>
+        <div class="value-display" id="freq-val">1<span class="unit">Hz</span></div>
+        <input type="range" id="freq" min="1" max="20" step="0.5" value="1">
+        <div class="range-limits"><span>1 Hz</span><span>20 Hz</span></div>
+      </div>
+
+      <div class="control-group">
+        <label>Amplitude</label>
+        <div class="value-display" id="amp-val">10<span class="unit">V</span></div>
+        <input type="range" id="amp" min="1" max="50" step="1" value="10">
+        <div class="range-limits"><span>1 V</span><span>50 V</span></div>
+      </div>
+
+      <div class="control-group">
+        <label>Harmonics</label>
+        <div class="value-display" id="harm-val">15</div>
+        <input type="range" id="harm" min="1" max="50" step="1" value="15">
+        <div class="range-limits"><span>1</span><span>50</span></div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="info-block">
+        <div>Formula:</div>
+        <div style="margin-top:0.4rem; color: var(--text);">
+          x(t) = Σ <span>(4A/πn)</span> sin(2πnft)
+        </div>
+        <div style="margin-top:0.6rem;">
+          where <span>n</span> = 1, 3, 5 … (odd harmonics)
+        </div>
+      </div>
+
+      <button class="btn-download" id="btnDownload">⬇ Download Spreadsheet</button>
+    </div>
+
+    <!-- Square wave chart -->
+    <div class="chart-area">
+      <div class="chart-header">
+        <div class="chart-title">Waveform Output</div>
+        <div class="badge-row">
+          <span class="badge badge-cyan" id="badge-freq">f = 1 Hz</span>
+          <span class="badge badge-orange" id="badge-harm">n = 15 harmonics</span>
+        </div>
+      </div>
+      <canvas id="waveCanvas" height="260"></canvas>
+    </div>
+
+    <!-- Sine waves chart -->
+    <div class="chart-area">
+      <div class="chart-header">
+        <div class="chart-title">Harmonic Components</div>
+        <div class="badge-row">
+          <span class="badge badge-cyan" id="badge-freq2">f = 1 Hz</span>
+          <span class="badge badge-orange" id="badge-harm2">n = 15 harmonics</span>
+        </div>
+      </div>
+      <canvas id="sineCanvas" height="260"></canvas>
+      <div class="sine-legend" id="sineLegend"></div>
+    </div>
+
+  </div>
+
+  <!-- Harmonic Spectrum -->
+  <div class="harmonic-viz" style="max-width:1200px; margin-top:1.5rem;">
+    <div class="harmonic-title">Harmonic Spectrum (Odd Components)</div>
+    <div class="harmonic-bars" id="hbars"></div>
+  </div>
+
+  <footer>Barry Duncan · v2.0 · Square Wave Generator · Web Port</footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <script>
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    const sineCanvas = document.getElementById('sineCanvas');
+    const sineCtx = sineCanvas.getContext('2d');
+
+    const freqSlider = document.getElementById('freq');
+    const ampSlider = document.getElementById('amp');
+    const harmSlider = document.getElementById('harm');
+
+    const freqVal = document.getElementById('freq-val');
+    const ampVal = document.getElementById('amp-val');
+    const harmVal = document.getElementById('harm-val');
+
+    const badgeFreq = document.getElementById('badge-freq');
+    const badgeHarm = document.getElementById('badge-harm');
+    const badgeFreq2 = document.getElementById('badge-freq2');
+    const badgeHarm2 = document.getElementById('badge-harm2');
+
+    const hbars = document.getElementById('hbars');
+    const sineLegend = document.getElementById('sineLegend');
+
+    const PAD_LEFT = 48;
+    const PAD_RIGHT = 48;
+    const PAD_BOTTOM = 34;
+    const PAD_TOP = 10;
+
+    // Roman numeral lookup — index 0 = 'i'
+    const ROMAN = [
+      'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x',
+      'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi', 'xvii', 'xviii', 'xix', 'xx',
+      'xxi', 'xxii', 'xxiii', 'xxiv', 'xxv', 'xxvi', 'xxvii', 'xxviii', 'xxix', 'xxx',
+      'xxxi', 'xxxii', 'xxxiii', 'xxxiv', 'xxxv', 'xxxvi', 'xxxvii', 'xxxviii', 'xxxix', 'xl',
+      'xli', 'xlii', 'xliii', 'xliv', 'xlv', 'xlvi', 'xlvii', 'xlviii', 'xlix', 'l'
+    ];
+
+    function toRoman(h) {
+      // h=0 → Fundamental, h=1 → i, h=2 → ii …
+      return h === 0 ? 'Fundamental' : (ROMAN[h - 1] || `h${h}`);
+    }
+
+    function harmonicColour(index) {
+      if (index === 0) return '#00e5ff';
+      const hue = (index * 137.5) % 360;
+      return `hsl(${hue}, 80%, 60%)`;
+    }
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+
+      const rectW = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rectW.width * dpr;
+      canvas.height = 260 * dpr;
+      canvas.style.height = '260px';
+      ctx.scale(dpr, dpr);
+
+      const rectS = sineCanvas.parentElement.getBoundingClientRect();
+      sineCanvas.width = rectS.width * dpr;
+      sineCanvas.height = 260 * dpr;
+      sineCanvas.style.height = '260px';
+      sineCtx.scale(dpr, dpr);
+    }
+
+    function drawGrid(c, plotW, plotH, amp, scale) {
+      c.strokeStyle = 'rgba(30,45,74,0.7)';
+      c.lineWidth = 1;
+      const cols = 8;
+      for (let i = 0; i <= cols; i++) {
+        const x = (plotW / cols) * i;
+        c.beginPath(); c.moveTo(x, 0); c.lineTo(x, plotH); c.stroke();
+      }
+      const yTicks = [1, 0.5, 0, -0.5, -1];
+      yTicks.forEach(t => {
+        const y = plotH / 2 - (t * amp * scale);
+        c.beginPath(); c.moveTo(0, y); c.lineTo(plotW, y); c.stroke();
+      });
+      c.strokeStyle = 'rgba(0,229,255,0.15)';
+      c.lineWidth = 1;
+      c.beginPath(); c.moveTo(0, plotH / 2); c.lineTo(plotW, plotH / 2); c.stroke();
+    }
+
+    function drawYLabels(c, amp, scale, fullW, fullH) {
+      const plotH = fullH - PAD_TOP - PAD_BOTTOM;
+      const cy = PAD_TOP + plotH / 2;
+      const ticks = [1, 0.5, 0, -0.5, -1];
+      c.fillStyle = 'rgba(200, 220, 240, 0.85)';
+      c.font = '10px Share Tech Mono';
+      c.textAlign = 'right';
+      ticks.forEach(t => {
+        const val = t * amp;
+        const label = val === 0 ? '0' : val % 1 === 0 ? `${val}` : val.toFixed(1);
+        const y = cy - val * scale;
+        c.fillText(label, PAD_LEFT - 4, y + 4);
+      });
+    }
+
+    function drawXLabels(c, freq, fullW, fullH) {
+      const plotW = fullW - PAD_LEFT - PAD_RIGHT;
+      const plotH = fullH - PAD_TOP - PAD_BOTTOM;
+      const cycles = 3;
+      const totalDeg = cycles * 360;        // 1080° across the full width
+      const step = 45;                  // one tick every 45°
+      const bottomOfPlot = PAD_TOP + plotH;
+
+      c.font = '10px Share Tech Mono';
+      c.textAlign = 'center';
+
+      for (let deg = 0; deg <= totalDeg; deg += step) {
+        const x = PAD_LEFT + (deg / totalDeg) * plotW;
+        const timeSecs = (deg / 360) / freq;
+
+        // Degrees label — bright, just below plot
+        c.fillStyle = 'rgba(200, 220, 240, 0.85)';
+        c.fillText(`${deg}°`, x, bottomOfPlot + 12);
+
+        // Seconds label — dimmer, below degrees
+        c.fillStyle = 'rgba(140, 160, 180, 0.65)';
+        c.fillText(timeSecs.toFixed(2) + 's', x, bottomOfPlot + 24);
+      }
+    }
+
+    function buildHarmonicBars(count) {
+      hbars.innerHTML = '';
+      const display = Math.min(count + 1, 51);
+      for (let i = 0; i < count + 1; i++) {
+        const n = 2 * i + 1;
+        const active = i < display;
+        const amplitude = active ? (1 / n) : 0;
+        const heightPx = amplitude * 140;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'h-bar-wrap';
+
+        const bar = document.createElement('div');
+        bar.className = 'h-bar' + (active ? '' : ' inactive');
+        bar.style.height = (active ? Math.max(heightPx * 1.4, 2) : 8) + 'px';
+        bar.style.maxHeight = '140px';
+        bar.style.minHeight = '2px';
+        bar.style.opacity = active ? Math.max(0.2, amplitude) : '0.08';
+        if (active) bar.style.background = harmonicColour(i);
+
+        const lbl = document.createElement('div');
+        lbl.className = 'h-label';
+        lbl.textContent = i === 0 ? 'f' : i;
+
+        wrap.appendChild(bar);
+        wrap.appendChild(lbl);
+        hbars.appendChild(wrap);
+      }
+    }
+
+    function buildLegend(nHarm) {
+      sineLegend.innerHTML = '';
+      const show = Math.min(nHarm, 10);
+      for (let h = 0; h < show; h++) {
+        const colour = harmonicColour(h);
+        const label = h === 0 ? 'f (fundamental)' : `harmonic ${h}`;
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        item.innerHTML = `<div class="legend-swatch" style="background:${colour}"></div>${label}`;
+        sineLegend.appendChild(item);
+      }
+      if (nHarm > 10) {
+        const more = document.createElement('div');
+        more.className = 'legend-item';
+        more.textContent = `+${nHarm - 10} more…`;
+        sineLegend.appendChild(more);
+      }
+    }
+
+    function draw() {
+      const dpr = window.devicePixelRatio || 1;
+      const fullW = canvas.width / dpr;
+      const fullH = canvas.height / dpr;
+
+      const freq = parseFloat(freqSlider.value);
+      const amp = parseFloat(ampSlider.value);
+      const nHarm = parseInt(harmSlider.value);
+
+      const plotW = fullW - PAD_LEFT - PAD_RIGHT;
+      const plotH = fullH - PAD_TOP - PAD_BOTTOM;
+      const scale = (plotH / 2) / amp * 0.75;
+      const cy = plotH / 2;
+      const cycles = 3;
+      const samples = plotW * 2;
+
+      ctx.clearRect(0, 0, fullW, fullH);
+      drawYLabels(ctx, amp, scale, fullW, fullH);
+      drawXLabels(ctx, freq, fullW, fullH);
+
+      ctx.save();
+      ctx.translate(PAD_LEFT, PAD_TOP);
+      drawGrid(ctx, plotW, plotH, amp, scale);
+
+      ctx.shadowColor = 'rgba(0,229,255,0.5)';
+      ctx.shadowBlur = 8;
+      ctx.strokeStyle = 'rgba(0,229,255,0.3)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      for (let px = 0; px < samples; px++) {
+        const t = (px / samples) * cycles / freq;
+        let y = 0;
+        for (let h = 0; h < nHarm; h++) {
+          const n = 2 * h + 1;
+          y += (4 * amp / (Math.PI * n)) * Math.sin(2 * Math.PI * n * freq * t);
+        }
+        const sx = (px / samples) * plotW;
+        const sy = cy - y * scale;
+        if (px === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let px = 0; px < samples; px++) {
+        const t = (px / samples) * cycles / freq;
+        let y = 0;
+        for (let h = 0; h < nHarm; h++) {
+          const n = 2 * h + 1;
+          y += (4 * amp / (Math.PI * n)) * Math.sin(2 * Math.PI * n * freq * t);
+        }
+        const sx = (px / samples) * plotW;
+        const sy = cy - y * scale;
+        if (px === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255,107,53,0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      for (let px = 0; px < samples; px++) {
+        const t = (px / samples) * cycles / freq;
+        const period = 1 / freq;
+        const phase = (t % period) / period;
+        const y = phase < 0.5 ? amp : -amp;
+        const sx = (px / samples) * plotW;
+        const sy = cy - y * scale;
+        if (px === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = 'rgba(255,107,53,0.8)';
+      ctx.font = '11px Share Tech Mono';
+      ctx.textAlign = 'left';
+      ctx.fillText('← Gibbs', plotW * 0.17, cy - amp * scale * 1.19);
+      ctx.fillText('  phenomenon', plotW * 0.17, cy - amp * scale * 1.19 + 14);
+
+      ctx.restore();
+    }
+
+    function drawSines() {
+      const dpr = window.devicePixelRatio || 1;
+      const fullW = sineCanvas.width / dpr;
+      const fullH = sineCanvas.height / dpr;
+
+      const freq = parseFloat(freqSlider.value);
+      const amp = parseFloat(ampSlider.value);
+      const nHarm = parseInt(harmSlider.value);
+
+      const plotW = fullW - PAD_LEFT - PAD_RIGHT;
+      const plotH = fullH - PAD_TOP - PAD_BOTTOM;
+      const scale = (plotH / 2) / amp * 0.75;
+      const cy = plotH / 2;
+      const cycles = 3;
+      const samples = plotW * 2;
+
+      sineCtx.clearRect(0, 0, fullW, fullH);
+      drawYLabels(sineCtx, amp, scale, fullW, fullH);
+      drawXLabels(sineCtx, freq, fullW, fullH);
+
+      sineCtx.save();
+      sineCtx.translate(PAD_LEFT, PAD_TOP);
+      drawGrid(sineCtx, plotW, plotH, amp, scale);
+
+      for (let h = 0; h < nHarm; h++) {
+        const n = 2 * h + 1;
+        const colour = harmonicColour(h);
+        const alpha = Math.max(0.25, 1 - h * 0.04);
+
+        sineCtx.shadowColor = colour;
+        sineCtx.shadowBlur = 4;
+        sineCtx.globalAlpha = alpha * 0.35;
+        sineCtx.strokeStyle = colour;
+        sineCtx.lineWidth = 3;
+        sineCtx.beginPath();
+        for (let px = 0; px < samples; px++) {
+          const t = (px / samples) * cycles / freq;
+          const y = (4 * amp / (Math.PI * n)) * Math.sin(2 * Math.PI * n * freq * t);
+          const sx = (px / samples) * plotW;
+          const sy = cy - y * scale;
+          if (px === 0) sineCtx.moveTo(sx, sy); else sineCtx.lineTo(sx, sy);
+        }
+        sineCtx.stroke();
+
+        sineCtx.shadowBlur = 0;
+        sineCtx.globalAlpha = alpha;
+        sineCtx.lineWidth = 1.5;
+        sineCtx.beginPath();
+        for (let px = 0; px < samples; px++) {
+          const t = (px / samples) * cycles / freq;
+          const y = (4 * amp / (Math.PI * n)) * Math.sin(2 * Math.PI * n * freq * t);
+          const sx = (px / samples) * plotW;
+          const sy = cy - y * scale;
+          if (px === 0) sineCtx.moveTo(sx, sy); else sineCtx.lineTo(sx, sy);
+        }
+        sineCtx.stroke();
+        sineCtx.globalAlpha = 1;
+      }
+
+      sineCtx.restore();
+    }
+
+    // ── Spreadsheet generation ──────────────────────────────────────────────
+
+    function generateSpreadsheet() {
+      const freq = parseFloat(freqSlider.value);
+      const amp = parseFloat(ampSlider.value);
+      const nHarm = parseInt(harmSlider.value);
+
+      const wb = XLSX.utils.book_new();
+
+      // Helper: right-align a cell by address
+      function rightAlign(ws, addr) {
+        if (!ws[addr]) return;
+        if (!ws[addr].s) ws[addr].s = {};
+        ws[addr].s.alignment = { horizontal: 'right' };
+      }
+
+      // ── Sheet 1: Fourier Analysis ─────────────────────────────────────────
+      const wsData = [];
+
+      // Title block
+      wsData.push([`Square Wave Simulator — f=${freq}Hz  A=${amp}V  Harmonics=${nHarm}`]);
+      wsData.push([`P = 1s ÷ f       P = ${(1 / freq).toFixed(4)}s`]);
+      wsData.push([]);
+      wsData.push([`Instantaneous Fundamental Voltage: v = V·SIN(θ)`]);
+      wsData.push([`Instantaneous Harmonic Voltage:    v = V·SIN(θ·(fn/f1))`]);
+      wsData.push([`Where: V = peak voltage (V), θ = angle (degrees), fn = harmonic frequency, f1 = fundamental frequency`]);
+      wsData.push([]);
+
+      // Column headers using roman numerals
+      const headerRow = ['Instant (°)', ...Array.from({ length: nHarm }, (_, h) => toRoman(h)), 'Resultant'];
+      wsData.push(headerRow);  // row index 7 (0-based)
+
+      // Frequency row
+      const freqRow = ['Frequency (Hz)'];
+      for (let h = 0; h < nHarm; h++) {
+        const n = 2 * h + 1;
+        freqRow.push(n * freq);
+      }
+      freqRow.push('');
+      wsData.push(freqRow);
+
+      // Amplitude row
+      const ampRow = ['Amplitude (V)'];
+      for (let h = 0; h < nHarm; h++) {
+        const n = 2 * h + 1;
+        ampRow.push(parseFloat((4 * amp / (Math.PI * n)).toFixed(4)));
+      }
+      ampRow.push('');
+      wsData.push(ampRow);
+
+      // Period row
+      const periodRow = ['Period (s)'];
+      for (let h = 0; h < nHarm; h++) {
+        const n = 2 * h + 1;
+        periodRow.push(parseFloat((1 / (n * freq)).toFixed(4)));
+      }
+      periodRow.push('');
+      wsData.push(periodRow);
+
+      // Formula header row — shows V x SIN(°) once per column
+      const formulaHeaderRow = ['Instantaneous (V)'];
+      for (let h = 0; h < nHarm; h++) {
+        const n = 2 * h + 1;
+        const peakV = (4 * amp / (Math.PI * n)).toFixed(3);
+        formulaHeaderRow.push(`${peakV} x SIN(θ)`);
+      }
+      formulaHeaderRow.push(`Sum (f + ${nHarm - 1} harmonics)`);
+      wsData.push(formulaHeaderRow);
+
+      wsData.push([]);
+
+      // Data rows — one row per angle, values only
+      for (let deg = 0; deg <= 360; deg += 10) {
+        const valueRow = [`${deg}°`];
+        let resultant = 0;
+
+        for (let h = 0; h < nHarm; h++) {
+          const n = 2 * h + 1;
+          const peakV = 4 * amp / (Math.PI * n);
+          const radHarm = (deg * n) * Math.PI / 180;
+          const val = peakV * Math.sin(radHarm);
+          resultant += val;
+          valueRow.push(deg === 0 ? 0 : parseFloat(val.toFixed(4)));
+        }
+
+        valueRow.push(deg === 0 ? 0 : parseFloat(resultant.toFixed(4)));
+        wsData.push(valueRow);
+      }
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+      // Column widths
+      const colWidths = [{ wch: 16 }];
+      for (let h = 0; h < nHarm; h++) colWidths.push({ wch: 16 });
+      colWidths.push({ wch: 14 });
+      ws['!cols'] = colWidths;
+
+      // Right-align all data columns (col 1 onward) for every data row
+      const totalRows = wsData.length;
+      const totalCols = 1 + nHarm + 1; // angle + harmonics + resultant
+      for (let r = 0; r < totalRows; r++) {
+        for (let c = 1; c < totalCols; c++) {
+          const addr = XLSX.utils.encode_cell({ r, c });
+          if (ws[addr]) {
+            if (!ws[addr].s) ws[addr].s = {};
+            ws[addr].s.alignment = { horizontal: 'right' };
+          }
+        }
+      }
+
+      XLSX.utils.book_append_sheet(wb, ws, 'Fourier Analysis');
+
+      // ── Sheet 2: Parameters ───────────────────────────────────────────────
+      const paramsData = [
+        ['Parameter', 'Value', 'Notes'],
+        ['Frequency (Hz)', freq, 'Base frequency of the square wave'],
+        ['Amplitude (V)', amp, 'Peak amplitude'],
+        ['Number of Harmonics', nHarm, 'Odd harmonics summed (1, 3, 5…)'],
+        ['Period (s)', parseFloat((1 / freq).toFixed(6)), 'P = 1 / f'],
+        [],
+        ['Harmonic', 'n value', 'Frequency (Hz)', 'Peak Amplitude (V)'],
+      ];
+      for (let h = 0; h < nHarm; h++) {
+        const n = 2 * h + 1;
+        paramsData.push([
+          toRoman(h),
+          n,
+          n * freq,
+          parseFloat((4 * amp / (Math.PI * n)).toFixed(4))
+        ]);
+      }
+
+      const wsParams = XLSX.utils.aoa_to_sheet(paramsData);
+      wsParams['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 18 }, { wch: 20 }];
+      XLSX.utils.book_append_sheet(wb, wsParams, 'Parameters');
+
+      XLSX.writeFile(wb, `square_wave_f${freq}Hz_A${amp}V_H${nHarm}.xlsx`);
+    }
+
+    document.getElementById('btnDownload').addEventListener('click', generateSpreadsheet);
+
+    // ── Main update ───────────────────────────────────────────────────────────
+
+    function update() {
+      const freq = parseFloat(freqSlider.value);
+      const amp = parseFloat(ampSlider.value);
+      const nHarm = parseInt(harmSlider.value);
+
+      freqVal.innerHTML = freq + '<span class="unit">Hz</span>';
+      ampVal.innerHTML = amp + '<span class="unit">V</span>';
+      harmVal.textContent = nHarm;
+
+      badgeFreq.textContent = `f = ${freq} Hz`;
+      badgeHarm.textContent = `n = ${nHarm} harmonic${nHarm !== 1 ? 's' : ''}`;
+      badgeFreq2.textContent = `f = ${freq} Hz`;
+      badgeHarm2.textContent = `n = ${nHarm} harmonic${nHarm !== 1 ? 's' : ''}`;
+
+      buildHarmonicBars(nHarm);
+      buildLegend(nHarm);
+      draw();
+      drawSines();
+    }
+
+    freqSlider.addEventListener('input', update);
+    ampSlider.addEventListener('input', update);
+    harmSlider.addEventListener('input', update);
+    window.addEventListener('resize', () => { resizeCanvas(); update(); });
+
+    resizeCanvas();
+    update();
+  </script>
+</body>
+
+</html>
