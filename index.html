@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barry's Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0d14;
+            --panel: #0f1420;
+            --border: #1e2d4a;
+            --accent: #00e5ff;
+            --accent2: #ff6b35;
+            --grid: rgba(0, 229, 255, 0.06);
+            --text: #c8d8e8;
+            --label: #5a7a9a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Share Tech Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 1.5rem;
+            background-image:
+                linear-gradient(var(--grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            text-shadow: 0 0 40px rgba(0, 229, 255, 0.5);
+            text-transform: uppercase;
+        }
+
+        header p {
+            margin-top: 0.6rem;
+            color: var(--label);
+            font-size: 0.8rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .tools-grid {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tool-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.8rem;
+            text-decoration: none;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tool-card:hover {
+            border-color: rgba(0, 229, 255, 0.4);
+            box-shadow: 0 0 24px rgba(0, 229, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .tool-card:hover::before {
+            opacity: 1;
+        }
+
+        .tool-icon {
+            font-size: 1.8rem;
+            line-height: 1;
+        }
+
+        .tool-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .tool-desc {
+            font-size: 0.72rem;
+            color: var(--label);
+            line-height: 1.7;
+        }
+
+        .tool-tag {
+            display: inline-block;
+            font-size: 0.6rem;
+            padding: 2px 7px;
+            border-radius: 2px;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: auto;
+            align-self: flex-start;
+        }
+
+        footer {
+            margin-top: 4rem;
+            font-size: 0.65rem;
+            color: var(--label);
+            opacity: 0.4;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Barry's Tools</h1>
+        <p>A collection of educational simulators &amp; utilities</p>
+    </header>
+
+    <div class="tools-grid">
+
+        <a class="tool-card" href="square_wave_simulator.html">
+            <div class="tool-icon">〜</div>
+            <div class="tool-name">Square Wave Simulator</div>
+            <div class="tool-desc">
+                Fourier series approximation of a square wave.
+                Adjust frequency, amplitude and harmonics interactively.
+                Includes harmonic spectrum and downloadable spreadsheet.
+            </div>
+            <span class="tool-tag">Electronics · Maths</span>
+        </a>
+
+        <!-- Add new tools below this line, copy the card block above -->
+
+    </div>
+
+    <footer>Barry Duncan · github.io</footer>
+
+</body>
+
+</html>
