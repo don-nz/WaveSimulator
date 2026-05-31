@@ -1022,8 +1022,10 @@
   capSlider.addEventListener('input',  update);
   window.addEventListener('resize', () => { resizeCanvases(); update(); });
 
+  setTimeout(() => {
   resizeCanvases();
   update();
+}, 50);
 </script>
 </body>
 </html>
