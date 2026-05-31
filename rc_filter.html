@@ -151,7 +151,6 @@
       opacity: 0.6;
     }
 
-    /* Capacitor unit selector */
     .cap-row {
       display: flex;
       gap: 0.5rem;
@@ -179,7 +178,6 @@
       color: var(--accent);
     }
 
-    /* Filter type toggle */
     .filter-toggle {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -209,7 +207,6 @@
 
     .divider { border: none; border-top: 1px solid var(--border); }
 
-    /* Info readouts */
     .readout-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -302,7 +299,6 @@
 
 <div class="main-layout">
 
-  <!-- Controls -->
   <div class="controls">
 
     <div class="control-group">
@@ -334,8 +330,8 @@
       <div class="range-limits"><span>1.0</span><span>10.0</span></div>
       <div class="cap-row">
         <button class="cap-btn active" id="btnMicro" onclick="setCapUnit('micro')">μF</button>
-        <button class="cap-btn" id="btnNano" onclick="setCapUnit('nano')">nF</button>
-        <button class="cap-btn" id="btnPico" onclick="setCapUnit('pico')">pF</button>
+        <button class="cap-btn" id="btnNano"  onclick="setCapUnit('nano')">nF</button>
+        <button class="cap-btn" id="btnPico"  onclick="setCapUnit('pico')">pF</button>
       </div>
     </div>
 
@@ -362,7 +358,7 @@
 
   </div>
 
-  <!-- Bode / frequency response chart -->
+  <!-- Bode plot -->
   <div class="chart-area">
     <div class="chart-header">
       <div class="chart-title">Frequency Response</div>
@@ -379,7 +375,7 @@
     <div class="chart-header">
       <div class="chart-title">Circuit Diagram</div>
     </div>
-    <canvas id="circuitCanvas" height="200"></canvas>
+    <canvas id="circuitCanvas" height="220"></canvas>
   </div>
 
 </div>
@@ -387,27 +383,27 @@
 <footer>Barry Duncan · RC Filter Simulator</footer>
 
 <script>
-  const bodeCanvas   = document.getElementById('bodeCanvas');
-  const bodeCtx      = bodeCanvas.getContext('2d');
+  const bodeCanvas    = document.getElementById('bodeCanvas');
+  const bodeCtx       = bodeCanvas.getContext('2d');
   const circuitCanvas = document.getElementById('circuitCanvas');
-  const circuitCtx   = circuitCanvas.getContext('2d');
+  const circuitCtx    = circuitCanvas.getContext('2d');
 
   const voltSlider = document.getElementById('volt');
   const resSlider  = document.getElementById('res');
   const capSlider  = document.getElementById('cap');
 
-  const voltVal     = document.getElementById('volt-val');
-  const resVal      = document.getElementById('res-val');
-  const capVal      = document.getElementById('cap-val');
-  const capUnitLbl  = document.getElementById('cap-unit-label');
+  const voltVal    = document.getElementById('volt-val');
+  const resVal     = document.getElementById('res-val');
+  const capVal     = document.getElementById('cap-val');
+  const capUnitLbl = document.getElementById('cap-unit-label');
 
   const PAD_LEFT   = 54;
   const PAD_RIGHT  = 20;
   const PAD_TOP    = 16;
   const PAD_BOTTOM = 40;
 
-  let filterType = 'low';   // 'low' | 'high'
-  let capUnit    = 'micro'; // 'micro' | 'nano' | 'pico'
+  let filterType = 'low';
+  let capUnit    = 'micro';
 
   const unitMultiplier = { micro: 1e-6, nano: 1e-9, pico: 1e-12 };
   const unitLabel      = { micro: 'μF', nano: 'nF', pico: 'pF' };
@@ -430,7 +426,7 @@
   function getParams() {
     const Vpp = parseFloat(voltSlider.value);
     const R   = parseFloat(resSlider.value);
-    const raw = parseFloat(capSlider.value) / 10; // slider 1-100 → 0.1-10.0
+    const raw = parseFloat(capSlider.value) / 10;
     const C   = raw * unitMultiplier[capUnit];
     const fc  = 1 / (2 * Math.PI * R * C);
     const tau = R * C;
@@ -438,15 +434,15 @@
   }
 
   function formatFreq(f) {
-    if (f >= 1e6)  return (f / 1e6).toFixed(2) + ' MHz';
-    if (f >= 1e3)  return (f / 1e3).toFixed(2) + ' kHz';
+    if (f >= 1e6) return (f/1e6).toFixed(2) + ' MHz';
+    if (f >= 1e3) return (f/1e3).toFixed(2) + ' kHz';
     return f.toFixed(2) + ' Hz';
   }
 
   function formatTime(t) {
-    if (t < 1e-6) return (t * 1e9).toFixed(2) + ' ns';
-    if (t < 1e-3) return (t * 1e6).toFixed(2) + ' μs';
-    if (t < 1)    return (t * 1e3).toFixed(2) + ' ms';
+    if (t < 1e-6) return (t*1e9).toFixed(2) + ' ns';
+    if (t < 1e-3) return (t*1e6).toFixed(2) + ' μs';
+    if (t < 1)    return (t*1e3).toFixed(2) + ' ms';
     return t.toFixed(4) + ' s';
   }
 
@@ -461,8 +457,8 @@
 
     const rc = circuitCanvas.parentElement.getBoundingClientRect();
     circuitCanvas.width  = rc.width * dpr;
-    circuitCanvas.height = 200 * dpr;
-    circuitCanvas.style.height = '200px';
+    circuitCanvas.height = 220 * dpr;
+    circuitCanvas.style.height = '220px';
     circuitCtx.scale(dpr, dpr);
   }
 
@@ -475,27 +471,21 @@
     const plotW = fullW - PAD_LEFT - PAD_RIGHT;
     const plotH = fullH - PAD_TOP  - PAD_BOTTOM;
 
-    const { Vpp, fc } = getParams();
-
-    // Auto-range: 3 decades either side of fc, clamped sensibly
+    const { fc } = getParams();
     const logFc   = Math.log10(fc);
     const logFmin = Math.max(-2, logFc - 3);
     const logFmax = Math.min(9,  logFc + 3);
 
     bodeCtx.clearRect(0, 0, fullW, fullH);
 
-    // ── Grid & axes ────────────────────────────────────────────────────────
     bodeCtx.save();
     bodeCtx.translate(PAD_LEFT, PAD_TOP);
 
-    // dB range: -60 to +6
-    const dbMin = -60, dbMax = 6;
-    const dbRange = dbMax - dbMin;
+    const dbMin = -60, dbMax = 6, dbRange = dbMax - dbMin;
 
     function dbToY(db) { return plotH * (1 - (db - dbMin) / dbRange); }
     function logFtoX(lf) { return plotW * (lf - logFmin) / (logFmax - logFmin); }
 
-    // Horizontal grid lines (dB)
     const dbTicks = [6, 0, -3, -10, -20, -40, -60];
     bodeCtx.font      = '9px Share Tech Mono';
     bodeCtx.textAlign = 'right';
@@ -509,92 +499,74 @@
           : 'rgba(30,45,74,0.8)';
       bodeCtx.lineWidth = db === 0 || db === -3 ? 1.5 : 1;
       bodeCtx.beginPath(); bodeCtx.moveTo(0, y); bodeCtx.lineTo(plotW, y); bodeCtx.stroke();
-
-      // Y label
       bodeCtx.fillStyle = db === -3 ? 'rgba(255,107,53,0.8)' : 'rgba(200,220,240,0.7)';
       bodeCtx.fillText(`${db}dB`, -4, y + 3);
     });
 
-    // Vertical grid lines (decades)
     bodeCtx.textAlign = 'center';
     for (let lf = Math.ceil(logFmin); lf <= Math.floor(logFmax); lf++) {
       const x = logFtoX(lf);
       bodeCtx.strokeStyle = 'rgba(30,45,74,0.8)';
-      bodeCtx.lineWidth = 1;
+      bodeCtx.lineWidth   = 1;
       bodeCtx.beginPath(); bodeCtx.moveTo(x, 0); bodeCtx.lineTo(x, plotH); bodeCtx.stroke();
-
-      // Frequency label
       const f = Math.pow(10, lf);
       bodeCtx.fillStyle = 'rgba(200,220,240,0.7)';
-      bodeCtx.font = '9px Share Tech Mono';
+      bodeCtx.font      = '9px Share Tech Mono';
       bodeCtx.fillText(formatFreq(f), x, plotH + 14);
     }
 
-    // ── Response curve ─────────────────────────────────────────────────────
     const samples = plotW * 2;
 
-    // Glow pass
+    // Glow
     bodeCtx.shadowColor = 'rgba(0,229,255,0.5)';
     bodeCtx.shadowBlur  = 8;
     bodeCtx.strokeStyle = 'rgba(0,229,255,0.3)';
     bodeCtx.lineWidth   = 4;
     bodeCtx.beginPath();
     for (let px = 0; px < samples; px++) {
-      const lf  = logFmin + (px / samples) * (logFmax - logFmin);
-      const f   = Math.pow(10, lf);
-      const w   = 2 * Math.PI * f;
-      const wc  = 2 * Math.PI * fc;
-      const ratio = w / wc;
-      let gain;
-      if (filterType === 'low') {
-        gain = 1 / Math.sqrt(1 + ratio * ratio);
-      } else {
-        gain = ratio / Math.sqrt(1 + ratio * ratio);
-      }
+      const lf    = logFmin + (px / samples) * (logFmax - logFmin);
+      const f     = Math.pow(10, lf);
+      const ratio = (2 * Math.PI * f) / (2 * Math.PI * fc);
+      const gain  = filterType === 'low'
+        ? 1 / Math.sqrt(1 + ratio * ratio)
+        : ratio / Math.sqrt(1 + ratio * ratio);
       const db = 20 * Math.log10(Math.max(gain, 1e-10));
       const x  = logFtoX(lf);
       const y  = dbToY(db);
-      if (px === 0) bodeCtx.moveTo(x, y); else bodeCtx.lineTo(x, y);
+      px === 0 ? bodeCtx.moveTo(x, y) : bodeCtx.lineTo(x, y);
     }
     bodeCtx.stroke();
 
-    // Sharp pass
+    // Sharp
     bodeCtx.shadowBlur  = 0;
     bodeCtx.strokeStyle = '#00e5ff';
     bodeCtx.lineWidth   = 2;
     bodeCtx.beginPath();
     for (let px = 0; px < samples; px++) {
-      const lf  = logFmin + (px / samples) * (logFmax - logFmin);
-      const f   = Math.pow(10, lf);
-      const w   = 2 * Math.PI * f;
-      const wc  = 2 * Math.PI * fc;
-      const ratio = w / wc;
-      let gain;
-      if (filterType === 'low') {
-        gain = 1 / Math.sqrt(1 + ratio * ratio);
-      } else {
-        gain = ratio / Math.sqrt(1 + ratio * ratio);
-      }
+      const lf    = logFmin + (px / samples) * (logFmax - logFmin);
+      const f     = Math.pow(10, lf);
+      const ratio = (2 * Math.PI * f) / (2 * Math.PI * fc);
+      const gain  = filterType === 'low'
+        ? 1 / Math.sqrt(1 + ratio * ratio)
+        : ratio / Math.sqrt(1 + ratio * ratio);
       const db = 20 * Math.log10(Math.max(gain, 1e-10));
       const x  = logFtoX(lf);
       const y  = dbToY(db);
-      if (px === 0) bodeCtx.moveTo(x, y); else bodeCtx.lineTo(x, y);
+      px === 0 ? bodeCtx.moveTo(x, y) : bodeCtx.lineTo(x, y);
     }
     bodeCtx.stroke();
 
-    // ── Cutoff frequency marker ────────────────────────────────────────────
-    const fcX   = logFtoX(logFc);
-    const fcY   = dbToY(-3);
+    // Cutoff marker
+    const fcX = logFtoX(logFc);
+    const fcY = dbToY(-3);
 
-    // Vertical dashed line at fc
     bodeCtx.strokeStyle = 'rgba(255,107,53,0.7)';
     bodeCtx.lineWidth   = 1.5;
     bodeCtx.setLineDash([4, 4]);
     bodeCtx.beginPath(); bodeCtx.moveTo(fcX, 0); bodeCtx.lineTo(fcX, plotH); bodeCtx.stroke();
     bodeCtx.setLineDash([]);
 
-    // Dot at -3dB
-    bodeCtx.fillStyle = '#ff6b35';
+    bodeCtx.fillStyle   = '#ff6b35';
     bodeCtx.shadowColor = 'rgba(255,107,53,0.8)';
     bodeCtx.shadowBlur  = 10;
     bodeCtx.beginPath();
@@ -602,56 +574,48 @@
     bodeCtx.fill();
     bodeCtx.shadowBlur = 0;
 
-    // fc label
-    bodeCtx.fillStyle  = 'rgba(255,107,53,0.9)';
-    bodeCtx.font       = '10px Share Tech Mono';
-    bodeCtx.textAlign  = fcX > plotW * 0.7 ? 'right' : 'left';
-    const labelOffset  = fcX > plotW * 0.7 ? -8 : 8;
-    bodeCtx.fillText(`fc = ${formatFreq(fc)}`, fcX + labelOffset, fcY - 10);
-    bodeCtx.fillText(`−3dB`, fcX + labelOffset, fcY + 4);
+    bodeCtx.fillStyle = 'rgba(255,107,53,0.9)';
+    bodeCtx.font      = '10px Share Tech Mono';
+    bodeCtx.textAlign = fcX > plotW * 0.7 ? 'right' : 'left';
+    const lOff        = fcX > plotW * 0.7 ? -8 : 8;
+    bodeCtx.fillText(`fc = ${formatFreq(fc)}`, fcX + lOff, fcY - 10);
+    bodeCtx.fillText(`−3dB`, fcX + lOff, fcY + 4);
 
-    // ── Insertion loss annotation ──────────────────────────────────────────
-    // Show gain at fc (which is always -3dB for RC) and also at 10× fc
-    const f10x   = fc * 10;
-    const lf10x  = Math.log10(f10x);
+    // 10×fc annotation
+    const f10x  = fc * 10;
+    const lf10x = Math.log10(f10x);
     if (lf10x <= logFmax) {
-      const x10  = logFtoX(lf10x);
-      const ratio10 = filterType === 'low' ? 10 : 0.1;
-      // at 10x fc: low pass gain = 1/sqrt(101) ≈ -20.04dB; high pass ≈ -0.04dB
+      const x10   = logFtoX(lf10x);
       const gain10 = filterType === 'low'
         ? 1 / Math.sqrt(1 + 100)
         : 10 / Math.sqrt(1 + 100);
-      const db10 = 20 * Math.log10(gain10);
-      const y10  = dbToY(db10);
-
+      const db10  = 20 * Math.log10(gain10);
+      const y10   = dbToY(db10);
       bodeCtx.fillStyle = 'rgba(0,255,153,0.75)';
       bodeCtx.font      = '9px Share Tech Mono';
       bodeCtx.textAlign = 'left';
       bodeCtx.fillText(`${db10.toFixed(1)}dB @ 10×fc`, x10 + 4, y10 - 6);
-
       bodeCtx.fillStyle = 'rgba(0,255,153,0.5)';
       bodeCtx.beginPath();
       bodeCtx.arc(x10, y10, 4, 0, Math.PI * 2);
       bodeCtx.fill();
     }
 
-    // Axis labels
     bodeCtx.restore();
 
     // Y axis title
     bodeCtx.save();
     bodeCtx.translate(12, PAD_TOP + plotH / 2);
     bodeCtx.rotate(-Math.PI / 2);
-    bodeCtx.fillStyle  = 'rgba(200,220,240,0.5)';
-    bodeCtx.font       = '9px Share Tech Mono';
-    bodeCtx.textAlign  = 'center';
+    bodeCtx.fillStyle = 'rgba(200,220,240,0.5)';
+    bodeCtx.font      = '9px Share Tech Mono';
+    bodeCtx.textAlign = 'center';
     bodeCtx.fillText('GAIN (dB)', 0, 0);
     bodeCtx.restore();
 
-    // X axis title
-    bodeCtx.fillStyle  = 'rgba(200,220,240,0.5)';
-    bodeCtx.font       = '9px Share Tech Mono';
-    bodeCtx.textAlign  = 'center';
+    bodeCtx.fillStyle = 'rgba(200,220,240,0.5)';
+    bodeCtx.font      = '9px Share Tech Mono';
+    bodeCtx.textAlign = 'center';
     bodeCtx.fillText('FREQUENCY', PAD_LEFT + plotW / 2, fullH - 4);
   }
 
@@ -665,193 +629,368 @@
 
     circuitCtx.clearRect(0, 0, W, H);
 
-    const cx = W / 2;
-    const cy = H / 2;
+    // Layout
+    const margin  = 40;
+    const wireY   = H * 0.32;          // top wire Y
+    const gndY    = H * 0.82;          // bottom / ground rail Y
+    const leftX   = margin;
+    const rightX  = W - margin;
 
-    // Layout constants
-    const wireY   = cy - 10;          // main wire Y
-    const left    = W * 0.08;
-    const right   = W * 0.92;
-    const midX    = cx;               // junction between R and C
-    const outX    = W * 0.72;         // Vout tap point
-    const compLen = 60;               // half-length of component symbol
-    const rCx     = W * 0.35;         // resistor centre X
-    const cCx     = filterType === 'low' ? W * 0.65 : W * 0.35; // cap centre X
-    const rCxFinal = filterType === 'low' ? W * 0.35 : W * 0.65;
+    // For low pass:  Vin — [R] —+— Vout,  C shunt to GND at junction
+    // For high pass: Vin — [C] —+— Vout,  R shunt to GND at junction
+    const juncX   = W * 0.62;          // junction between series & shunt component
+    const serMidX = (leftX + juncX) / 2;
 
-    circuitCtx.strokeStyle = '#00e5ff';
-    circuitCtx.lineWidth   = 1.8;
-    circuitCtx.lineCap     = 'round';
-    circuitCtx.lineJoin    = 'round';
+    const wireColour  = '#00e5ff';
+    const compColour  = '#00e5ff';
+    const labelColour = 'rgba(200,220,240,0.85)';
 
-    const lw = 1.8;
-
-    function line(x1, y1, x2, y2, colour, width) {
-      circuitCtx.strokeStyle = colour || '#00e5ff';
-      circuitCtx.lineWidth   = width  || lw;
+    function line(x1, y1, x2, y2, col, lw) {
+      circuitCtx.strokeStyle = col || wireColour;
+      circuitCtx.lineWidth   = lw  || 1.8;
+      circuitCtx.lineCap     = 'round';
       circuitCtx.beginPath();
       circuitCtx.moveTo(x1, y1);
       circuitCtx.lineTo(x2, y2);
       circuitCtx.stroke();
     }
 
-    function dot(x, y, colour) {
-      circuitCtx.fillStyle = colour || '#00e5ff';
+    function dot(x, y) {
+      circuitCtx.fillStyle = wireColour;
       circuitCtx.beginPath();
       circuitCtx.arc(x, y, 3.5, 0, Math.PI * 2);
       circuitCtx.fill();
     }
 
-    // Low pass: Vin —[R]—+—[C to GND]— Vout
-    // High pass: Vin —[C]—+—[R to GND]— Vout
-    const seriesLeft  = W * 0.18;
-    const seriesRight = W * 0.5;
-    const shuntX      = W * 0.65;
-    const shuntTop    = wireY;
-    const shuntBot    = wireY + 70;
-    const voutX       = W * 0.82;
-
-    // ── Top wire: left → series component → junction → Vout ───────────────
-    line(left, wireY, seriesLeft - 30, wireY);
-
-    // Series component (R for LP, C for HP)
-    if (filterType === 'low') {
-      drawResistor(circuitCtx, (seriesLeft + seriesRight) / 2, wireY);
-    } else {
-      drawCapacitorInline(circuitCtx, (seriesLeft + seriesRight) / 2, wireY);
+    function terminalDot(x, y) {
+      circuitCtx.strokeStyle = wireColour;
+      circuitCtx.lineWidth   = 1.8;
+      circuitCtx.beginPath();
+      circuitCtx.arc(x, y, 4, 0, Math.PI * 2);
+      circuitCtx.stroke();
     }
 
-    line(seriesRight, wireY, shuntX, wireY);
-    line(shuntX, wireY, voutX, wireY);
-    line(voutX, wireY, right, wireY);
+    // ── Wires ─────────────────────────────────────────────────────────────
 
-    // Junction dot
-    dot(shuntX, wireY);
+    // Top wire: left terminal → series component → junction → right terminal
+    line(leftX,  wireY, leftX + 30, wireY);         // short stub left
+    line(juncX,  wireY, rightX,     wireY);          // junction to right
 
-    // ── Shunt component to GND ─────────────────────────────────────────────
+    // Bottom wire: left terminal → junction bottom → right terminal
+    line(leftX,  gndY,  juncX,  gndY);
+    line(juncX,  gndY,  rightX, gndY);
+
+    // Left vertical (Vin)
+    line(leftX, wireY, leftX, gndY);
+
+    // Right vertical (Vout)
+    line(rightX, wireY, rightX, gndY);
+
+    // Shunt wire: junction top → shunt component → gnd rail
+    line(juncX, wireY, juncX, gndY);
+
+    // ── Terminal dots (open circles at corners) ────────────────────────────
+    terminalDot(leftX,  wireY);
+    terminalDot(leftX,  gndY);
+    terminalDot(rightX, wireY);
+    terminalDot(rightX, gndY);
+
+    // Junction filled dot
+    dot(juncX, wireY);
+    dot(juncX, gndY);
+
+    // ── Series component ──────────────────────────────────────────────────
     if (filterType === 'low') {
-      drawCapacitorShunt(circuitCtx, shuntX, shuntTop, shuntBot);
+      drawZigzagResistor(serMidX, wireY);
     } else {
-      drawResistorShunt(circuitCtx, shuntX, shuntTop, shuntBot);
+      drawPlateCapacitorInline(serMidX, wireY);
     }
 
-    // GND symbol
-    drawGnd(circuitCtx, shuntX, shuntBot);
+    // ── Shunt component ───────────────────────────────────────────────────
+    const shuntMidY = (wireY + gndY) / 2;
+    if (filterType === 'low') {
+      drawPlateCapacitorShunt(juncX, shuntMidY);
+    } else {
+      drawZigzagResistorShunt(juncX, shuntMidY);
+    }
 
-    // ── Vin label ──────────────────────────────────────────────────────────
-    drawVoltageSource(circuitCtx, left, wireY, Vpp);
+    // ── Ground symbol ─────────────────────────────────────────────────────
+    drawGnd(juncX, gndY);
+
+    // ── Current arrow on top wire (after junction) ─────────────────────
+    const arrowX = juncX + (rightX - juncX) * 0.4;
+    drawArrow(arrowX, wireY);
+
+    // ── Vin label & sine wave ─────────────────────────────────────────────
+    drawVinLabel(leftX, wireY, gndY, Vpp);
 
     // ── Vout label ────────────────────────────────────────────────────────
-    circuitCtx.fillStyle = 'rgba(0,255,153,0.9)';
+    drawVoutLabel(rightX, wireY, gndY);
+
+    // ── Component value labels ────────────────────────────────────────────
+    circuitCtx.fillStyle = labelColour;
     circuitCtx.font      = '11px Share Tech Mono';
-    circuitCtx.textAlign = 'center';
-    circuitCtx.fillText('Vout', right - 10, wireY - 14);
-
-    // Arrow at Vout
-    line(right - 4, wireY, right + 4, wireY, 'rgba(0,255,153,0.7)', 1.5);
-
-    // ── Component value labels ─────────────────────────────────────────────
-    const seriesMidX = (seriesLeft + seriesRight) / 2;
-    circuitCtx.fillStyle = 'rgba(200,220,240,0.8)';
-    circuitCtx.font      = '10px Share Tech Mono';
     circuitCtx.textAlign = 'center';
 
     const rLabel = R >= 1000 ? `${(R/1000).toFixed(1)}kΩ` : `${R}Ω`;
     const cLabel = `${raw.toFixed(1)}${unitLabel[capUnit]}`;
 
     if (filterType === 'low') {
-      circuitCtx.fillText(rLabel, seriesMidX, wireY - 30);
-      circuitCtx.fillText(cLabel, shuntX + 28, shuntTop + 35);
+      // R label above series component
+      circuitCtx.fillText('Resistor, R', serMidX, wireY - 28);
+      circuitCtx.fillStyle = 'rgba(140,160,180,0.7)';
+      circuitCtx.font      = '10px Share Tech Mono';
+      circuitCtx.fillText(rLabel, serMidX, wireY - 16);
+      // C label beside shunt component
+      circuitCtx.fillStyle = labelColour;
+      circuitCtx.font      = '11px Share Tech Mono';
+      circuitCtx.textAlign = 'left';
+      circuitCtx.fillText('Capacitor, C', juncX + 22, shuntMidY - 4);
+      circuitCtx.fillStyle = 'rgba(140,160,180,0.7)';
+      circuitCtx.font      = '10px Share Tech Mono';
+      circuitCtx.fillText(cLabel, juncX + 22, shuntMidY + 10);
     } else {
-      circuitCtx.fillText(cLabel, seriesMidX, wireY - 30);
-      circuitCtx.fillText(rLabel, shuntX + 28, shuntTop + 35);
+      circuitCtx.fillText('Capacitor, C', serMidX, wireY - 28);
+      circuitCtx.fillStyle = 'rgba(140,160,180,0.7)';
+      circuitCtx.font      = '10px Share Tech Mono';
+      circuitCtx.fillText(cLabel, serMidX, wireY - 16);
+      circuitCtx.fillStyle = labelColour;
+      circuitCtx.font      = '11px Share Tech Mono';
+      circuitCtx.textAlign = 'left';
+      circuitCtx.fillText('Resistor, R', juncX + 22, shuntMidY - 4);
+      circuitCtx.fillStyle = 'rgba(140,160,180,0.7)';
+      circuitCtx.font      = '10px Share Tech Mono';
+      circuitCtx.fillText(rLabel, juncX + 22, shuntMidY + 10);
     }
   }
 
-  function drawResistor(c, cx, cy) {
-    const w = 50, h = 14;
-    c.strokeStyle = '#00e5ff';
-    c.lineWidth   = 1.8;
+  // ── Component drawing functions ───────────────────────────────────────────
+
+  // Zigzag resistor — horizontal, centred at (cx, cy)
+  function drawZigzagResistor(cx, cy) {
+    const peaks = 6;
+    const totalW = 60;
+    const h      = 10;
+    const x0     = cx - totalW / 2;
+    const segW   = totalW / peaks;
+
+    circuitCtx.strokeStyle = '#00e5ff';
+    circuitCtx.lineWidth   = 1.8;
+    circuitCtx.lineCap     = 'round';
+    circuitCtx.lineJoin    = 'round';
+
     // Wire stubs
-    c.beginPath(); c.moveTo(cx - w/2 - 10, cy); c.lineTo(cx - w/2, cy); c.stroke();
-    c.beginPath(); c.moveTo(cx + w/2, cy); c.lineTo(cx + w/2 + 10, cy); c.stroke();
-    // Rectangle
-    c.strokeRect(cx - w/2, cy - h/2, w, h);
+    line(cx - totalW / 2 - 14, cy, cx - totalW / 2, cy);
+    line(cx + totalW / 2,       cy, cx + totalW / 2 + 14, cy);
+
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(x0, cy);
+    for (let i = 0; i < peaks; i++) {
+      const xMid = x0 + segW * i + segW / 2;
+      const xEnd = x0 + segW * (i + 1);
+      const yPeak = (i % 2 === 0) ? cy - h : cy + h;
+      circuitCtx.lineTo(xMid, yPeak);
+      circuitCtx.lineTo(xEnd, cy);
+    }
+    circuitCtx.stroke();
   }
 
-  function drawCapacitorInline(c, cx, cy) {
-    const gap = 5, plateH = 18, stubLen = 20;
-    c.strokeStyle = '#00e5ff';
-    c.lineWidth   = 1.8;
-    // Left stub
-    c.beginPath(); c.moveTo(cx - stubLen - gap, cy); c.lineTo(cx - gap, cy); c.stroke();
-    // Right stub
-    c.beginPath(); c.moveTo(cx + gap, cy); c.lineTo(cx + stubLen + gap, cy); c.stroke();
-    // Plates
-    c.beginPath(); c.moveTo(cx - gap, cy - plateH/2); c.lineTo(cx - gap, cy + plateH/2); c.stroke();
-    c.beginPath(); c.moveTo(cx + gap, cy - plateH/2); c.lineTo(cx + gap, cy + plateH/2); c.stroke();
+  // Zigzag resistor — vertical shunt, centred at (cx, cy)
+  function drawZigzagResistorShunt(cx, cy) {
+    const peaks  = 6;
+    const totalH = 60;
+    const w      = 10;
+    const y0     = cy - totalH / 2;
+    const segH   = totalH / peaks;
+
+    circuitCtx.strokeStyle = '#00e5ff';
+    circuitCtx.lineWidth   = 1.8;
+    circuitCtx.lineCap     = 'round';
+    circuitCtx.lineJoin    = 'round';
+
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(cx, y0);
+    for (let i = 0; i < peaks; i++) {
+      const yMid = y0 + segH * i + segH / 2;
+      const yEnd = y0 + segH * (i + 1);
+      const xPeak = (i % 2 === 0) ? cx + w : cx - w;
+      circuitCtx.lineTo(xPeak, yMid);
+      circuitCtx.lineTo(cx, yEnd);
+    }
+    circuitCtx.stroke();
   }
 
-  function drawCapacitorShunt(c, x, y1, y2) {
-    const midY   = (y1 + y2) / 2;
-    const gap    = 5, plateW = 18;
-    c.strokeStyle = '#00e5ff';
-    c.lineWidth   = 1.8;
-    // Top wire
-    c.beginPath(); c.moveTo(x, y1); c.lineTo(x, midY - gap); c.stroke();
-    // Bottom wire
-    c.beginPath(); c.moveTo(x, midY + gap); c.lineTo(x, y2); c.stroke();
-    // Plates
-    c.beginPath(); c.moveTo(x - plateW/2, midY - gap); c.lineTo(x + plateW/2, midY - gap); c.stroke();
-    c.beginPath(); c.moveTo(x - plateW/2, midY + gap); c.lineTo(x + plateW/2, midY + gap); c.stroke();
+  // Plate capacitor — horizontal inline, centred at (cx, cy)
+  function drawPlateCapacitorInline(cx, cy) {
+    const gap    = 6;
+    const plateH = 22;
+    const stubW  = 22;
+
+    circuitCtx.strokeStyle = '#00e5ff';
+    circuitCtx.lineWidth   = 1.8;
+
+    // Stubs
+    line(cx - stubW - gap, cy, cx - gap, cy);
+    line(cx + gap, cy, cx + stubW + gap, cy);
+
+    // Plates — thick filled style
+    circuitCtx.fillStyle = '#00e5ff';
+    circuitCtx.fillRect(cx - gap - 3, cy - plateH / 2, 4, plateH);
+    circuitCtx.fillRect(cx + gap - 1, cy - plateH / 2, 4, plateH);
   }
 
-  function drawResistorShunt(c, x, y1, y2) {
-    const midY = (y1 + y2) / 2;
-    const h = 30, w = 14;
-    c.strokeStyle = '#00e5ff';
-    c.lineWidth   = 1.8;
-    c.beginPath(); c.moveTo(x, y1); c.lineTo(x, midY - h/2); c.stroke();
-    c.beginPath(); c.moveTo(x, midY + h/2); c.lineTo(x, y2); c.stroke();
-    c.strokeRect(x - w/2, midY - h/2, w, h);
+  // Plate capacitor — vertical shunt, centred at (cx, cy)
+  function drawPlateCapacitorShunt(cx, cy) {
+    const gap    = 6;
+    const plateW = 26;
+
+    circuitCtx.fillStyle = '#00e5ff';
+    // Top plate (thick)
+    circuitCtx.fillRect(cx - plateW / 2, cy - gap - 3, plateW, 4);
+    // Bottom plate (thick)
+    circuitCtx.fillRect(cx - plateW / 2, cy + gap - 1, plateW, 4);
   }
 
-  function drawGnd(c, x, y) {
-    c.strokeStyle = 'rgba(0,229,255,0.6)';
-    c.lineWidth   = 1.5;
-    const lines = [[16,0],[10,6],[4,12]];
+  // Ground symbol
+  function drawGnd(x, y) {
+    const lines = [
+      [20, 0],
+      [13, 7],
+      [6,  14],
+    ];
+    circuitCtx.strokeStyle = 'rgba(0,229,255,0.65)';
+    circuitCtx.lineWidth   = 1.8;
+    circuitCtx.lineCap     = 'round';
     lines.forEach(([len, dy]) => {
-      c.beginPath();
-      c.moveTo(x - len/2, y + dy);
-      c.lineTo(x + len/2, y + dy);
-      c.stroke();
+      circuitCtx.beginPath();
+      circuitCtx.moveTo(x - len / 2, y + dy);
+      circuitCtx.lineTo(x + len / 2, y + dy);
+      circuitCtx.stroke();
     });
   }
 
-  function drawVoltageSource(c, x, y, Vpp) {
-    c.strokeStyle = 'rgba(0,229,255,0.7)';
-    c.lineWidth   = 1.5;
-    // Circle
-    c.beginPath();
-    c.arc(x, y, 14, 0, Math.PI * 2);
-    c.stroke();
-    // ~ symbol
-    c.strokeStyle = '#00e5ff';
-    c.lineWidth   = 1.2;
-    c.beginPath();
+  // Current arrow → on top wire
+  function drawArrow(x, y) {
+    const aLen = 18;
+    const aHead = 7;
+    circuitCtx.strokeStyle = 'rgba(200,220,240,0.6)';
+    circuitCtx.fillStyle   = 'rgba(200,220,240,0.6)';
+    circuitCtx.lineWidth   = 1.4;
+
+    // Shaft
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(x - aLen / 2, y - 10);
+    circuitCtx.lineTo(x + aLen / 2, y - 10);
+    circuitCtx.stroke();
+
+    // Arrowhead
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(x + aLen / 2,          y - 10);
+    circuitCtx.lineTo(x + aLen / 2 - aHead,  y - 10 - 4);
+    circuitCtx.lineTo(x + aLen / 2 - aHead,  y - 10 + 4);
+    circuitCtx.closePath();
+    circuitCtx.fill();
+
+    // Label
+    circuitCtx.fillStyle  = 'rgba(200,220,240,0.6)';
+    circuitCtx.font       = '11px Share Tech Mono';
+    circuitCtx.textAlign  = 'center';
+    circuitCtx.fillText('I', x, y - 14);
+  }
+
+  // Vin label with sine wave
+  function drawVinLabel(x, wireY, gndY, Vpp) {
+    const midY   = (wireY + gndY) / 2;
+    const labelX = x - 22;
+
+    // Sine wave decoration
+    circuitCtx.strokeStyle = 'rgba(0,229,255,0.5)';
+    circuitCtx.lineWidth   = 1.4;
+    circuitCtx.beginPath();
+    const sineH = 18, sineW = 28;
     for (let i = 0; i <= 40; i++) {
       const t  = (i / 40) * Math.PI * 2;
-      const px = x - 8 + (16 * i / 40);
-      const py = y + Math.sin(t) * 4;
-      if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+      const px = labelX - sineW / 2 + (sineW * i / 40);
+      const py = wireY + 18 + Math.sin(t) * sineH / 2;
+      i === 0 ? circuitCtx.moveTo(px, py) : circuitCtx.lineTo(px, py);
     }
-    c.stroke();
-    // Label
-    c.fillStyle  = 'rgba(200,220,240,0.8)';
-    c.font       = '10px Share Tech Mono';
-    c.textAlign  = 'center';
-    c.fillText(`${Vpp}Vpp`, x, y + 28);
-    c.fillText('Vin', x, y - 20);
+    circuitCtx.stroke();
+
+    // Vin text
+    circuitCtx.fillStyle  = 'rgba(200,220,240,0.85)';
+    circuitCtx.font       = 'italic 13px Share Tech Mono';
+    circuitCtx.textAlign  = 'center';
+    circuitCtx.fillText('V', labelX - 3, midY + 5);
+    circuitCtx.font       = '9px Share Tech Mono';
+    circuitCtx.fillText('in', labelX + 7, midY + 8);
+
+    // Vpp value
+    circuitCtx.fillStyle = 'rgba(140,160,180,0.6)';
+    circuitCtx.font      = '9px Share Tech Mono';
+    circuitCtx.fillText(`${Vpp}Vpp`, labelX, midY + 20);
+
+    // Arrows for Vin
+    circuitCtx.strokeStyle = 'rgba(200,220,240,0.5)';
+    circuitCtx.lineWidth   = 1.2;
+    // Up arrow
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(labelX, wireY + 4);
+    circuitCtx.lineTo(labelX, midY - 18);
+    circuitCtx.stroke();
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(labelX, wireY + 4);
+    circuitCtx.lineTo(labelX - 4, wireY + 12);
+    circuitCtx.moveTo(labelX, wireY + 4);
+    circuitCtx.lineTo(labelX + 4, wireY + 12);
+    circuitCtx.stroke();
+    // Down arrow
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(labelX, gndY - 4);
+    circuitCtx.lineTo(labelX, midY + 28);
+    circuitCtx.stroke();
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(labelX, gndY - 4);
+    circuitCtx.lineTo(labelX - 4, gndY - 12);
+    circuitCtx.moveTo(labelX, gndY - 4);
+    circuitCtx.lineTo(labelX + 4, gndY - 12);
+    circuitCtx.stroke();
+  }
+
+  // Vout label
+  function drawVoutLabel(x, wireY, gndY) {
+    const midY   = (wireY + gndY) / 2;
+    const labelX = x + 22;
+
+    circuitCtx.fillStyle  = 'rgba(0,255,153,0.85)';
+    circuitCtx.font       = 'italic 13px Share Tech Mono';
+    circuitCtx.textAlign  = 'center';
+    circuitCtx.fillText('V', labelX - 3, midY + 5);
+    circuitCtx.font       = '9px Share Tech Mono';
+    circuitCtx.fillText('out', labelX + 9, midY + 8);
+
+    // Arrows for Vout
+    circuitCtx.strokeStyle = 'rgba(0,255,153,0.5)';
+    circuitCtx.lineWidth   = 1.2;
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(labelX, wireY + 4);
+    circuitCtx.lineTo(labelX, midY - 14);
+    circuitCtx.stroke();
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(labelX, wireY + 4);
+    circuitCtx.lineTo(labelX - 4, wireY + 12);
+    circuitCtx.moveTo(labelX, wireY + 4);
+    circuitCtx.lineTo(labelX + 4, wireY + 12);
+    circuitCtx.stroke();
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(labelX, gndY - 4);
+    circuitCtx.lineTo(labelX, midY + 20);
+    circuitCtx.stroke();
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(labelX, gndY - 4);
+    circuitCtx.lineTo(labelX - 4, gndY - 12);
+    circuitCtx.moveTo(labelX, gndY - 4);
+    circuitCtx.lineTo(labelX + 4, gndY - 12);
+    circuitCtx.stroke();
   }
 
   // ── Update ────────────────────────────────────────────────────────────────
@@ -859,7 +998,6 @@
   function update() {
     const { Vpp, R, C, raw, fc, tau } = getParams();
 
-    // Display values
     voltVal.innerHTML = `${Vpp}<span class="unit">V</span>`;
     resVal.innerHTML  = R >= 1000
       ? `${(R/1000).toFixed(1)}<span class="unit">kΩ</span>`
@@ -867,16 +1005,11 @@
     capVal.innerHTML  = `${raw.toFixed(1)}<span class="unit">${unitLabel[capUnit]}</span>`;
     capUnitLbl.textContent = unitLabel[capUnit];
 
-    // Readouts
     document.getElementById('ro-fc').textContent  = formatFreq(fc);
     document.getElementById('ro-tau').textContent = formatTime(tau);
     document.getElementById('ro-3db').textContent = formatFreq(fc);
-
-    // Insertion loss at fc = -3dB always for RC
-    // Show passband insertion loss (ideally 0dB for simple RC)
     document.getElementById('ro-il').textContent  = '−3.01 dB';
 
-    // Badges
     document.getElementById('badge-filter').textContent = filterType === 'low' ? 'Low Pass' : 'High Pass';
     document.getElementById('badge-fc').textContent     = `fc = ${formatFreq(fc)}`;
 
@@ -885,8 +1018,8 @@
   }
 
   voltSlider.addEventListener('input', update);
-  resSlider.addEventListener('input', update);
-  capSlider.addEventListener('input', update);
+  resSlider.addEventListener('input',  update);
+  capSlider.addEventListener('input',  update);
   window.addEventListener('resize', () => { resizeCanvases(); update(); });
 
   resizeCanvases();
