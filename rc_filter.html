@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RC Filter Simulator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0d14;
+      --panel: #0f1420;
+      --border: #1e2d4a;
+      --accent: #00e5ff;
+      --accent2: #ff6b35;
+      --accent3: #00ff99;
+      --grid: rgba(0, 229, 255, 0.06);
+      --text: #c8d8e8;
+      --label: #5a7a9a;
+      --glow: 0 0 20px rgba(0, 229, 255, 0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    header { text-align: center; margin-bottom: 2.5rem; }
+
+    header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-shadow: 0 0 30px rgba(0, 229, 255, 0.5);
+      text-transform: uppercase;
+    }
+
+    header p {
+      margin-top: 0.5rem;
+      color: var(--label);
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .main-layout {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: auto auto;
+      gap: 1.5rem;
+    }
+
+    .controls {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+    }
+
+    .chart-area {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--label);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .control-group .value-display {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      margin-bottom: 0.6rem;
+      line-height: 1;
+    }
+
+    .control-group .unit {
+      font-size: 0.75rem;
+      color: var(--label);
+      margin-left: 4px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0,229,255,0.6);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0,229,255,0.6);
+      border: none; cursor: pointer;
+    }
+
+    .range-limits {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: var(--label);
+      margin-top: 4px;
+      opacity: 0.6;
+    }
+
+    /* Capacitor unit selector */
+    .cap-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .cap-btn {
+      flex: 1;
+      padding: 5px 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--label);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      letter-spacing: 0.05em;
+    }
+
+    .cap-btn.active {
+      background: rgba(0,229,255,0.1);
+      border-color: rgba(0,229,255,0.5);
+      color: var(--accent);
+    }
+
+    /* Filter type toggle */
+    .filter-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .filter-btn {
+      padding: 0.6rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--label);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .filter-btn.active {
+      background: rgba(0,229,255,0.1);
+      border-color: rgba(0,229,255,0.5);
+      color: var(--accent);
+    }
+
+    .divider { border: none; border-top: 1px solid var(--border); }
+
+    /* Info readouts */
+    .readout-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+    }
+
+    .readout {
+      background: rgba(0,229,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.6rem 0.8rem;
+    }
+
+    .readout-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: var(--label);
+      text-transform: uppercase;
+    }
+
+    .readout-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent2);
+      margin-top: 3px;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .chart-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--label);
+      text-transform: uppercase;
+    }
+
+    .badge-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+    .badge {
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      border-radius: 2px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .badge-cyan {
+      background: rgba(0,229,255,0.1);
+      border: 1px solid rgba(0,229,255,0.3);
+      color: var(--accent);
+    }
+
+    .badge-orange {
+      background: rgba(255,107,53,0.1);
+      border: 1px solid rgba(255,107,53,0.3);
+      color: var(--accent2);
+    }
+
+    canvas { width: 100%; border-radius: 2px; display: block; }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.65rem;
+      color: var(--label);
+      opacity: 0.5;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 700px) {
+      .main-layout { grid-template-columns: 1fr; }
+      .controls { grid-row: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>RC Filter Simulator</h1>
+  <p>Low Pass · High Pass · Frequency Response</p>
+</header>
+
+<div class="main-layout">
+
+  <!-- Controls -->
+  <div class="controls">
+
+    <div class="control-group">
+      <label>Filter Type</label>
+      <div class="filter-toggle">
+        <button class="filter-btn active" id="btnLP" onclick="setFilter('low')">Low Pass</button>
+        <button class="filter-btn" id="btnHP" onclick="setFilter('high')">High Pass</button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Voltage (Peak to Peak)</label>
+      <div class="value-display" id="volt-val">8<span class="unit">V</span></div>
+      <input type="range" id="volt" min="2" max="14" step="1" value="8">
+      <div class="range-limits"><span>2V</span><span>14V</span></div>
+    </div>
+
+    <div class="control-group">
+      <label>Resistance</label>
+      <div class="value-display" id="res-val">1000<span class="unit">Ω</span></div>
+      <input type="range" id="res" min="100" max="5000" step="100" value="1000">
+      <div class="range-limits"><span>100Ω</span><span>5kΩ</span></div>
+    </div>
+
+    <div class="control-group">
+      <label>Capacitance</label>
+      <div class="value-display" id="cap-val">1.0<span class="unit" id="cap-unit-label">μF</span></div>
+      <input type="range" id="cap" min="1" max="100" step="1" value="10">
+      <div class="range-limits"><span>1.0</span><span>10.0</span></div>
+      <div class="cap-row">
+        <button class="cap-btn active" id="btnMicro" onclick="setCapUnit('micro')">μF</button>
+        <button class="cap-btn" id="btnNano" onclick="setCapUnit('nano')">nF</button>
+        <button class="cap-btn" id="btnPico" onclick="setCapUnit('pico')">pF</button>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="readout-grid">
+      <div class="readout">
+        <div class="readout-label">Cutoff Freq</div>
+        <div class="readout-value" id="ro-fc">—</div>
+      </div>
+      <div class="readout">
+        <div class="readout-label">Time Const τ</div>
+        <div class="readout-value" id="ro-tau">—</div>
+      </div>
+      <div class="readout">
+        <div class="readout-label">−3dB Point</div>
+        <div class="readout-value" id="ro-3db">—</div>
+      </div>
+      <div class="readout">
+        <div class="readout-label">Insertion Loss</div>
+        <div class="readout-value" id="ro-il">—</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bode / frequency response chart -->
+  <div class="chart-area">
+    <div class="chart-header">
+      <div class="chart-title">Frequency Response</div>
+      <div class="badge-row">
+        <span class="badge badge-cyan" id="badge-filter">Low Pass</span>
+        <span class="badge badge-orange" id="badge-fc">fc = —</span>
+      </div>
+    </div>
+    <canvas id="bodeCanvas" height="280"></canvas>
+  </div>
+
+  <!-- Circuit diagram -->
+  <div class="chart-area">
+    <div class="chart-header">
+      <div class="chart-title">Circuit Diagram</div>
+    </div>
+    <canvas id="circuitCanvas" height="200"></canvas>
+  </div>
+
+</div>
+
+<footer>Barry Duncan · RC Filter Simulator</footer>
+
+<script>
+  const bodeCanvas   = document.getElementById('bodeCanvas');
+  const bodeCtx      = bodeCanvas.getContext('2d');
+  const circuitCanvas = document.getElementById('circuitCanvas');
+  const circuitCtx   = circuitCanvas.getContext('2d');
+
+  const voltSlider = document.getElementById('volt');
+  const resSlider  = document.getElementById('res');
+  const capSlider  = document.getElementById('cap');
+
+  const voltVal     = document.getElementById('volt-val');
+  const resVal      = document.getElementById('res-val');
+  const capVal      = document.getElementById('cap-val');
+  const capUnitLbl  = document.getElementById('cap-unit-label');
+
+  const PAD_LEFT   = 54;
+  const PAD_RIGHT  = 20;
+  const PAD_TOP    = 16;
+  const PAD_BOTTOM = 40;
+
+  let filterType = 'low';   // 'low' | 'high'
+  let capUnit    = 'micro'; // 'micro' | 'nano' | 'pico'
+
+  const unitMultiplier = { micro: 1e-6, nano: 1e-9, pico: 1e-12 };
+  const unitLabel      = { micro: 'μF', nano: 'nF', pico: 'pF' };
+
+  function setFilter(type) {
+    filterType = type;
+    document.getElementById('btnLP').classList.toggle('active', type === 'low');
+    document.getElementById('btnHP').classList.toggle('active', type === 'high');
+    update();
+  }
+
+  function setCapUnit(unit) {
+    capUnit = unit;
+    document.getElementById('btnMicro').classList.toggle('active', unit === 'micro');
+    document.getElementById('btnNano').classList.toggle('active',  unit === 'nano');
+    document.getElementById('btnPico').classList.toggle('active',  unit === 'pico');
+    update();
+  }
+
+  function getParams() {
+    const Vpp = parseFloat(voltSlider.value);
+    const R   = parseFloat(resSlider.value);
+    const raw = parseFloat(capSlider.value) / 10; // slider 1-100 → 0.1-10.0
+    const C   = raw * unitMultiplier[capUnit];
+    const fc  = 1 / (2 * Math.PI * R * C);
+    const tau = R * C;
+    return { Vpp, R, C, raw, fc, tau };
+  }
+
+  function formatFreq(f) {
+    if (f >= 1e6)  return (f / 1e6).toFixed(2) + ' MHz';
+    if (f >= 1e3)  return (f / 1e3).toFixed(2) + ' kHz';
+    return f.toFixed(2) + ' Hz';
+  }
+
+  function formatTime(t) {
+    if (t < 1e-6) return (t * 1e9).toFixed(2) + ' ns';
+    if (t < 1e-3) return (t * 1e6).toFixed(2) + ' μs';
+    if (t < 1)    return (t * 1e3).toFixed(2) + ' ms';
+    return t.toFixed(4) + ' s';
+  }
+
+  function resizeCanvases() {
+    const dpr = window.devicePixelRatio || 1;
+
+    const rb = bodeCanvas.parentElement.getBoundingClientRect();
+    bodeCanvas.width  = rb.width * dpr;
+    bodeCanvas.height = 280 * dpr;
+    bodeCanvas.style.height = '280px';
+    bodeCtx.scale(dpr, dpr);
+
+    const rc = circuitCanvas.parentElement.getBoundingClientRect();
+    circuitCanvas.width  = rc.width * dpr;
+    circuitCanvas.height = 200 * dpr;
+    circuitCanvas.style.height = '200px';
+    circuitCtx.scale(dpr, dpr);
+  }
+
+  // ── Bode plot ─────────────────────────────────────────────────────────────
+
+  function drawBode() {
+    const dpr   = window.devicePixelRatio || 1;
+    const fullW = bodeCanvas.width  / dpr;
+    const fullH = bodeCanvas.height / dpr;
+    const plotW = fullW - PAD_LEFT - PAD_RIGHT;
+    const plotH = fullH - PAD_TOP  - PAD_BOTTOM;
+
+    const { Vpp, fc } = getParams();
+
+    // Auto-range: 3 decades either side of fc, clamped sensibly
+    const logFc   = Math.log10(fc);
+    const logFmin = Math.max(-2, logFc - 3);
+    const logFmax = Math.min(9,  logFc + 3);
+
+    bodeCtx.clearRect(0, 0, fullW, fullH);
+
+    // ── Grid & axes ────────────────────────────────────────────────────────
+    bodeCtx.save();
+    bodeCtx.translate(PAD_LEFT, PAD_TOP);
+
+    // dB range: -60 to +6
+    const dbMin = -60, dbMax = 6;
+    const dbRange = dbMax - dbMin;
+
+    function dbToY(db) { return plotH * (1 - (db - dbMin) / dbRange); }
+    function logFtoX(lf) { return plotW * (lf - logFmin) / (logFmax - logFmin); }
+
+    // Horizontal grid lines (dB)
+    const dbTicks = [6, 0, -3, -10, -20, -40, -60];
+    bodeCtx.font      = '9px Share Tech Mono';
+    bodeCtx.textAlign = 'right';
+
+    dbTicks.forEach(db => {
+      const y = dbToY(db);
+      bodeCtx.strokeStyle = db === 0
+        ? 'rgba(0,229,255,0.15)'
+        : db === -3
+          ? 'rgba(255,107,53,0.25)'
+          : 'rgba(30,45,74,0.8)';
+      bodeCtx.lineWidth = db === 0 || db === -3 ? 1.5 : 1;
+      bodeCtx.beginPath(); bodeCtx.moveTo(0, y); bodeCtx.lineTo(plotW, y); bodeCtx.stroke();
+
+      // Y label
+      bodeCtx.fillStyle = db === -3 ? 'rgba(255,107,53,0.8)' : 'rgba(200,220,240,0.7)';
+      bodeCtx.fillText(`${db}dB`, -4, y + 3);
+    });
+
+    // Vertical grid lines (decades)
+    bodeCtx.textAlign = 'center';
+    for (let lf = Math.ceil(logFmin); lf <= Math.floor(logFmax); lf++) {
+      const x = logFtoX(lf);
+      bodeCtx.strokeStyle = 'rgba(30,45,74,0.8)';
+      bodeCtx.lineWidth = 1;
+      bodeCtx.beginPath(); bodeCtx.moveTo(x, 0); bodeCtx.lineTo(x, plotH); bodeCtx.stroke();
+
+      // Frequency label
+      const f = Math.pow(10, lf);
+      bodeCtx.fillStyle = 'rgba(200,220,240,0.7)';
+      bodeCtx.font = '9px Share Tech Mono';
+      bodeCtx.fillText(formatFreq(f), x, plotH + 14);
+    }
+
+    // ── Response curve ─────────────────────────────────────────────────────
+    const samples = plotW * 2;
+
+    // Glow pass
+    bodeCtx.shadowColor = 'rgba(0,229,255,0.5)';
+    bodeCtx.shadowBlur  = 8;
+    bodeCtx.strokeStyle = 'rgba(0,229,255,0.3)';
+    bodeCtx.lineWidth   = 4;
+    bodeCtx.beginPath();
+    for (let px = 0; px < samples; px++) {
+      const lf  = logFmin + (px / samples) * (logFmax - logFmin);
+      const f   = Math.pow(10, lf);
+      const w   = 2 * Math.PI * f;
+      const wc  = 2 * Math.PI * fc;
+      const ratio = w / wc;
+      let gain;
+      if (filterType === 'low') {
+        gain = 1 / Math.sqrt(1 + ratio * ratio);
+      } else {
+        gain = ratio / Math.sqrt(1 + ratio * ratio);
+      }
+      const db = 20 * Math.log10(Math.max(gain, 1e-10));
+      const x  = logFtoX(lf);
+      const y  = dbToY(db);
+      if (px === 0) bodeCtx.moveTo(x, y); else bodeCtx.lineTo(x, y);
+    }
+    bodeCtx.stroke();
+
+    // Sharp pass
+    bodeCtx.shadowBlur  = 0;
+    bodeCtx.strokeStyle = '#00e5ff';
+    bodeCtx.lineWidth   = 2;
+    bodeCtx.beginPath();
+    for (let px = 0; px < samples; px++) {
+      const lf  = logFmin + (px / samples) * (logFmax - logFmin);
+      const f   = Math.pow(10, lf);
+      const w   = 2 * Math.PI * f;
+      const wc  = 2 * Math.PI * fc;
+      const ratio = w / wc;
+      let gain;
+      if (filterType === 'low') {
+        gain = 1 / Math.sqrt(1 + ratio * ratio);
+      } else {
+        gain = ratio / Math.sqrt(1 + ratio * ratio);
+      }
+      const db = 20 * Math.log10(Math.max(gain, 1e-10));
+      const x  = logFtoX(lf);
+      const y  = dbToY(db);
+      if (px === 0) bodeCtx.moveTo(x, y); else bodeCtx.lineTo(x, y);
+    }
+    bodeCtx.stroke();
+
+    // ── Cutoff frequency marker ────────────────────────────────────────────
+    const fcX   = logFtoX(logFc);
+    const fcY   = dbToY(-3);
+
+    // Vertical dashed line at fc
+    bodeCtx.strokeStyle = 'rgba(255,107,53,0.7)';
+    bodeCtx.lineWidth   = 1.5;
+    bodeCtx.setLineDash([4, 4]);
+    bodeCtx.beginPath(); bodeCtx.moveTo(fcX, 0); bodeCtx.lineTo(fcX, plotH); bodeCtx.stroke();
+    bodeCtx.setLineDash([]);
+
+    // Dot at -3dB
+    bodeCtx.fillStyle = '#ff6b35';
+    bodeCtx.shadowColor = 'rgba(255,107,53,0.8)';
+    bodeCtx.shadowBlur  = 10;
+    bodeCtx.beginPath();
+    bodeCtx.arc(fcX, fcY, 5, 0, Math.PI * 2);
+    bodeCtx.fill();
+    bodeCtx.shadowBlur = 0;
+
+    // fc label
+    bodeCtx.fillStyle  = 'rgba(255,107,53,0.9)';
+    bodeCtx.font       = '10px Share Tech Mono';
+    bodeCtx.textAlign  = fcX > plotW * 0.7 ? 'right' : 'left';
+    const labelOffset  = fcX > plotW * 0.7 ? -8 : 8;
+    bodeCtx.fillText(`fc = ${formatFreq(fc)}`, fcX + labelOffset, fcY - 10);
+    bodeCtx.fillText(`−3dB`, fcX + labelOffset, fcY + 4);
+
+    // ── Insertion loss annotation ──────────────────────────────────────────
+    // Show gain at fc (which is always -3dB for RC) and also at 10× fc
+    const f10x   = fc * 10;
+    const lf10x  = Math.log10(f10x);
+    if (lf10x <= logFmax) {
+      const x10  = logFtoX(lf10x);
+      const ratio10 = filterType === 'low' ? 10 : 0.1;
+      // at 10x fc: low pass gain = 1/sqrt(101) ≈ -20.04dB; high pass ≈ -0.04dB
+      const gain10 = filterType === 'low'
+        ? 1 / Math.sqrt(1 + 100)
+        : 10 / Math.sqrt(1 + 100);
+      const db10 = 20 * Math.log10(gain10);
+      const y10  = dbToY(db10);
+
+      bodeCtx.fillStyle = 'rgba(0,255,153,0.75)';
+      bodeCtx.font      = '9px Share Tech Mono';
+      bodeCtx.textAlign = 'left';
+      bodeCtx.fillText(`${db10.toFixed(1)}dB @ 10×fc`, x10 + 4, y10 - 6);
+
+      bodeCtx.fillStyle = 'rgba(0,255,153,0.5)';
+      bodeCtx.beginPath();
+      bodeCtx.arc(x10, y10, 4, 0, Math.PI * 2);
+      bodeCtx.fill();
+    }
+
+    // Axis labels
+    bodeCtx.restore();
+
+    // Y axis title
+    bodeCtx.save();
+    bodeCtx.translate(12, PAD_TOP + plotH / 2);
+    bodeCtx.rotate(-Math.PI / 2);
+    bodeCtx.fillStyle  = 'rgba(200,220,240,0.5)';
+    bodeCtx.font       = '9px Share Tech Mono';
+    bodeCtx.textAlign  = 'center';
+    bodeCtx.fillText('GAIN (dB)', 0, 0);
+    bodeCtx.restore();
+
+    // X axis title
+    bodeCtx.fillStyle  = 'rgba(200,220,240,0.5)';
+    bodeCtx.font       = '9px Share Tech Mono';
+    bodeCtx.textAlign  = 'center';
+    bodeCtx.fillText('FREQUENCY', PAD_LEFT + plotW / 2, fullH - 4);
+  }
+
+  // ── Circuit diagram ───────────────────────────────────────────────────────
+
+  function drawCircuit() {
+    const dpr   = window.devicePixelRatio || 1;
+    const W     = circuitCanvas.width  / dpr;
+    const H     = circuitCanvas.height / dpr;
+    const { R, raw, Vpp } = getParams();
+
+    circuitCtx.clearRect(0, 0, W, H);
+
+    const cx = W / 2;
+    const cy = H / 2;
+
+    // Layout constants
+    const wireY   = cy - 10;          // main wire Y
+    const left    = W * 0.08;
+    const right   = W * 0.92;
+    const midX    = cx;               // junction between R and C
+    const outX    = W * 0.72;         // Vout tap point
+    const compLen = 60;               // half-length of component symbol
+    const rCx     = W * 0.35;         // resistor centre X
+    const cCx     = filterType === 'low' ? W * 0.65 : W * 0.35; // cap centre X
+    const rCxFinal = filterType === 'low' ? W * 0.35 : W * 0.65;
+
+    circuitCtx.strokeStyle = '#00e5ff';
+    circuitCtx.lineWidth   = 1.8;
+    circuitCtx.lineCap     = 'round';
+    circuitCtx.lineJoin    = 'round';
+
+    const lw = 1.8;
+
+    function line(x1, y1, x2, y2, colour, width) {
+      circuitCtx.strokeStyle = colour || '#00e5ff';
+      circuitCtx.lineWidth   = width  || lw;
+      circuitCtx.beginPath();
+      circuitCtx.moveTo(x1, y1);
+      circuitCtx.lineTo(x2, y2);
+      circuitCtx.stroke();
+    }
+
+    function dot(x, y, colour) {
+      circuitCtx.fillStyle = colour || '#00e5ff';
+      circuitCtx.beginPath();
+      circuitCtx.arc(x, y, 3.5, 0, Math.PI * 2);
+      circuitCtx.fill();
+    }
+
+    // Low pass: Vin —[R]—+—[C to GND]— Vout
+    // High pass: Vin —[C]—+—[R to GND]— Vout
+    const seriesLeft  = W * 0.18;
+    const seriesRight = W * 0.5;
+    const shuntX      = W * 0.65;
+    const shuntTop    = wireY;
+    const shuntBot    = wireY + 70;
+    const voutX       = W * 0.82;
+
+    // ── Top wire: left → series component → junction → Vout ───────────────
+    line(left, wireY, seriesLeft - 30, wireY);
+
+    // Series component (R for LP, C for HP)
+    if (filterType === 'low') {
+      drawResistor(circuitCtx, (seriesLeft + seriesRight) / 2, wireY);
+    } else {
+      drawCapacitorInline(circuitCtx, (seriesLeft + seriesRight) / 2, wireY);
+    }
+
+    line(seriesRight, wireY, shuntX, wireY);
+    line(shuntX, wireY, voutX, wireY);
+    line(voutX, wireY, right, wireY);
+
+    // Junction dot
+    dot(shuntX, wireY);
+
+    // ── Shunt component to GND ─────────────────────────────────────────────
+    if (filterType === 'low') {
+      drawCapacitorShunt(circuitCtx, shuntX, shuntTop, shuntBot);
+    } else {
+      drawResistorShunt(circuitCtx, shuntX, shuntTop, shuntBot);
+    }
+
+    // GND symbol
+    drawGnd(circuitCtx, shuntX, shuntBot);
+
+    // ── Vin label ──────────────────────────────────────────────────────────
+    drawVoltageSource(circuitCtx, left, wireY, Vpp);
+
+    // ── Vout label ────────────────────────────────────────────────────────
+    circuitCtx.fillStyle = 'rgba(0,255,153,0.9)';
+    circuitCtx.font      = '11px Share Tech Mono';
+    circuitCtx.textAlign = 'center';
+    circuitCtx.fillText('Vout', right - 10, wireY - 14);
+
+    // Arrow at Vout
+    line(right - 4, wireY, right + 4, wireY, 'rgba(0,255,153,0.7)', 1.5);
+
+    // ── Component value labels ─────────────────────────────────────────────
+    const seriesMidX = (seriesLeft + seriesRight) / 2;
+    circuitCtx.fillStyle = 'rgba(200,220,240,0.8)';
+    circuitCtx.font      = '10px Share Tech Mono';
+    circuitCtx.textAlign = 'center';
+
+    const rLabel = R >= 1000 ? `${(R/1000).toFixed(1)}kΩ` : `${R}Ω`;
+    const cLabel = `${raw.toFixed(1)}${unitLabel[capUnit]}`;
+
+    if (filterType === 'low') {
+      circuitCtx.fillText(rLabel, seriesMidX, wireY - 30);
+      circuitCtx.fillText(cLabel, shuntX + 28, shuntTop + 35);
+    } else {
+      circuitCtx.fillText(cLabel, seriesMidX, wireY - 30);
+      circuitCtx.fillText(rLabel, shuntX + 28, shuntTop + 35);
+    }
+  }
+
+  function drawResistor(c, cx, cy) {
+    const w = 50, h = 14;
+    c.strokeStyle = '#00e5ff';
+    c.lineWidth   = 1.8;
+    // Wire stubs
+    c.beginPath(); c.moveTo(cx - w/2 - 10, cy); c.lineTo(cx - w/2, cy); c.stroke();
+    c.beginPath(); c.moveTo(cx + w/2, cy); c.lineTo(cx + w/2 + 10, cy); c.stroke();
+    // Rectangle
+    c.strokeRect(cx - w/2, cy - h/2, w, h);
+  }
+
+  function drawCapacitorInline(c, cx, cy) {
+    const gap = 5, plateH = 18, stubLen = 20;
+    c.strokeStyle = '#00e5ff';
+    c.lineWidth   = 1.8;
+    // Left stub
+    c.beginPath(); c.moveTo(cx - stubLen - gap, cy); c.lineTo(cx - gap, cy); c.stroke();
+    // Right stub
+    c.beginPath(); c.moveTo(cx + gap, cy); c.lineTo(cx + stubLen + gap, cy); c.stroke();
+    // Plates
+    c.beginPath(); c.moveTo(cx - gap, cy - plateH/2); c.lineTo(cx - gap, cy + plateH/2); c.stroke();
+    c.beginPath(); c.moveTo(cx + gap, cy - plateH/2); c.lineTo(cx + gap, cy + plateH/2); c.stroke();
+  }
+
+  function drawCapacitorShunt(c, x, y1, y2) {
+    const midY   = (y1 + y2) / 2;
+    const gap    = 5, plateW = 18;
+    c.strokeStyle = '#00e5ff';
+    c.lineWidth   = 1.8;
+    // Top wire
+    c.beginPath(); c.moveTo(x, y1); c.lineTo(x, midY - gap); c.stroke();
+    // Bottom wire
+    c.beginPath(); c.moveTo(x, midY + gap); c.lineTo(x, y2); c.stroke();
+    // Plates
+    c.beginPath(); c.moveTo(x - plateW/2, midY - gap); c.lineTo(x + plateW/2, midY - gap); c.stroke();
+    c.beginPath(); c.moveTo(x - plateW/2, midY + gap); c.lineTo(x + plateW/2, midY + gap); c.stroke();
+  }
+
+  function drawResistorShunt(c, x, y1, y2) {
+    const midY = (y1 + y2) / 2;
+    const h = 30, w = 14;
+    c.strokeStyle = '#00e5ff';
+    c.lineWidth   = 1.8;
+    c.beginPath(); c.moveTo(x, y1); c.lineTo(x, midY - h/2); c.stroke();
+    c.beginPath(); c.moveTo(x, midY + h/2); c.lineTo(x, y2); c.stroke();
+    c.strokeRect(x - w/2, midY - h/2, w, h);
+  }
+
+  function drawGnd(c, x, y) {
+    c.strokeStyle = 'rgba(0,229,255,0.6)';
+    c.lineWidth   = 1.5;
+    const lines = [[16,0],[10,6],[4,12]];
+    lines.forEach(([len, dy]) => {
+      c.beginPath();
+      c.moveTo(x - len/2, y + dy);
+      c.lineTo(x + len/2, y + dy);
+      c.stroke();
+    });
+  }
+
+  function drawVoltageSource(c, x, y, Vpp) {
+    c.strokeStyle = 'rgba(0,229,255,0.7)';
+    c.lineWidth   = 1.5;
+    // Circle
+    c.beginPath();
+    c.arc(x, y, 14, 0, Math.PI * 2);
+    c.stroke();
+    // ~ symbol
+    c.strokeStyle = '#00e5ff';
+    c.lineWidth   = 1.2;
+    c.beginPath();
+    for (let i = 0; i <= 40; i++) {
+      const t  = (i / 40) * Math.PI * 2;
+      const px = x - 8 + (16 * i / 40);
+      const py = y + Math.sin(t) * 4;
+      if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+    }
+    c.stroke();
+    // Label
+    c.fillStyle  = 'rgba(200,220,240,0.8)';
+    c.font       = '10px Share Tech Mono';
+    c.textAlign  = 'center';
+    c.fillText(`${Vpp}Vpp`, x, y + 28);
+    c.fillText('Vin', x, y - 20);
+  }
+
+  // ── Update ────────────────────────────────────────────────────────────────
+
+  function update() {
+    const { Vpp, R, C, raw, fc, tau } = getParams();
+
+    // Display values
+    voltVal.innerHTML = `${Vpp}<span class="unit">V</span>`;
+    resVal.innerHTML  = R >= 1000
+      ? `${(R/1000).toFixed(1)}<span class="unit">kΩ</span>`
+      : `${R}<span class="unit">Ω</span>`;
+    capVal.innerHTML  = `${raw.toFixed(1)}<span class="unit">${unitLabel[capUnit]}</span>`;
+    capUnitLbl.textContent = unitLabel[capUnit];
+
+    // Readouts
+    document.getElementById('ro-fc').textContent  = formatFreq(fc);
+    document.getElementById('ro-tau').textContent = formatTime(tau);
+    document.getElementById('ro-3db').textContent = formatFreq(fc);
+
+    // Insertion loss at fc = -3dB always for RC
+    // Show passband insertion loss (ideally 0dB for simple RC)
+    document.getElementById('ro-il').textContent  = '−3.01 dB';
+
+    // Badges
+    document.getElementById('badge-filter').textContent = filterType === 'low' ? 'Low Pass' : 'High Pass';
+    document.getElementById('badge-fc').textContent     = `fc = ${formatFreq(fc)}`;
+
+    drawBode();
+    drawCircuit();
+  }
+
+  voltSlider.addEventListener('input', update);
+  resSlider.addEventListener('input', update);
+  capSlider.addEventListener('input', update);
+  window.addEventListener('resize', () => { resizeCanvases(); update(); });
+
+  resizeCanvases();
+  update();
+</script>
+</body>
+</html>
