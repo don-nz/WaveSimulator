@@ -1045,7 +1045,7 @@
     for (let i = 0; i <= 40; i++) {
       const t  = (i / 40) * Math.PI * 2;
       const px = labelX - sineW/2 + (sineW * i / 40);
-      const py = wireY + 35 + Math.sin(t) * sineH/2;
+      const py = wireY + 40 + Math.sin(t) * sineH/2;
       i === 0 ? circuitCtx.moveTo(px, py) : circuitCtx.lineTo(px, py);
     }
     circuitCtx.stroke();
