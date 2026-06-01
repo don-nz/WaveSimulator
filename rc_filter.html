@@ -687,7 +687,7 @@
     bodeCtx.font      = '10px Share Tech Mono';
     bodeCtx.textAlign = fcX > plotW * 0.7 ? 'right' : 'left';
     const lOff        = fcX > plotW * 0.7 ? -8 : 8;
-    bodeCtx.fillText(`fc = ${formatFreq(fc)}`, fcX + lOff, fcY - 44);
+    bodeCtx.fillText(`fc = ${formatFreq(fc)}`, fcX + lOff, fcY + 44);
     bodeCtx.fillText(`−3dB`, fcX + lOff, fcY + 24);
 
     // ── −20dB marker (purple) ─────────────────────────────────────────────
@@ -713,7 +713,7 @@
       bodeCtx.font      = '10px Share Tech Mono';
       bodeCtx.textAlign = x20 > plotW * 0.7 ? 'right' : 'left';
       const lOff20      = x20 > plotW * 0.7 ? -8 : 8;
-      bodeCtx.fillText(`f₋₂₀ = ${formatFreq(f20db)}`, x20 + lOff20, y20 - 54);
+      bodeCtx.fillText(`f₋₂₀ = ${formatFreq(f20db)}`, x20 + lOff20, y20 + 54);
       bodeCtx.fillText(`−20dB`, x20 + lOff20, y20 + 34);
     }
 
@@ -1044,7 +1044,7 @@
     const sineH = 18, sineW = 28;
     for (let i = 0; i <= 40; i++) {
       const t  = (i / 40) * Math.PI * 2;
-      const px = labelX - sineW/2 + (sineW * i / 40);
+      const px = labelX + 5 - sineW/2 + (sineW * i / 40);
       const py = wireY + 40 + Math.sin(t) * sineH/2;
       i === 0 ? circuitCtx.moveTo(px, py) : circuitCtx.lineTo(px, py);
     }
