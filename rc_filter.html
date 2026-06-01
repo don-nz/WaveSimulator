@@ -408,6 +408,10 @@
   const unitMultiplier = { micro: 1e-6, nano: 1e-9, pico: 1e-12 };
   const unitLabel      = { micro: 'μF', nano: 'nF', pico: 'pF' };
 
+  const wireColour  = '#00e5ff';
+  const compColour  = '#00e5ff';
+  const labelColour = 'rgba(200,220,240,0.85)';
+  
   function setFilter(type) {
     filterType = type;
     document.getElementById('btnLP').classList.toggle('active', type === 'low');
@@ -620,10 +624,6 @@
   }
 
   // ── Circuit diagram ───────────────────────────────────────────────────────
-
-  const wireColour  = '#00e5ff';
-  const compColour  = '#00e5ff';
-  const labelColour = 'rgba(200,220,240,0.85)';
 
   function line(x1, y1, x2, y2, col, lw) {
     circuitCtx.strokeStyle = col || wireColour;
