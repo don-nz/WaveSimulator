@@ -164,6 +164,26 @@
       opacity: 0.6;
     }
 
+    .sub-panel {
+      background: rgba(0, 229, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .sub-panel-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+      opacity: 0.8;
+    }
+
     .divider {
       border: none;
       border-top: 1px solid var(--border);
@@ -334,6 +354,39 @@
       text-transform: uppercase;
     }
 
+    /* Tooltip for resultant waveform heading */
+    .chart-title-wrap {
+      position: relative;
+      display: inline-block;
+    }
+
+    .chart-tooltip {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      z-index: 100;
+      background: #0f1420;
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      width: 280px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text);
+      line-height: 1.6;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 229, 255, 0.1);
+      pointer-events: none;
+    }
+
+    .chart-title-wrap:hover .chart-tooltip {
+      display: block;
+    }
+
+    .chart-tooltip .tip-accent {
+      color: var(--accent);
+    }
+
     @media (max-width: 700px) {
       .main-layout {
         grid-template-columns: 1fr;
@@ -356,49 +409,63 @@
   <div class="main-layout">
 
     <div class="controls">
-      <div class="control-group">
-        <label>Frequency</label>
-        <div class="value-display" id="freq-val">1<span class="unit">Hz</span></div>
-        <input type="range" id="freq" min="1" max="20" step="0.5" value="1">
-        <div class="range-limits"><span>1 Hz</span><span>20 Hz</span></div>
-      </div>
 
-      <div class="control-group">
-        <label>Amplitude</label>
-        <div class="value-display" id="amp-val">10<span class="unit">V</span></div>
-        <input type="range" id="amp" min="1" max="50" step="1" value="10">
-        <div class="range-limits"><span>1 V</span><span>50 V</span></div>
-      </div>
-
-      <div class="control-group">
-        <label>Harmonics</label>
-        <div class="value-display" id="harm-val">15</div>
-        <input type="range" id="harm" min="1" max="50" step="1" value="15">
-        <div class="range-limits"><span>1</span><span>50</span></div>
-      </div>
-
-      <hr class="divider">
-
-      <div class="info-block">
-        <div>Formula:</div>
-        <div style="margin-top:0.4rem; color: var(--text);">
-          x(t) = Σ <span>(4A/πn)</span> sin(2πnft)
+      <!-- Sub-panel 1: The Squarewave -->
+      <div class="sub-panel">
+        <div class="sub-panel-title">The Squarewave</div>
+        <div class="control-group">
+          <label>Frequency</label>
+          <div class="value-display" id="freq-val">1<span class="unit">Hz</span></div>
+          <input type="range" id="freq" min="1" max="20" step="0.5" value="1">
+          <div class="range-limits"><span>1 Hz</span><span>20 Hz</span></div>
         </div>
-        <div style="margin-top:0.6rem;">
-          where <span>n</span> = 1, 3, 5 … (odd harmonics)
+        <div class="control-group">
+          <label>Peak Voltage</label>
+          <div class="value-display" id="amp-val">10<span class="unit">V</span></div>
+          <input type="range" id="amp" min="1" max="50" step="1" value="10">
+          <div class="range-limits"><span>1 V</span><span>50 V</span></div>
         </div>
       </div>
 
-      <button class="btn-download" id="btnDownload">⬇ Download Spreadsheet</button>
+      <!-- Sub-panel 2: Odd Harmonics -->
+      <div class="sub-panel">
+        <div class="sub-panel-title">Odd Harmonics</div>
+        <div class="control-group">
+          <label>Choose Quantity</label>
+          <div class="value-display" id="harm-val">3</div>
+          <input type="range" id="harm" min="1" max="50" step="1" value="3">
+          <div class="range-limits"><span>1</span><span>50</span></div>
+        </div>
+      </div>
+
+      <!-- Sub-panel 3: Formula & Download -->
+      <div class="sub-panel">
+        <div class="sub-panel-title">Formula</div>
+        <div class="info-block">
+          <div style="margin-top:0.2rem; color: var(--text);">
+            x(t) = Σ <span>(4A/πn)</span> sin(2πnft)
+          </div>
+          <div style="margin-top:0.6rem;">
+            where <span>n</span> = 1, 3, 5 … (odd harmonics)
+          </div>
+        </div>
+        <button class="btn-download" id="btnDownload">⬇ Download Spreadsheet</button>
+      </div>
+
     </div>
 
     <!-- Square wave chart -->
     <div class="chart-area">
       <div class="chart-header">
-        <div class="chart-title">Waveform Output</div>
+        <div class="chart-title-wrap">
+          <div class="chart-title" id="resultant-title" style="cursor:default;" title="">Resultant Waveform</div>
+          <div class="chart-tooltip">
+            The <span class="tip-accent">Resultant Waveform</span> is the simple sum of all the harmonic sine waves shown below in the <span class="tip-accent">Fundamental and Harmonics in the Time Domain</span> graph. Adding more odd harmonics brings the resultant progressively closer to a perfect square wave.
+          </div>
+        </div>
         <div class="badge-row">
           <span class="badge badge-cyan" id="badge-freq">f = 1 Hz</span>
-          <span class="badge badge-orange" id="badge-harm">n = 15 harmonics</span>
+          <span class="badge badge-orange" id="badge-harm">n = 3 harmonics</span>
         </div>
       </div>
       <canvas id="waveCanvas" height="260"></canvas>
@@ -407,10 +474,10 @@
     <!-- Sine waves chart -->
     <div class="chart-area">
       <div class="chart-header">
-        <div class="chart-title">Harmonic Components</div>
+        <div class="chart-title">Fundamental and Harmonics in the Time Domain</div>
         <div class="badge-row">
           <span class="badge badge-cyan" id="badge-freq2">f = 1 Hz</span>
-          <span class="badge badge-orange" id="badge-harm2">n = 15 harmonics</span>
+          <span class="badge badge-orange" id="badge-harm2">n = 3 harmonics</span>
         </div>
       </div>
       <canvas id="sineCanvas" height="260"></canvas>
@@ -419,10 +486,23 @@
 
   </div>
 
-  <!-- Harmonic Spectrum -->
+  <!-- Fundamental and Harmonics in the Frequency Domain -->
   <div class="harmonic-viz" style="max-width:1200px; margin-top:1.5rem;">
-    <div class="harmonic-title">Harmonic Spectrum (Odd Components)</div>
-    <div class="harmonic-bars" id="hbars"></div>
+    <div class="harmonic-title">Fundamental and Harmonics in the Frequency Domain</div>
+    <div style="position:relative; padding-left:52px; padding-bottom:48px;">
+      <!-- Y-axis label -->
+      <div style="position:absolute; left:0; top:0; bottom:48px; width:52px; display:flex; align-items:center; justify-content:center;">
+        <span style="font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--label); text-transform:uppercase; letter-spacing:0.1em; writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;">Peak Voltage (V)</span>
+      </div>
+      <!-- Y-axis tick labels + bars area -->
+      <div style="position:relative;">
+        <canvas id="freqDomainCanvas" style="display:block; width:100%;"></canvas>
+      </div>
+      <!-- X-axis label -->
+      <div style="text-align:center; margin-top:4px;">
+        <span style="font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--label); text-transform:uppercase; letter-spacing:0.1em;">Frequency (Hz)</span>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -509,18 +589,25 @@
     }
 
     function drawYLabels(c, amp, scale, fullW, fullH) {
+      // Draw tick marks only, plus 0V label in the centre
       const plotH = fullH - PAD_TOP - PAD_BOTTOM;
       const cy = PAD_TOP + plotH / 2;
       const ticks = [1, 0.5, 0, -0.5, -1];
+      c.strokeStyle = 'rgba(0,229,255,0.2)';
+      c.lineWidth = 1;
+      ticks.forEach(t => {
+        const val = t * amp;
+        const y = cy - val * scale;
+        c.beginPath();
+        c.moveTo(PAD_LEFT - 5, y);
+        c.lineTo(PAD_LEFT, y);
+        c.stroke();
+      });
+      // 0V label only
       c.fillStyle = 'rgba(200, 220, 240, 0.85)';
       c.font = '10px Share Tech Mono';
       c.textAlign = 'right';
-      ticks.forEach(t => {
-        const val = t * amp;
-        const label = val === 0 ? '0' : val % 1 === 0 ? `${val}` : val.toFixed(1);
-        const y = cy - val * scale;
-        c.fillText(label, PAD_LEFT - 4, y + 4);
-      });
+      c.fillText('0', PAD_LEFT - 4, cy + 4);
     }
 
     function drawXLabels(c, freq, fullW, fullH) {
@@ -548,33 +635,121 @@
       }
     }
 
-    function buildHarmonicBars(count) {
-      hbars.innerHTML = '';
-      const display = Math.min(count + 1, 51);
-      for (let i = 0; i < count + 1; i++) {
-        const n = 2 * i + 1;
-        const active = i < display;
-        const amplitude = active ? (1 / n) : 0;
-        const heightPx = amplitude * 140;
+    // ── Frequency Domain Chart ────────────────────────────────────────────────
 
-        const wrap = document.createElement('div');
-        wrap.className = 'h-bar-wrap';
+    const freqDomainCanvas = document.getElementById('freqDomainCanvas');
+    const fdCtx = freqDomainCanvas.getContext('2d');
 
-        const bar = document.createElement('div');
-        bar.className = 'h-bar' + (active ? '' : ' inactive');
-        bar.style.height = (active ? Math.max(heightPx * 1.4, 2) : 8) + 'px';
-        bar.style.maxHeight = '140px';
-        bar.style.minHeight = '2px';
-        bar.style.opacity = active ? Math.max(0.2, amplitude) : '0.08';
-        if (active) bar.style.background = harmonicColour(i);
+    const FD_PAD_LEFT = 52;
+    const FD_PAD_RIGHT = 20;
+    const FD_PAD_TOP = 10;
+    const FD_PAD_BOTTOM = 36;
+    const FD_HEIGHT = 180;
 
-        const lbl = document.createElement('div');
-        lbl.className = 'h-label';
-        lbl.textContent = i === 0 ? 'f' : i;
+    function resizeFreqCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      const w = freqDomainCanvas.parentElement.getBoundingClientRect().width;
+      freqDomainCanvas.width = w * dpr;
+      freqDomainCanvas.height = FD_HEIGHT * dpr;
+      freqDomainCanvas.style.height = FD_HEIGHT + 'px';
+      fdCtx.scale(dpr, dpr);
+    }
 
-        wrap.appendChild(bar);
-        wrap.appendChild(lbl);
-        hbars.appendChild(wrap);
+    function drawFreqDomain() {
+      const dpr = window.devicePixelRatio || 1;
+      const fullW = freqDomainCanvas.width / dpr;
+      const fullH = freqDomainCanvas.height / dpr;
+
+      const freq = parseFloat(freqSlider.value);
+      const amp = parseFloat(ampSlider.value);
+      const nHarm = parseInt(harmSlider.value);
+
+      fdCtx.clearRect(0, 0, fullW, fullH);
+
+      const plotW = fullW - FD_PAD_LEFT - FD_PAD_RIGHT;
+      const plotH = fullH - FD_PAD_TOP - FD_PAD_BOTTOM;
+
+      // Scale based on square wave amplitude (amp), with 15% headroom
+      // Fundamental peak = 4*amp/π but we display as if fundamental = amp
+      // so maxPeak is just amp * 1.15 for visual headroom
+      const maxPeak = amp * 1.15;
+
+      // Horizontal grid lines at every 5V interval (no labels)
+      fdCtx.lineWidth = 1;
+      for (let v = 0; v <= maxPeak; v += 5) {
+        const y = FD_PAD_TOP + plotH - (v / maxPeak) * plotH;
+        fdCtx.strokeStyle = v === 0 ? 'rgba(0,229,255,0.15)' : 'rgba(30,45,74,0.7)';
+        fdCtx.beginPath();
+        fdCtx.moveTo(FD_PAD_LEFT, y);
+        fdCtx.lineTo(FD_PAD_LEFT + plotW, y);
+        fdCtx.stroke();
+      }
+
+      // Axes
+      fdCtx.strokeStyle = 'rgba(0,229,255,0.3)';
+      fdCtx.lineWidth = 1.5;
+      fdCtx.beginPath();
+      fdCtx.moveTo(FD_PAD_LEFT, FD_PAD_TOP);
+      fdCtx.lineTo(FD_PAD_LEFT, FD_PAD_TOP + plotH);
+      fdCtx.lineTo(FD_PAD_LEFT + plotW, FD_PAD_TOP + plotH);
+      fdCtx.stroke();
+
+      // Show both odd and even harmonics up to 2*nHarm
+      const totalSlots = 2 * nHarm;
+      const slotW = plotW / (totalSlots + 1);
+      const barW = Math.max(3, Math.min(slotW * 0.28, 20));
+
+      fdCtx.font = '9px Share Tech Mono';
+      fdCtx.textAlign = 'center';
+
+      for (let n = 1; n <= totalSlots; n++) {
+        const xCenter = FD_PAD_LEFT + slotW * n;
+        const xLeft = xCenter - barW / 2;
+        const isOdd = n % 2 === 1;
+        const harmIndex = (n - 1) / 2; // 0-based index for odd harmonics
+
+        // X-axis frequency label (Hz)
+        const hzLabel = (n * freq) % 1 === 0 ? `${n * freq}` : `${(n * freq).toFixed(1)}`;
+        fdCtx.fillStyle = isOdd ? 'rgba(140,160,180,0.85)' : 'rgba(100,120,140,0.45)';
+        fdCtx.fillText(hzLabel, xCenter, FD_PAD_TOP + plotH + 14);
+
+        if (isOdd) {
+          // Bar height based on Vpk/n relationship displayed cleanly
+          // We treat amp as Vpk, so bar height = amp/n
+          const displayV = amp / n;
+          const barH = (displayV / maxPeak) * plotH;
+          const yTop = FD_PAD_TOP + plotH - barH;
+          const colour = harmonicColour(harmIndex);
+
+          // Glow
+          fdCtx.shadowColor = colour;
+          fdCtx.shadowBlur = 5;
+          fdCtx.fillStyle = colour;
+          fdCtx.globalAlpha = 0.2;
+          fdCtx.fillRect(xLeft - 1, yTop, barW + 2, barH);
+          fdCtx.shadowBlur = 0;
+
+          // Main bar
+          fdCtx.globalAlpha = Math.max(0.45, 1 - harmIndex * 0.03);
+          fdCtx.fillStyle = colour;
+          fdCtx.fillRect(xLeft, yTop, barW, barH);
+          fdCtx.globalAlpha = 1;
+
+          // Vpk/n label above bar
+          if (barH > 14) {
+            fdCtx.fillStyle = 'rgba(200,220,240,0.75)';
+            const barLabel = n === 1 ? 'Vpk' : `Vpk/${n}`;
+            fdCtx.fillText(barLabel, xCenter, yTop - 3);
+          }
+        } else {
+          // Empty slot: faint tick on x-axis only
+          fdCtx.strokeStyle = 'rgba(90,120,154,0.25)';
+          fdCtx.lineWidth = 1;
+          fdCtx.beginPath();
+          fdCtx.moveTo(xCenter, FD_PAD_TOP + plotH);
+          fdCtx.lineTo(xCenter, FD_PAD_TOP + plotH + 4);
+          fdCtx.stroke();
+        }
       }
     }
 
@@ -675,8 +850,10 @@
       ctx.fillStyle = 'rgba(255,107,53,0.8)';
       ctx.font = '11px Share Tech Mono';
       ctx.textAlign = 'left';
-      ctx.fillText('← Gibbs', plotW * 0.17, cy - amp * scale * 1.19);
-      ctx.fillText('  phenomenon', plotW * 0.17, cy - amp * scale * 1.19 + 14);
+      if (nHarm >= 15) {
+        ctx.fillText('← Gibbs', plotW * 0.17, cy - amp * scale * 1.19);
+        ctx.fillText('  phenomenon', plotW * 0.17, cy - amp * scale * 1.19 + 14);
+      }
 
       ctx.restore();
     }
@@ -763,7 +940,7 @@
       const wsData = [];
 
       // Title block
-      wsData.push([`Square Wave Simulator — f=${freq}Hz  A=${amp}V  Harmonics=${nHarm}`]);
+      wsData.push([`Square Wave Simulator — Fundamental Frequency=${freq}Hz  Peak Voltage=${amp}V  No. of Odd Harmonics=${nHarm}`]);
       wsData.push([`P = 1s ÷ f       P = ${(1 / freq).toFixed(4)}s`]);
       wsData.push([]);
       wsData.push([`Instantaneous Fundamental Voltage: v = V·SIN(θ)`]);
@@ -784,8 +961,8 @@
       freqRow.push('');
       wsData.push(freqRow);
 
-      // Amplitude row
-      const ampRow = ['Amplitude (V)'];
+      // Peak Voltage row
+      const ampRow = ['Peak Voltage (V)'];
       for (let h = 0; h < nHarm; h++) {
         const n = 2 * h + 1;
         ampRow.push(parseFloat((4 * amp / (Math.PI * n)).toFixed(4)));
@@ -858,12 +1035,12 @@
       // ── Sheet 2: Parameters ───────────────────────────────────────────────
       const paramsData = [
         ['Parameter', 'Value', 'Notes'],
-        ['Frequency (Hz)', freq, 'Base frequency of the square wave'],
-        ['Amplitude (V)', amp, 'Peak amplitude'],
-        ['Number of Harmonics', nHarm, 'Odd harmonics summed (1, 3, 5…)'],
+        ['Fundamental Frequency (Hz)', freq, 'Base frequency of the square wave'],
+        ["Fundamental's Peak Voltage (V)", amp, 'Peak amplitude of fundamental'],
+        ['No. of Odd Harmonics', nHarm, 'Odd harmonics summed (1, 3, 5…)'],
         ['Period (s)', parseFloat((1 / freq).toFixed(6)), 'P = 1 / f'],
         [],
-        ['Harmonic', 'n value', 'Frequency (Hz)', 'Peak Amplitude (V)'],
+        ['Harmonic', 'n value', 'Frequency (Hz)', 'Peak Voltage (V)'],
       ];
       for (let h = 0; h < nHarm; h++) {
         const n = 2 * h + 1;
@@ -900,20 +1077,26 @@
       badgeFreq2.textContent = `f = ${freq} Hz`;
       badgeHarm2.textContent = `n = ${nHarm} harmonic${nHarm !== 1 ? 's' : ''}`;
 
-      buildHarmonicBars(nHarm);
       buildLegend(nHarm);
       draw();
       drawSines();
+      drawFreqDomain();
     }
 
     freqSlider.addEventListener('input', update);
     ampSlider.addEventListener('input', update);
     harmSlider.addEventListener('input', update);
-    window.addEventListener('resize', () => { resizeCanvas(); update(); });
+    window.addEventListener('resize', () => { resizeCanvas(); resizeFreqCanvas(); update(); });
 
     resizeCanvas();
+    resizeFreqCanvas();
     update();
   </script>
+  <footer style="margin-top:2.5rem; text-align:center; display:flex; flex-direction:column; gap:0.4rem;">
+    <div>HTML code authored by Claude (Anthropic) · claude.ai</div>
+    <div>Special thanks to Don A, whose initiative and curiosity inspired the creation of this simulator</div>
+  </footer>
+
 </body>
 
 </html>
