@@ -713,8 +713,8 @@
       bodeCtx.font      = '10px Share Tech Mono';
       bodeCtx.textAlign = x20 > plotW * 0.7 ? 'right' : 'left';
       const lOff20      = x20 > plotW * 0.7 ? -8 : 8;
-      bodeCtx.fillText(`f₋₂₀ = ${formatFreq(f20db)}`, x20 + lOff20, y20 - 10);
-      bodeCtx.fillText(`−20dB`, x20 + lOff20, y20 + 14);
+      bodeCtx.fillText(`f₋₂₀ = ${formatFreq(f20db)}`, x20 + lOff20, y20 - 20);
+      bodeCtx.fillText(`−20dB`, x20 + lOff20, y20 + 24);
     }
 
     bodeCtx.restore();
