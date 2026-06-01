@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filter Gain Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg: #0a0d14;
+      --panel: #0f1420;
+      --border: #1e2d4a;
+      --accent: #00e5ff;
+      --accent2: #ff6b35;
+      --accent3: #00ff99;
+      --accent4: #ff3d9a;
+      --grid: rgba(0, 229, 255, 0.06);
+      --text: #c8d8e8;
+      --label: #5a7a9a;
+      --glow: 0 0 20px rgba(0, 229, 255, 0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    header { text-align: center; margin-bottom: 2rem; }
+    header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.4rem, 4vw, 2.4rem);
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-shadow: 0 0 30px rgba(0,229,255,0.5);
+      text-transform: uppercase;
+    }
+    header p {
+      margin-top: 0.5rem;
+      color: var(--label);
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .quiz-wrap {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .score-bar {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+    .score-item { text-align: center; }
+    .score-label { font-size: 0.6rem; letter-spacing: 0.2em; color: var(--label); text-transform: uppercase; }
+    .score-value { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; margin-top: 2px; }
+    .score-value.correct { color: var(--accent3); }
+    .score-value.wrong   { color: var(--accent2); }
+    .score-value.qnum    { color: var(--accent); }
+    .progress-bar { flex: 1; min-width: 120px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s ease; box-shadow: 0 0 8px rgba(0,229,255,0.5); }
+
+    .question-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+
+    .q-body {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 750px) { .q-body { grid-template-columns: 1fr; } }
+
+    .q-left { display: flex; flex-direction: column; gap: 1.2rem; }
+
+    .q-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+    .q-title { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 0.15em; color: var(--label); text-transform: uppercase; }
+
+    .filter-badge { font-size: 0.65rem; padding: 3px 10px; border-radius: 2px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .filter-badge.lp { background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3); color: var(--accent); }
+    .filter-badge.hp { background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.3); color: var(--accent2); }
+
+    .q-scenario {
+      background: rgba(0,229,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem 1.2rem;
+      line-height: 2;
+      font-size: 0.85rem;
+    }
+    .q-scenario .h1 { color: var(--accent);  font-size: 1rem; }
+    .q-scenario .h2 { color: var(--accent2); font-size: 1rem; }
+
+    .q-question { font-size: 0.9rem; color: var(--text); line-height: 1.6; }
+
+    .answer-row { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; }
+    .answer-label { font-size: 0.75rem; color: var(--label); letter-spacing: 0.1em; white-space: nowrap; }
+    .answer-input {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      width: 120px; padding: 0.5rem 0.8rem;
+      background: rgba(0,229,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 3px; color: var(--accent);
+      text-align: center; outline: none;
+      transition: border-color 0.2s;
+    }
+    .answer-input:focus { border-color: rgba(0,229,255,0.5); box-shadow: 0 0 8px rgba(0,229,255,0.2); }
+    .answer-input.correct { border-color: var(--accent3); color: var(--accent3); }
+    .answer-input.wrong   { border-color: var(--accent2); color: var(--accent2); }
+    .dbu { font-size: 0.75rem; color: var(--label); }
+
+    .btn { padding: 0.6rem 1.4rem; border-radius: 3px; font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; border: 1px solid; }
+    .btn-submit { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.4); color: var(--accent); }
+    .btn-submit:hover { background: rgba(0,229,255,0.2); box-shadow: 0 0 12px rgba(0,229,255,0.3); }
+    .btn-next { background: rgba(0,255,153,0.1); border-color: rgba(0,255,153,0.4); color: var(--accent3); }
+    .btn-next:hover { background: rgba(0,255,153,0.2); box-shadow: 0 0 12px rgba(0,255,153,0.3); }
+    .btn-restart { background: rgba(255,107,53,0.1); border-color: rgba(255,107,53,0.4); color: var(--accent2); }
+    .btn-restart:hover { background: rgba(255,107,53,0.2); box-shadow: 0 0 12px rgba(255,107,53,0.3); }
+
+    .result-banner { display: none; padding: 0.8rem 1.2rem; border-radius: 3px; font-size: 0.9rem; font-family: 'Orbitron', sans-serif; letter-spacing: 0.08em; align-items: center; gap: 0.8rem; }
+    .result-banner.correct { display: flex; background: rgba(0,255,153,0.08); border: 1px solid rgba(0,255,153,0.3); color: var(--accent3); }
+    .result-banner.wrong   { display: flex; background: rgba(255,61,154,0.08); border: 1px solid rgba(255,61,154,0.3); color: var(--accent4); }
+    .result-icon { font-size: 1.4rem; }
+
+    .working-box { display: none; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 4px; padding: 1.2rem 1.4rem; }
+    .working-box.visible { display: block; }
+    .working-title { font-family: 'Orbitron', sans-serif; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--label); text-transform: uppercase; margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+    .working-line { font-size: 0.78rem; color: var(--label); line-height: 2; }
+    .working-line .w-val  { color: var(--accent); }
+    .working-line .w-val2 { color: var(--accent2); }
+    .working-line .w-val3 { color: var(--accent3); }
+    .working-line.total { margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px solid var(--border); color: var(--text); font-size: 0.85rem; }
+
+    .graph-panel { background: rgba(0,0,0,0.15); border: 1px solid var(--border); border-radius: 4px; padding: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .graph-label { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--label); text-transform: uppercase; text-align: center; }
+    canvas#quizGraph { width: 100%; border-radius: 2px; display: block; }
+
+    .final-card { display: none; background: var(--panel); border: 1px solid var(--border); border-radius: 4px; padding: 2rem; text-align: center; flex-direction: column; gap: 1.2rem; align-items: center; }
+    .final-card.visible { display: flex; }
+    .final-score { font-family: 'Orbitron', sans-serif; font-size: 3rem; font-weight: 900; color: var(--accent); text-shadow: var(--glow); }
+    .final-label { font-size: 0.75rem; letter-spacing: 0.2em; color: var(--label); text-transform: uppercase; }
+    .final-message { font-size: 0.85rem; color: var(--text); line-height: 1.7; max-width: 500px; }
+
+    footer { margin-top: 2rem; font-size: 0.65rem; color: var(--label); opacity: 0.5; letter-spacing: 0.15em; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Filter Gain Quiz</h1>
+  <p>RC Filter · Octaves & Decades · Gain Calculation</p>
+</header>
+
+<div class="quiz-wrap">
+
+  <div class="score-bar">
+    <div class="score-item">
+      <div class="score-label">Question</div>
+      <div class="score-value qnum" id="qnum">1 / 10</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:10%"></div></div>
+    <div class="score-item">
+      <div class="score-label">Correct</div>
+      <div class="score-value correct" id="scoreCorrect">0</div>
+    </div>
+    <div class="score-item">
+      <div class="score-label">Wrong</div>
+      <div class="score-value wrong" id="scoreWrong">0</div>
+    </div>
+  </div>
+
+  <div class="question-card" id="questionCard">
+    <div class="q-body">
+      <div class="q-left">
+        <div class="q-header">
+          <div class="q-title" id="qTitle">Question 1</div>
+          <span class="filter-badge lp" id="filterBadge">Low Pass</span>
+        </div>
+        <div class="q-scenario" id="qScenario">—</div>
+        <div class="q-question" id="qQuestion">—</div>
+        <div class="answer-row">
+          <span class="answer-label">Your Answer:</span>
+          <input type="number" class="answer-input" id="answerInput" placeholder="0" step="1">
+          <span class="dbu">dB</span>
+          <button class="btn btn-submit" id="btnSubmit" onclick="submitAnswer()">Check</button>
+        </div>
+        <div class="result-banner" id="resultBanner">
+          <span class="result-icon" id="resultIcon"></span>
+          <span id="resultText"></span>
+        </div>
+        <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
+          <button class="btn btn-next" id="btnNext" style="display:none" onclick="nextQuestion()">Next Question →</button>
+          <button class="btn btn-restart" onclick="restartQuiz()">↺ Restart</button>
+        </div>
+      </div>
+
+      <div class="graph-panel">
+        <div class="graph-label">Gain vs Frequency</div>
+        <canvas id="quizGraph" height="300"></canvas>
+      </div>
+    </div>
+
+    <div class="working-box" id="workingBox">
+      <div class="working-title">Worked Solution</div>
+      <div id="workingContent"></div>
+    </div>
+  </div>
+
+  <div class="final-card" id="finalCard">
+    <div class="final-label">Quiz Complete</div>
+    <div class="final-score" id="finalScore">0 / 10</div>
+    <div class="final-message" id="finalMessage">—</div>
+    <button class="btn btn-restart" onclick="restartQuiz()">↺ Try Again</button>
+  </div>
+
+</div>
+
+<footer>Barry Duncan · Filter Gain Quiz</footer>
+
+<script>
+  // ── Valid question combinations ────────────────────────────────────────────
+  // Ratio must be 2^octaves * 10^decades (whole numbers only)
+  // We pre-generate all valid (octaves, decades) pairs and their ratios
+
+  const VALID_STEPS = [];
+  for (let dec = 0; dec <= 2; dec++) {
+    for (let oct = 0; oct <= 4; oct++) {
+      if (dec === 0 && oct === 0) continue;
+      if (dec === 0 && oct > 3)   continue; // max 3 pure octaves
+      const ratio = Math.pow(2, oct) * Math.pow(10, dec);
+      if (ratio > 200) continue; // keep within reasonable range
+      VALID_STEPS.push({ octaves: oct, decades: dec, ratio });
+    }
+  }
+
+  // Base frequencies — fA values. fB = fA * ratio (low pass) or fA / ratio (high pass)
+  // We'll pick fA so fB lands in a sensible audio/electronics range
+  const BASE_FREQS = [44, 50, 100, 125, 250, 440, 500, 1000, 2000, 2500, 5000, 10000];
+
+  // Starting dB — must give whole number answer
+  // answer = startDb - (oct*6 + dec*20), so startDb should be multiple of 2
+  // to ensure whole number results for any combo
+  const START_DBS = [-6, -10, -12, -20, -26, -30, -32, -40, -46, -50];
+
+  let questions    = [];
+  let currentQ     = 0;
+  let scoreCorrect = 0;
+  let scoreWrong   = 0;
+  let answered     = false;
+
+  const graphCanvas = document.getElementById('quizGraph');
+  const gCtx        = graphCanvas.getContext('2d');
+  const GP = { left: 50, right: 16, top: 20, bottom: 38 };
+
+  function formatFreq(f) {
+    if (f >= 1000) return (f / 1000 % 1 === 0 ? (f/1000) : (f/1000).toFixed(1)) + 'kHz';
+    return f + 'Hz';
+  }
+
+  function generateQuestion() {
+    // Pick filter type
+    const filterType = Math.random() < 0.5 ? 'low' : 'high';
+
+    // Pick random step combination
+    const step = VALID_STEPS[Math.floor(Math.random() * VALID_STEPS.length)];
+
+    // Pick base frequency, ensure target is in range
+    let fA, fB, attempts = 0;
+    do {
+      fA = BASE_FREQS[Math.floor(Math.random() * BASE_FREQS.length)];
+      fB = filterType === 'low' ? fA * step.ratio : fA / step.ratio;
+      attempts++;
+    } while ((fB < 20 || fB > 200000) && attempts < 50);
+
+    // If low pass: fA < fB (fA is closer to passband), fB is deeper in stopband
+    // If high pass: fA > fB (fA closer to passband), fB deeper in stopband
+    // So fA always has the known (higher) gain, fB the unknown (lower) gain
+
+    // Pick starting dB — ensure answer is whole number
+    const rolloff = step.octaves * 6 + step.decades * 20;
+    // startDb - rolloff must be whole, both are whole so always fine
+    const startDb = START_DBS[Math.floor(Math.random() * START_DBS.length)];
+    const exactAnswer = startDb - rolloff;
+
+    return { filterType, fA, fB, startDb, exactAnswer, rolloff, octaves: step.octaves, decades: step.decades, ratio: step.ratio };
+  }
+
+  function generateQuiz() {
+    questions = [];
+    for (let i = 0; i < 10; i++) questions.push(generateQuestion());
+  }
+
+  // ── Graph ─────────────────────────────────────────────────────────────────
+
+  function resizeGraph() {
+    const dpr  = window.devicePixelRatio || 1;
+    const rect = graphCanvas.parentElement.getBoundingClientRect();
+    graphCanvas.width  = rect.width * dpr;
+    graphCanvas.height = 300 * dpr;
+    graphCanvas.style.height = '300px';
+    gCtx.scale(dpr, dpr);
+  }
+
+  function drawGraph(q, reveal) {
+    const dpr   = window.devicePixelRatio || 1;
+    const fullW = graphCanvas.width  / dpr;
+    const fullH = graphCanvas.height / dpr;
+    const plotW = fullW - GP.left - GP.right;
+    const plotH = fullH - GP.top  - GP.bottom;
+
+    gCtx.clearRect(0, 0, fullW, fullH);
+
+    // For low pass: fc is somewhere below fA (passband region)
+    //   We simulate fc = fA / 5 to show the curve flattening into passband
+    // For high pass: fc is somewhere above fA
+    //   fc = fA * 5
+
+    const logFA = Math.log10(q.fA);
+    const logFB = Math.log10(q.fB);
+
+    // Extend chart to show passband — 2 decades beyond fA toward passband
+    const logFc_approx = q.filterType === 'low' ? logFA - 1.5 : logFA + 1.5;
+    const logFmin = Math.min(logFA, logFB) - 0.8;
+    const logFmax = Math.max(logFA, logFB) + 0.8;
+
+    // Extend further into passband to show the curve
+    const logFminExt = q.filterType === 'low' ? logFmin - 1.5 : logFmin;
+    const logFmaxExt = q.filterType === 'high' ? logFmax + 1.5 : logFmax;
+
+    // dB range — passband at 0dB, show down to answer with margin
+    const dbTop  = 6;
+    const dbBot  = Math.min(q.exactAnswer - 12, -60);
+    const dbRange = dbTop - dbBot;
+
+    function dbToY(db)   { return GP.top + plotH * (1 - (db - dbBot) / dbRange); }
+    function logFtoX(lf) { return GP.left + plotW * (lf - logFminExt) / (logFmaxExt - logFminExt); }
+
+    // Y grid lines — hidden until revealed
+    const dbTicks = [];
+    for (let db = Math.ceil(dbBot / 10) * 10; db <= dbTop; db += 10) dbTicks.push(db);
+
+    dbTicks.forEach(db => {
+      const y = dbToY(db);
+      gCtx.strokeStyle = db === 0 ? 'rgba(0,229,255,0.15)' : 'rgba(30,45,74,0.6)';
+      gCtx.lineWidth   = 1;
+      gCtx.beginPath(); gCtx.moveTo(GP.left, y); gCtx.lineTo(GP.left + plotW, y); gCtx.stroke();
+
+      if (reveal) {
+        gCtx.fillStyle = 'rgba(200,220,240,0.6)';
+        gCtx.font      = '9px Share Tech Mono';
+        gCtx.textAlign = 'right';
+        gCtx.fillText(`${db}dB`, GP.left - 3, y + 3);
+      }
+    });
+
+    // X grid lines (frequency decades)
+    for (let lf = Math.floor(logFminExt); lf <= Math.ceil(logFmaxExt); lf++) {
+      const x = logFtoX(lf);
+      if (x < GP.left || x > GP.left + plotW) continue;
+      gCtx.strokeStyle = 'rgba(30,45,74,0.6)';
+      gCtx.lineWidth   = 1;
+      gCtx.beginPath(); gCtx.moveTo(x, GP.top); gCtx.lineTo(x, GP.top + plotH); gCtx.stroke();
+      gCtx.fillStyle = 'rgba(200,220,240,0.6)';
+      gCtx.font      = '9px Share Tech Mono';
+      gCtx.textAlign = 'center';
+      gCtx.fillText(formatFreq(Math.pow(10, lf)), x, GP.top + plotH + 14);
+    }
+
+    // ── Draw filter curve ─────────────────────────────────────────────────
+    // Use the known point as reference: gain = startDb at fA
+    // We know roll-off is 6dB/oct = 20dB/dec
+    // Simulate the full curve using a first-order RC filter shape
+    // Normalise: find the fc that gives startDb at fA
+    // For LP: gain(f) = 1/sqrt(1+(f/fc)^2), gain at fA = 10^(startDb/20)
+    // -> fc = fA / sqrt(1/gain^2 - 1)
+    const gainAtA = Math.pow(10, q.startDb / 20);
+    let fc;
+    if (q.filterType === 'low') {
+      fc = q.fA / Math.sqrt(1 / (gainAtA * gainAtA) - 1);
+    } else {
+      fc = q.fA * Math.sqrt(1 / (gainAtA * gainAtA) - 1);
+    }
+
+    const samples = plotW * 2;
+
+    // Glow
+    gCtx.shadowColor = 'rgba(0,229,255,0.4)';
+    gCtx.shadowBlur  = 6;
+    gCtx.strokeStyle = 'rgba(0,229,255,0.25)';
+    gCtx.lineWidth   = 3;
+    gCtx.beginPath();
+    let started = false;
+    for (let px = 0; px <= samples; px++) {
+      const lf   = logFminExt + (px / samples) * (logFmaxExt - logFminExt);
+      const f    = Math.pow(10, lf);
+      const ratio = f / fc;
+      const gain  = q.filterType === 'low'
+        ? 1 / Math.sqrt(1 + ratio * ratio)
+        : ratio / Math.sqrt(1 + ratio * ratio);
+      const db = 20 * Math.log10(Math.max(gain, 1e-10));
+      const x  = logFtoX(lf);
+      const y  = Math.max(GP.top, Math.min(GP.top + plotH, dbToY(db)));
+      if (!started) { gCtx.moveTo(x, y); started = true; } else gCtx.lineTo(x, y);
+    }
+    gCtx.stroke();
+
+    // Sharp line
+    gCtx.shadowBlur  = 0;
+    gCtx.strokeStyle = '#00e5ff';
+    gCtx.lineWidth   = 2;
+    gCtx.beginPath();
+    started = false;
+    for (let px = 0; px <= samples; px++) {
+      const lf   = logFminExt + (px / samples) * (logFmaxExt - logFminExt);
+      const f    = Math.pow(10, lf);
+      const ratio = f / fc;
+      const gain  = q.filterType === 'low'
+        ? 1 / Math.sqrt(1 + ratio * ratio)
+        : ratio / Math.sqrt(1 + ratio * ratio);
+      const db = 20 * Math.log10(Math.max(gain, 1e-10));
+      const x  = logFtoX(lf);
+      const y  = Math.max(GP.top, Math.min(GP.top + plotH, dbToY(db)));
+      if (!started) { gCtx.moveTo(x, y); started = true; } else gCtx.lineTo(x, y);
+    }
+    gCtx.stroke();
+
+    // ── Known point (cyan) ────────────────────────────────────────────────
+    const xA = logFtoX(logFA);
+    const yA = dbToY(q.startDb);
+
+    gCtx.strokeStyle = 'rgba(0,229,255,0.3)';
+    gCtx.lineWidth   = 1;
+    gCtx.setLineDash([3, 4]);
+    gCtx.beginPath(); gCtx.moveTo(xA, yA); gCtx.lineTo(xA, GP.top + plotH); gCtx.stroke();
+    if (reveal) {
+      gCtx.beginPath(); gCtx.moveTo(GP.left, yA); gCtx.lineTo(xA, yA); gCtx.stroke();
+    }
+    gCtx.setLineDash([]);
+
+    gCtx.fillStyle   = '#00e5ff';
+    gCtx.shadowColor = 'rgba(0,229,255,0.8)';
+    gCtx.shadowBlur  = 10;
+    gCtx.beginPath(); gCtx.arc(xA, yA, 6, 0, Math.PI * 2); gCtx.fill();
+    gCtx.shadowBlur = 0;
+
+    const kRight = xA > GP.left + plotW * 0.55;
+    gCtx.fillStyle = '#00e5ff';
+    gCtx.font      = 'bold 10px Share Tech Mono';
+    gCtx.textAlign = kRight ? 'right' : 'left';
+    const kOff = kRight ? -10 : 10;
+    gCtx.fillText(`${q.startDb} dB`, xA + kOff, yA - 14);
+    gCtx.fillStyle = 'rgba(0,229,255,0.7)';
+    gCtx.font      = '9px Share Tech Mono';
+    gCtx.fillText(formatFreq(q.fA), xA + kOff, yA - 4);
+
+    // ── Unknown point (orange → green on reveal) ──────────────────────────
+    const xB = logFtoX(logFB);
+    const yB = dbToY(q.exactAnswer);
+
+    gCtx.strokeStyle = reveal ? 'rgba(0,255,153,0.3)' : 'rgba(255,107,53,0.3)';
+    gCtx.lineWidth   = 1;
+    gCtx.setLineDash([3, 4]);
+    gCtx.beginPath(); gCtx.moveTo(xB, yB); gCtx.lineTo(xB, GP.top + plotH); gCtx.stroke();
+    if (reveal) {
+      gCtx.beginPath(); gCtx.moveTo(GP.left, yB); gCtx.lineTo(xB, yB); gCtx.stroke();
+    }
+    gCtx.setLineDash([]);
+
+    gCtx.fillStyle   = reveal ? '#00ff99' : '#ff6b35';
+    gCtx.shadowColor = reveal ? 'rgba(0,255,153,0.8)' : 'rgba(255,107,53,0.8)';
+    gCtx.shadowBlur  = 10;
+    gCtx.beginPath(); gCtx.arc(xB, yB, 6, 0, Math.PI * 2); gCtx.fill();
+    gCtx.shadowBlur = 0;
+
+    const uRight = xB > GP.left + plotW * 0.55;
+    gCtx.font      = 'bold 10px Share Tech Mono';
+    gCtx.textAlign = uRight ? 'right' : 'left';
+    const uOff = uRight ? -10 : 10;
+
+    if (reveal) {
+      gCtx.fillStyle = '#00ff99';
+      gCtx.fillText(`${q.exactAnswer} dB`, xB + uOff, yB - 14);
+    } else {
+      gCtx.fillStyle = '#ff6b35';
+      gCtx.fillText('? dB', xB + uOff, yB - 14);
+    }
+    gCtx.fillStyle = reveal ? 'rgba(0,255,153,0.7)' : 'rgba(255,107,53,0.7)';
+    gCtx.font      = '9px Share Tech Mono';
+    gCtx.fillText(formatFreq(q.fB), xB + uOff, yB - 4);
+
+    // Roll-off annotation on reveal
+    if (reveal) {
+      const midX = (xA + xB) / 2;
+      const midY = (yA + yB) / 2 - 8;
+      gCtx.fillStyle  = 'rgba(200,220,240,0.5)';
+      gCtx.font       = '9px Share Tech Mono';
+      gCtx.textAlign  = 'center';
+      gCtx.fillText(`−${q.rolloff} dB`, midX, midY);
+    }
+
+    // Axis titles
+    gCtx.fillStyle = 'rgba(200,220,240,0.4)';
+    gCtx.font      = '8px Share Tech Mono';
+    gCtx.textAlign = 'center';
+    gCtx.fillText('FREQUENCY', GP.left + plotW / 2, fullH - 4);
+
+    if (reveal) {
+      gCtx.save();
+      gCtx.translate(10, GP.top + plotH / 2);
+      gCtx.rotate(-Math.PI / 2);
+      gCtx.fillText('GAIN (dB)', 0, 0);
+      gCtx.restore();
+    }
+  }
+
+  // ── Quiz logic ────────────────────────────────────────────────────────────
+
+  function renderQuestion() {
+    const q  = questions[currentQ];
+    answered = false;
+
+    document.getElementById('qnum').textContent         = `${currentQ + 1} / 10`;
+    document.getElementById('progress').style.width     = `${(currentQ + 1) * 10}%`;
+    document.getElementById('qTitle').textContent       = `Question ${currentQ + 1}`;
+    document.getElementById('scoreCorrect').textContent = scoreCorrect;
+    document.getElementById('scoreWrong').textContent   = scoreWrong;
+
+    const badge = document.getElementById('filterBadge');
+    badge.textContent = q.filterType === 'low' ? 'Low Pass' : 'High Pass';
+    badge.className   = `filter-badge ${q.filterType === 'low' ? 'lp' : 'hp'}`;
+
+    const direction = q.filterType === 'low'
+      ? 'frequency increases (deeper into the stopband)'
+      : 'frequency decreases (deeper into the stopband)';
+
+    document.getElementById('qScenario').innerHTML = `
+      A <strong>${q.filterType === 'low' ? 'low pass' : 'high pass'}</strong> RC filter has a gain of
+      <span class="h1">${q.startDb} dB</span> at <span class="h1">${formatFreq(q.fA)}</span>.
+      <br>As ${direction}, the gain rolls off at
+      <span class="h2">−6 dB/octave</span> / <span class="h2">−20 dB/decade</span>.
+    `;
+
+    document.getElementById('qQuestion').innerHTML =
+      `What is the gain at <span style="color:var(--accent3);font-size:1.05rem">${formatFreq(q.fB)}</span>?`;
+
+    const input = document.getElementById('answerInput');
+    input.value = ''; input.className = 'answer-input'; input.disabled = false;
+    input.focus();
+
+    document.getElementById('resultBanner').className  = 'result-banner';
+    document.getElementById('workingBox').className    = 'working-box';
+    document.getElementById('btnNext').style.display   = 'none';
+    document.getElementById('btnSubmit').style.display = 'inline-block';
+    document.getElementById('questionCard').style.display = 'flex';
+    document.getElementById('finalCard').className = 'final-card';
+
+    resizeGraph();
+    drawGraph(q, false);
+  }
+
+  function submitAnswer() {
+    if (answered) return;
+    const q   = questions[currentQ];
+    const input = document.getElementById('answerInput');
+    const val   = parseInt(input.value);
+    if (isNaN(val)) { input.focus(); return; }
+
+    answered = true;
+    input.disabled = true;
+    document.getElementById('btnSubmit').style.display = 'none';
+    document.getElementById('btnNext').style.display   = 'inline-block';
+
+    const isCorrect = val === q.exactAnswer;
+
+    if (isCorrect) {
+      scoreCorrect++;
+      input.className = 'answer-input correct';
+      const b = document.getElementById('resultBanner');
+      b.className = 'result-banner correct';
+      document.getElementById('resultIcon').textContent = '✓';
+      document.getElementById('resultText').textContent = `Correct! ${val} dB`;
+    } else {
+      scoreWrong++;
+      input.className = 'answer-input wrong';
+      const b = document.getElementById('resultBanner');
+      b.className = 'result-banner wrong';
+      document.getElementById('resultIcon').textContent = '✗';
+      document.getElementById('resultText').textContent =
+        `Not quite — you said ${val} dB. See working below.`;
+    }
+
+    document.getElementById('scoreCorrect').textContent = scoreCorrect;
+    document.getElementById('scoreWrong').textContent   = scoreWrong;
+
+    drawGraph(q, true);
+    showWorking(q);
+  }
+
+  function showWorking(q) {
+    document.getElementById('workingBox').className = 'working-box visible';
+
+    const decDb = q.decades * 20;
+    const octDb = q.octaves * 6;
+
+    let stepsHtml = '';
+    if (q.decades > 0) {
+      stepsHtml += `<div class="working-line">Decades: <span class="w-val2">${q.decades} × 20 dB = ${decDb} dB</span></div>`;
+    }
+    if (q.octaves > 0) {
+      stepsHtml += `<div class="working-line">Octaves: <span class="w-val">${q.octaves} × 6 dB = ${octDb} dB</span></div>`;
+    }
+
+    const ratioLabel = q.filterType === 'low'
+      ? `${formatFreq(q.fB)} ÷ ${formatFreq(q.fA)} = ${q.ratio}×`
+      : `${formatFreq(q.fA)} ÷ ${formatFreq(q.fB)} = ${q.ratio}×`;
+
+    document.getElementById('workingContent').innerHTML = `
+      <div class="working-line">Frequency ratio: <span class="w-val">${ratioLabel}</span></div>
+      <div class="working-line">= <span class="w-val">2<sup>${q.octaves}</sup> × 10<sup>${q.decades}</sup></span>
+        = <span class="w-val">${q.octaves} octave${q.octaves !== 1 ? 's' : ''}</span> + <span class="w-val2">${q.decades} decade${q.decades !== 1 ? 's' : ''}</span></div>
+      <br>
+      <div class="working-line" style="color:var(--accent2);">Roll-off calculation:</div>
+      ${stepsHtml}
+      <div class="working-line">Total roll-off: <span class="w-val">${decDb} + ${octDb} = ${q.rolloff} dB</span></div>
+      <br>
+      <div class="working-line total">
+        Gain at ${formatFreq(q.fB)} = ${q.startDb} dB − ${q.rolloff} dB = <span class="w-val3">${q.exactAnswer} dB</span>
+      </div>
+    `;
+  }
+
+  function nextQuestion() {
+    currentQ++;
+    if (currentQ >= 10) showFinal(); else renderQuestion();
+  }
+
+  function showFinal() {
+    document.getElementById('questionCard').style.display = 'none';
+    const final = document.getElementById('finalCard');
+    final.className = 'final-card visible';
+    document.getElementById('finalScore').textContent = `${scoreCorrect} / 10`;
+    document.getElementById('progress').style.width   = '100%';
+
+    let msg;
+    if (scoreCorrect === 10)    msg = 'Perfect score! Outstanding — you have a solid grasp of filter gain calculations.';
+    else if (scoreCorrect >= 8) msg = 'Excellent! Just a couple to review. Check the working for any you missed.';
+    else if (scoreCorrect >= 6) msg = 'Good effort. Review the octave and decade roll-off steps for the ones you missed.';
+    else if (scoreCorrect >= 4) msg = 'Keep practising. Key rule: each octave = −6dB, each decade = −20dB.';
+    else                        msg = "Don't worry — this takes practice. Review the worked solutions and try again.";
+
+    document.getElementById('finalMessage').textContent = msg;
+  }
+
+  function restartQuiz() {
+    currentQ = 0; scoreCorrect = 0; scoreWrong = 0; answered = false;
+    generateQuiz();
+    renderQuestion();
+  }
+
+  document.getElementById('answerInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitAnswer();
+  });
+
+  window.addEventListener('resize', () => {
+    if (questions.length > 0) { resizeGraph(); drawGraph(questions[currentQ], answered); }
+  });
+
+  generateQuiz();
+  renderQuestion();
+</script>
+</body>
+</html>
