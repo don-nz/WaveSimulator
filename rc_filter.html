@@ -657,7 +657,7 @@
     const v3db  = Vpeak * getGain(fc, fc);
     const y3dbV = dbToY(-3);
     bodeCtx.fillStyle = 'rgba(255,107,53,0.7)';
-    bodeCtx.fillText(`${formatVoltage(v3db)} pk`, 4, y3dbV - 3);
+    bodeCtx.fillText(`${formatVoltage(v3db)} pk`, 4, y3dbV + 12);
 
     // −20dB voltage
     const v20db  = Vpeak * Math.pow(10, -20/20);
@@ -687,8 +687,8 @@
     bodeCtx.font      = '10px Share Tech Mono';
     bodeCtx.textAlign = fcX > plotW * 0.7 ? 'right' : 'left';
     const lOff        = fcX > plotW * 0.7 ? -8 : 8;
-    bodeCtx.fillText(`fc = ${formatFreq(fc)}`, fcX + lOff, fcY - 10);
-    bodeCtx.fillText(`−3dB`, fcX + lOff, fcY + 14);
+    bodeCtx.fillText(`fc = ${formatFreq(fc)}`, fcX + lOff, fcY - 20);
+    bodeCtx.fillText(`−3dB`, fcX + lOff, fcY + 24);
 
     // ── −20dB marker (purple) ─────────────────────────────────────────────
     if (logF20 >= logFmin && logF20 <= logFmax) {
