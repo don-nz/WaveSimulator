@@ -682,12 +682,6 @@
     line(leftX,  gndY,  juncX,  gndY);
     line(juncX,  gndY,  rightX, gndY);
 
-    // Left vertical (Vin)
-    line(leftX, wireY, leftX, gndY);
-
-    // Right vertical (Vout)
-    line(rightX, wireY, rightX, gndY);
-
     // Shunt wire: junction top → shunt component → gnd rail
     line(juncX, wireY, juncX, gndY);
 
