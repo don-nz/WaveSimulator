@@ -687,7 +687,7 @@
     bodeCtx.font      = '10px Share Tech Mono';
     bodeCtx.textAlign = fcX > plotW * 0.7 ? 'right' : 'left';
     const lOff        = fcX > plotW * 0.7 ? -8 : 8;
-    bodeCtx.fillText(`fc = ${formatFreq(fc)}`, fcX + lOff, fcY - 20);
+    bodeCtx.fillText(`fc = ${formatFreq(fc)}`, fcX + lOff, fcY - 44);
     bodeCtx.fillText(`−3dB`, fcX + lOff, fcY + 24);
 
     // ── −20dB marker (purple) ─────────────────────────────────────────────
@@ -713,8 +713,8 @@
       bodeCtx.font      = '10px Share Tech Mono';
       bodeCtx.textAlign = x20 > plotW * 0.7 ? 'right' : 'left';
       const lOff20      = x20 > plotW * 0.7 ? -8 : 8;
-      bodeCtx.fillText(`f₋₂₀ = ${formatFreq(f20db)}`, x20 + lOff20, y20 - 20);
-      bodeCtx.fillText(`−20dB`, x20 + lOff20, y20 + 24);
+      bodeCtx.fillText(`f₋₂₀ = ${formatFreq(f20db)}`, x20 + lOff20, y20 - 54);
+      bodeCtx.fillText(`−20dB`, x20 + lOff20, y20 + 34);
     }
 
     bodeCtx.restore();
