@@ -621,6 +621,17 @@
 
   // ── Circuit diagram ───────────────────────────────────────────────────────
 
+  function line(x1, y1, x2, y2, col, lw) {
+    circuitCtx.strokeStyle = col || wireColour;
+    circuitCtx.lineWidth   = lw  || 1.8;
+    circuitCtx.lineCap     = 'round';
+    circuitCtx.beginPath();
+    circuitCtx.moveTo(x1, y1);
+    circuitCtx.lineTo(x2, y2);
+    circuitCtx.stroke();
+  }
+
+
   function drawCircuit() {
     const dpr   = window.devicePixelRatio || 1;
     const W     = circuitCanvas.width  / dpr;
@@ -644,16 +655,6 @@
     const wireColour  = '#00e5ff';
     const compColour  = '#00e5ff';
     const labelColour = 'rgba(200,220,240,0.85)';
-
-    function line(x1, y1, x2, y2, col, lw) {
-      circuitCtx.strokeStyle = col || wireColour;
-      circuitCtx.lineWidth   = lw  || 1.8;
-      circuitCtx.lineCap     = 'round';
-      circuitCtx.beginPath();
-      circuitCtx.moveTo(x1, y1);
-      circuitCtx.lineTo(x2, y2);
-      circuitCtx.stroke();
-    }
 
     function dot(x, y) {
       circuitCtx.fillStyle = wireColour;
