@@ -562,8 +562,9 @@
     const { Vpp, fc } = getParams();
     const Vpeak   = Vpp / 2;
     const logFc   = Math.log10(fc);
-    const logFmin = Math.max(-2, logFc - 3);
-    const logFmax = Math.min(9,  logFc + 4);
+    const logF20  = Math.log10(freqAtDb(-20, fc));
+    const logFmin = Math.max(-2, Math.min(logFc - 3, logF20 - 1));
+    const logFmax = Math.min(9,  Math.max(logFc + 3, logF20 + 1));
 
     // −20dB frequency
     const f20db   = freqAtDb(-20, fc);
