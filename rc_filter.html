@@ -477,8 +477,8 @@
 
     const { fc } = getParams();
     const logFc   = Math.log10(fc);
-    const logFmin = Math.max(-2, logFc - 3);
-    const logFmax = Math.min(9,  logFc + 3);
+    const logFmin = Math.max(-2, logFc - 4);
+    const logFmax = Math.min(9,  logFc + 4);
 
     bodeCtx.clearRect(0, 0, fullW, fullH);
 
