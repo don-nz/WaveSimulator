@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RC Filter Explorer</title>
+  <title>First Order Filter Explorer</title>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="icon" href="data:,">
   <style>
@@ -118,6 +118,7 @@
     input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25);}
     input[type=range].orange-thumb::-webkit-slider-thumb{background:var(--accent2);box-shadow:0 0 8px rgba(255,107,53,.6);}
     input[type=range].purple-thumb::-webkit-slider-thumb{background:var(--accent5);box-shadow:0 0 8px rgba(167,139,250,.6);}
+    input[type=range].cyan-thumb::-webkit-slider-thumb{background:var(--accent3);box-shadow:0 0 8px rgba(0,255,153,.6);}
 
     /* Value+unit row */
     .val-row{display:flex;align-items:baseline;gap:.4rem;}
@@ -170,6 +171,7 @@
     .ro-val.orange{color:var(--accent2);}
     .ro-val.green{color:var(--accent3);}
     .ro-val.yellow{color:var(--accent6);}
+    .ro-val.purple{color:var(--accent5);}
     .ro-val.dim{color:var(--label);font-size:.85rem;}
 
     footer{margin-top:2rem;font-size:.65rem;color:var(--label);opacity:.5;letter-spacing:.15em;text-transform:uppercase;}
@@ -177,7 +179,7 @@
 </head>
 <body>
 <header>
-  <h1>RC Filter Explorer</h1>
+  <h1>First Order Filter Explorer</h1>
   <p>First Order Passive Filter · Interactive Gain Simulation</p>
 </header>
 
@@ -199,21 +201,21 @@
     <div class="ctrl-group">
       <div class="ctrl-label">Passband Gain (Insertion Loss)</div>
       <div class="val-row">
-        <span class="ctrl-value" id="ilVal">−3</span>
+        <span class="ctrl-value" id="ilVal">0</span>
         <span class="val-unit">dB &nbsp;(max 0 dB — passive filter)</span>
       </div>
-      <input type="range" id="ilSlider" min="-40" max="0" value="-3" step="1" oninput="onIL()">
+      <input type="range" id="ilSlider" min="-40" max="0" value="0" step="1" oninput="onIL()">
     </div>
 
     <!-- Cutoff freq -->
     <div class="ctrl-group">
       <div class="ctrl-label">Cutoff Frequency (f<sub>c</sub>)</div>
       <div class="val-row">
-        <span class="ctrl-value" id="fcVal">1000</span>
+        <span class="ctrl-value green" id="fcVal">1000</span>
         <span class="val-unit" id="fcUnit">Hz</span>
       </div>
       <!-- log slider: 1Hz–100kHz mapped to 0–500 -->
-      <input type="range" id="fcSlider" min="0" max="500" value="300" step="1" oninput="onFC()">
+      <input type="range" class="cyan-thumb" id="fcSlider" min="0" max="500" value="400" step="1" oninput="onFC()">
     </div>
 
     <!-- Selected frequency -->
@@ -223,7 +225,7 @@
         <span class="ctrl-value orange" id="faVal">4000</span>
         <span class="val-unit" id="faUnit">Hz</span>
       </div>
-      <input type="range" class="orange-thumb" id="faSlider" min="0" max="500" value="360" step="1" oninput="onFA()">
+      <input type="range" class="orange-thumb" id="faSlider" min="0" max="500" value="460" step="1" oninput="onFA()">
     </div>
 
     <!-- Octaves / Decades toggle -->
@@ -239,10 +241,10 @@
     <div class="ctrl-group">
       <div class="ctrl-label">Number of <span id="stepModeLabel">Octaves</span></div>
       <div class="val-row">
-        <span class="ctrl-value purple" id="stepsVal">2</span>
+        <span class="ctrl-value purple" id="stepsVal">1</span>
         <span class="val-unit" id="stepsUnit">octaves</span>
       </div>
-      <input type="range" class="purple-thumb" id="stepsSlider" min="1" max="6" value="2" step="1" oninput="onSteps()">
+      <input type="range" class="purple-thumb" id="stepsSlider" min="1" max="6" value="1" step="1" oninput="onSteps()">
     </div>
 
   </div>
@@ -267,7 +269,7 @@
     </div>
     <div class="ro-item">
       <div class="ro-label">Cutoff Freq (f<sub>c</sub>)</div>
-      <div class="ro-val cyan" id="roFC">1000 Hz</div>
+      <div class="ro-val green" id="roFC">1000 Hz</div>
     </div>
     <div class="ro-item">
       <div class="ro-label">Selected Freq (f<sub>A</sub>)</div>
@@ -279,11 +281,11 @@
     </div>
     <div class="ro-item">
       <div class="ro-label">Projected Freq (f<sub>B</sub>)</div>
-      <div class="ro-val green" id="roFB">— Hz</div>
+      <div class="ro-val purple" id="roFB">— Hz</div>
     </div>
     <div class="ro-item">
       <div class="ro-label">Gain at f<sub>B</sub></div>
-      <div class="ro-val green" id="roGainB">— dB</div>
+      <div class="ro-val purple" id="roGainB">— dB</div>
     </div>
     <div class="ro-item">
       <div class="ro-label">Roll-off Applied</div>
@@ -293,16 +295,16 @@
 
 </div>
 
-<footer>Barry Duncan · RC Filter Explorer</footer>
+<footer>Barry Duncan · First Order Filter Explorer</footer>
 
 <script>
   // ── State ─────────────────────────────────────────────────────────────────
   let filterType = 'low';   // 'low' | 'high'
   let stepMode   = 'octaves'; // 'octaves' | 'decades'
-  let il         = -3;      // insertion loss dB (≤ 0)
-  let fc         = 1000;    // cutoff Hz
-  let fA         = 4000;    // selected Hz
-  let steps      = 2;       // octaves or decades
+  let il         = 0;      // insertion loss dB (≤ 0)
+  let fc         = 10000;    // cutoff Hz
+  let fA         = 40000;    // selected Hz
+  let steps      = 1;       // octaves or decades
 
   const IL_MIN = -40, IL_MAX = 0;
 
@@ -394,10 +396,21 @@
   }
 
   // ── UI helpers ────────────────────────────────────────────────────────────
+  // Default state per filter type
+  const DEFAULTS = {
+    low:  { fc: 10000, fA: 40000, fcSlider: 400, faSlider: 460 },
+    high: { fc:  1000, fA:   100, fcSlider: 300, faSlider: 200 }
+  };
+
   function setFilter(type) {
     filterType = type;
     document.getElementById('btnLP').className = 'tog-btn' + (type==='low'  ? ' active-lp' : '');
     document.getElementById('btnHP').className = 'tog-btn' + (type==='high' ? ' active-hp' : '');
+    // Apply sensible defaults for the chosen filter type
+    const d = DEFAULTS[type];
+    fc = d.fc; fA = d.fA;
+    document.getElementById('fcSlider').value = d.fcSlider;
+    document.getElementById('faSlider').value = d.faSlider;
     update();
   }
   function setMode(mode) {
@@ -607,22 +620,25 @@
       const yB  = dbToY(gB);
 
       if (xB>=GP.left && xB<=GP.left+plotW){
-        dLine(xB, Math.max(GP.top,yB), xB, GP.top+plotH, 'rgba(0,255,153,0.5)', 1.3);
-        dLine(GP.left, yB, Math.min(xB,GP.left+plotW), yB, 'rgba(0,255,153,0.5)', 1.3);
-        drawDot(xB, yB, C_GREEN, 7, 'rgba(0,255,153,0.9)');
+        dLine(xB, Math.max(GP.top,yB), xB, GP.top+plotH, 'rgba(167,139,250,0.5)', 1.3);
+        dLine(GP.left, yB, Math.min(xB,GP.left+plotW), yB, 'rgba(167,139,250,0.5)', 1.3);
+        drawDot(xB, yB, C_PURPLE, 7, 'rgba(167,139,250,0.9)');
 
-        ctx.fillStyle=C_GREEN; ctx.font='bold 13px Share Tech Mono'; ctx.textAlign='center';
+        ctx.fillStyle=C_PURPLE; ctx.font='bold 13px Share Tech Mono'; ctx.textAlign='center';
         ctx.fillText('fB', xB, GP.top+plotH+14);
         ctx.fillText(formatFreq(fBv), xB, GP.top+plotH+28);
-        yLbl(gB.toFixed(1)+'dB', yB, C_GREEN);
+        yLbl(gB.toFixed(1)+'dB', yB, C_PURPLE);
 
         // Roll-off annotation between A and B
+        // LPF slopes down to the right so label sits right of centre; HPF slopes up to the right so label sits left
         const midX = (xA+xB)/2;
         const midY = (yA+yB)/2;
-        ctx.fillStyle='rgba(200,220,240,0.55)'; ctx.font='bold 11px Share Tech Mono'; ctx.textAlign='center';
-        ctx.fillText(`−${rolloffDb()} dB`, midX, midY-10);
-        ctx.font='9px Share Tech Mono'; ctx.fillStyle='rgba(200,220,240,0.35)';
-        ctx.fillText(`(${steps} ${stepMode})`, midX, midY+4);
+        const lblX  = filterType === 'low' ? midX + 24 : midX - 24;
+        const lblAlign = filterType === 'low' ? 'left' : 'right';
+        ctx.fillStyle='rgba(200,220,240,0.55)'; ctx.font='bold 11px Share Tech Mono'; ctx.textAlign=lblAlign;
+        ctx.fillText(`−${rolloffDb()} dB`, lblX, midY-10);
+        ctx.font='9px Share Tech Mono'; ctx.fillStyle='rgba(200,220,240,0.35)'; ctx.textAlign=lblAlign;
+        ctx.fillText(`(${steps} ${stepMode})`, lblX, midY+4);
 
         // Arrow between A and B on the curve
         sLine(xA,yA,xB,yB,'rgba(200,220,240,0.2)',1.5);
