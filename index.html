@@ -1,29 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Barry's Simulators</title>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #0a0d14;
             --panel: #0f1420;
+            --panel2: #0c1119;
             --border: #1e2d4a;
             --accent: #00e5ff;
             --accent2: #ff6b35;
+            --accent3: #00ff99;
             --grid: rgba(0, 229, 255, 0.06);
             --text: #c8d8e8;
             --label: #5a7a9a;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background: var(--bg);
@@ -63,84 +59,130 @@
             text-transform: uppercase;
         }
 
-        .tools-grid {
+        /* ── Nav menu ── */
+        .nav {
             width: 100%;
-            max-width: 900px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 1.5rem;
+            max-width: 560px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
         }
 
-        .tool-card {
+        /* Top-level group */
+        .nav-group {
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 4px;
-            padding: 1.8rem;
-            text-decoration: none;
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
-            position: relative;
             overflow: hidden;
         }
 
-        .tool-card::before {
+        /* Group header button */
+        .nav-group-header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.95rem 1.3rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            transition: background 0.15s;
+            position: relative;
+        }
+
+        .nav-group-header::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
             background: var(--accent);
-            opacity: 0;
-            transition: opacity 0.2s;
+            opacity: 0.7;
         }
 
-        .tool-card:hover {
-            border-color: rgba(0, 229, 255, 0.4);
-            box-shadow: 0 0 24px rgba(0, 229, 255, 0.12);
-            transform: translateY(-2px);
-        }
+        .nav-group-header.filters-header { color: var(--accent2); }
+        .nav-group-header.filters-header::before { background: var(--accent2); }
 
-        .tool-card:hover::before {
-            opacity: 1;
-        }
+        .nav-group-header:hover { background: rgba(0,229,255,0.05); }
+        .nav-group-header.filters-header:hover { background: rgba(255,107,53,0.05); }
 
-        .tool-icon {
-            font-size: 1.8rem;
-            line-height: 1;
-        }
-
-        .tool-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            color: var(--accent);
-            text-transform: uppercase;
-        }
-
-        .tool-desc {
-            font-size: 0.72rem;
-            color: var(--label);
-            line-height: 1.7;
-        }
-
-        .tool-tag {
-            display: inline-block;
+        .nav-chevron {
             font-size: 0.6rem;
-            padding: 2px 7px;
-            border-radius: 2px;
-            background: rgba(0, 229, 255, 0.08);
-            border: 1px solid rgba(0, 229, 255, 0.2);
-            color: var(--accent);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            margin-top: auto;
-            align-self: flex-start;
+            transition: transform 0.2s;
+            opacity: 0.6;
         }
+
+        .nav-group.open .nav-chevron { transform: rotate(180deg); }
+
+        /* Items list */
+        .nav-items {
+            display: none;
+            flex-direction: column;
+            border-top: 1px solid var(--border);
+        }
+
+        .nav-group.open .nav-items { display: flex; }
+
+        /* Individual item link */
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1.3rem 0.8rem 2rem;
+            text-decoration: none;
+            color: var(--text);
+            font-size: 0.78rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(30,45,74,0.6);
+            transition: background 0.15s, color 0.15s;
+            position: relative;
+        }
+
+        .nav-item:last-child { border-bottom: none; }
+
+        .nav-item::after {
+            content: '→';
+            margin-left: auto;
+            opacity: 0;
+            color: var(--accent);
+            transition: opacity 0.15s, transform 0.15s;
+            transform: translateX(-4px);
+            font-size: 0.8rem;
+        }
+
+        .nav-item:hover {
+            background: rgba(0,229,255,0.05);
+            color: var(--accent);
+        }
+
+        .nav-item:hover::after {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .filters-group .nav-item:hover {
+            background: rgba(255,107,53,0.05);
+            color: var(--accent2);
+        }
+
+        .filters-group .nav-item::after { color: var(--accent2); }
+
+        .nav-item-icon {
+            font-size: 1rem;
+            opacity: 0.5;
+            width: 1.2rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .nav-item-text { display: flex; flex-direction: column; gap: 0.2rem; }
+        .nav-item-name { font-size: 0.78rem; }
+        .nav-item-desc { font-size: 0.62rem; color: var(--label); line-height: 1.5; }
 
         footer {
             margin-top: 4rem;
@@ -152,7 +194,6 @@
         }
     </style>
 </head>
-
 <body>
 
     <header>
@@ -160,50 +201,72 @@
         <p>A collection of educational simulators &amp; utilities</p>
     </header>
 
-    <div class="tools-grid">
+    <nav class="nav">
 
-        <a class="tool-card" href="square_wave_simulator.html">
-            <div class="tool-icon">〜</div>
-            <div class="tool-name">Square Wave Simulator</div>
-            <div class="tool-desc">
-                Fourier series approximation of a square wave.
-                Adjust frequency, amplitude and harmonics interactively.
-                Includes harmonic spectrum and downloadable spreadsheet.
+        <!-- Simulators -->
+        <div class="nav-group open" id="grp-simulators">
+            <button class="nav-group-header" onclick="toggle('grp-simulators')">
+                <span>Simulators</span>
+                <span class="nav-chevron">▼</span>
+            </button>
+            <div class="nav-items">
+                <a class="nav-item" href="square_wave_simulator.html">
+                    <span class="nav-item-icon">〜</span>
+                    <span class="nav-item-text">
+                        <span class="nav-item-name">Square Wave Simulator</span>
+                        <span class="nav-item-desc">Fourier series approximation — adjust harmonics, frequency &amp; amplitude</span>
+                    </span>
+                </a>
+                <a class="nav-item" href="sinewave_combiner.html">
+                    <span class="nav-item-icon">〜</span>
+                    <span class="nav-item-text">
+                        <span class="nav-item-name">Sinewave Combiner</span>
+                        <span class="nav-item-desc">Combine sinewaves by adding and multiplying</span>
+                    </span>
+                </a>
             </div>
-            <span class="tool-tag">Electronics · Maths</span>
-        </a>
+        </div>
 
-       <!-- Add new tools below this line, copy the card block above -->
-
-        <a class="tool-card" href="rc_filter.html">
-            <div class="tool-icon">〜</div>
-            <div class="tool-name">RC Filter</div>
-            <div class="tool-desc">
-                Show RC filter circuit and graph.
+        <!-- Filters -->
+        <div class="nav-group filters-group open" id="grp-filters">
+            <button class="nav-group-header filters-header" onclick="toggle('grp-filters')">
+                <span>Filters</span>
+                <span class="nav-chevron">▼</span>
+            </button>
+            <div class="nav-items">
+                <a class="nav-item" href="rc_filter.html">
+                    <span class="nav-item-icon">〜</span>
+                    <span class="nav-item-text">
+                        <span class="nav-item-name">RC Filter</span>
+                        <span class="nav-item-desc">RC filter circuit diagram and frequency response graph</span>
+                    </span>
+                </a>
+                <a class="nav-item" href="filter_explorer.html">
+                    <span class="nav-item-icon">〜</span>
+                    <span class="nav-item-text">
+                        <span class="nav-item-name">Filter Explorer</span>
+                        <span class="nav-item-desc">Interactively explore filter values and gain response</span>
+                    </span>
+                </a>
+                <a class="nav-item" href="filter_gain_quiz.html">
+                    <span class="nav-item-icon">〜</span>
+                    <span class="nav-item-text">
+                        <span class="nav-item-name">Filter Gain Quiz</span>
+                        <span class="nav-item-desc">Test your understanding of octaves, decades and roll-off</span>
+                    </span>
+                </a>
             </div>
-            <span class="tool-tag">Electronics · Maths</span>
-        </a>
+        </div>
 
-        <a class="tool-card" href="filter_gain_quiz.html">
-            <div class="tool-icon">〜</div>
-            <div class="tool-name">Filter Gain Quiz</div>
-            <div class="tool-desc">
-                Filter Gain Quiz.
-            </div>
-            <span class="tool-tag">Electronics · Maths</span>
-        </a>
+    </nav>
 
-        <a class="tool-card" href="sinewave_combiner.html">
-            <div class="tool-icon">〜</div>
-            <div class="tool-name">Sinewave Combiner</div>
-            <div class="tool-desc">
-                Combine signwaves by adding and multiplying
-            </div>
-            <span class="tool-tag">Electronics · Maths</span>
-        </a>        
+    <footer>Barry Duncan · Educational Simulators</footer>
 
-    </div>
+    <script>
+        function toggle(id) {
+            document.getElementById(id).classList.toggle('open');
+        }
+    </script>
 
 </body>
-
 </html>
