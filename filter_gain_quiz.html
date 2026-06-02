@@ -880,16 +880,16 @@
 
       // Decades first
       for (let d = 0; d < q.decades; d++) {
-        const nextF = q.filterType === 'low' ? currentF / 10 : currentF * 10;
-        const op = q.filterType === 'low' ? '÷ 10' : '× 10';
+        const nextF=q.fA>q.fB?currentF/10:currentF*10;
+        const op=q.fA>q.fB?'÷ 10':'× 10';
         steps += `<div class="working-line"><span class="w-val">${formatFreq(currentF)}</span> ${op} = <span class="w-val">${formatFreq(nextF)}</span> <span style="color:var(--accent2)">(${d + 1} decade${d + 1 > 1 ? 's' : ''})</span></div>`;
         currentF = nextF;
       }
 
       // Octaves after
       for (let o = 0; o < q.octaves; o++) {
-        const nextF = q.filterType === 'low' ? currentF / 2 : currentF * 2;
-        const op = q.filterType === 'low' ? '÷ 2' : '× 2';
+        const nextF=q.fA>q.fB?currentF/2:currentF*2;
+        const op=q.fA>q.fB?'÷ 2':'× 2';
         steps += `<div class="working-line"><span class="w-val">${formatFreq(currentF)}</span> ${op} = <span class="w-val">${formatFreq(nextF)}</span> <span style="color:var(--accent)">(${o + 1} octave${o + 1 > 1 ? 's' : ''})</span></div>`;
         currentF = nextF;
       }
