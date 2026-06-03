@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RC / RL Filter Phase Explorer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg:#0a0d14; --panel:#0f1420; --border:#1e2d4a;
+      --accent:#00e5ff; --accent2:#ff6b35; --accent3:#00ff99;
+      --accent4:#ff3d9a; --accent5:#a78bfa; --accent6:#ffe600;
+      --grid:rgba(0,229,255,0.05); --text:#c8d8e8; --label:#5a7a9a;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      background:var(--bg);color:var(--text);
+      font-family:'Share Tech Mono',monospace;
+      min-height:100vh;display:flex;flex-direction:column;align-items:center;
+      padding:1.2rem 1rem 2rem;
+      background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+      background-size:40px 40px;
+    }
+    header{text-align:center;margin-bottom:1rem;}
+    header h1{
+      font-family:'Orbitron',sans-serif;font-size:clamp(1rem,3vw,1.8rem);
+      font-weight:900;letter-spacing:.12em;color:var(--accent);
+      text-shadow:0 0 28px rgba(0,229,255,.5);text-transform:uppercase;
+    }
+    header p{margin-top:.25rem;color:var(--label);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;}
+
+    .wrap{width:100%;max-width:1340px;display:flex;flex-direction:column;gap:.8rem;}
+
+    /* ── Row 1: filter toggles ── */
+    .top-bar{
+      background:var(--panel);border:1px solid var(--border);border-radius:4px;
+      padding:.9rem 1.4rem;
+      display:flex;gap:2rem;align-items:center;flex-wrap:wrap;
+    }
+    .ctrl-group{display:flex;flex-direction:column;gap:.4rem;}
+    .ctrl-label{font-size:.58rem;letter-spacing:.2em;color:var(--label);text-transform:uppercase;}
+    .toggle-row{display:flex;gap:.4rem;}
+    .tog-btn{
+      padding:.35rem 1rem;border-radius:3px;
+      font-family:'Share Tech Mono',monospace;font-size:.7rem;
+      letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+      border:1px solid var(--border);background:transparent;color:var(--label);transition:all .15s;
+    }
+    .tog-btn.active-lp{border-color:rgba(0,229,255,.5);background:rgba(0,229,255,.1);color:var(--accent);}
+    .tog-btn.active-hp{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.1);color:var(--accent2);}
+    .tog-btn.active-rc{border-color:rgba(0,255,153,.5);background:rgba(0,255,153,.1);color:var(--accent3);}
+    .tog-btn.active-rl{border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.1);color:var(--accent5);}
+
+    /* preset value badges */
+    .preset-info{
+      margin-left:auto;display:flex;gap:1.4rem;align-items:center;flex-wrap:wrap;
+    }
+    .preset-chip{display:flex;flex-direction:column;gap:.15rem;align-items:center;}
+    .preset-chip-lbl{font-size:.52rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;}
+    .preset-chip-val{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;color:var(--accent3);}
+    .preset-chip-val.orange{color:var(--accent2);}
+    .preset-chip-val.purple{color:var(--accent5);}
+
+    /* ── Row 2: circuit + freq slider side by side ── */
+    .row2{display:grid;grid-template-columns:380px 1fr;gap:.8rem;align-items:stretch;}
+    @media(max-width:820px){.row2{grid-template-columns:1fr;}}
+
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:.8rem;}
+    .panel-title{font-size:.56rem;letter-spacing:.2em;color:var(--label);text-transform:uppercase;
+      margin-bottom:.6rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);}
+
+    /* freq slider panel */
+    .freq-panel{display:flex;flex-direction:column;justify-content:center;gap:1rem;padding:1.2rem 1.6rem;}
+    .freq-big{font-family:'Orbitron',sans-serif;font-size:2.4rem;font-weight:900;
+      color:var(--accent6);text-shadow:0 0 20px rgba(255,230,0,.4);text-align:center;line-height:1;}
+    .freq-sub{text-align:center;font-size:.62rem;letter-spacing:.18em;color:var(--label);text-transform:uppercase;margin-top:.2rem;}
+
+    input[type=range]{
+      -webkit-appearance:none;width:100%;height:6px;border-radius:3px;
+      background:var(--border);outline:none;cursor:pointer;
+    }
+    input[type=range]::-webkit-slider-thumb{
+      -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+      background:var(--thumb-col,var(--accent6));box-shadow:0 0 12px rgba(255,230,0,.7);
+      cursor:pointer;transition:background .15s,transform .1s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
+
+    .freq-ticks{display:flex;justify-content:space-between;font-size:.58rem;color:var(--label);margin-top:.3rem;opacity:.6;}
+
+    /* phase / gain readout bar below slider */
+    .phase-bar{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;
+      background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:3px;padding:.6rem .8rem;
+    }
+    .pb-item{display:flex;flex-direction:column;gap:.18rem;align-items:center;}
+    .pb-lbl{font-size:.52rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;}
+    .pb-val{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;}
+
+    /* ── Row 3: three graphs ── */
+    .graphs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;}
+    @media(max-width:900px){.graphs{grid-template-columns:1fr;}}
+
+    canvas{display:block;width:100%;}
+
+    /* lead/lag pill */
+    .ll-pill{
+      display:inline-block;padding:.2rem .7rem;border-radius:12px;
+      font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;
+      letter-spacing:.1em;text-transform:uppercase;
+    }
+
+    /* fc snap indicator */
+    .snap-badge{
+      display:none;align-items:center;gap:.4rem;justify-content:center;
+      font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;
+      color:var(--accent3);opacity:.85;
+    }
+    .snap-badge.visible{display:flex;}
+    .snap-dot{width:7px;height:7px;border-radius:50%;background:var(--accent3);
+      box-shadow:0 0 8px rgba(0,255,153,.8);animation:pulse .8s infinite alternate;}
+    @keyframes pulse{from{opacity:.5}to{opacity:1}}
+
+    /* slider track tick mark at fc */
+    .slider-wrap{position:relative;}
+    .fc-tick{
+      position:absolute;bottom:-8px;width:2px;height:10px;
+      background:var(--accent3);border-radius:1px;
+      transform:translateX(-50%);pointer-events:none;
+      box-shadow:0 0 6px rgba(0,255,153,.7);
+    }
+
+    footer{margin-top:1.2rem;font-size:.6rem;color:var(--label);opacity:.4;letter-spacing:.15em;text-transform:uppercase;}
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>RC / RL Filter Phase Explorer</h1>
+  <p>Gain · Phase · Phasor — Fixed Values · Interactive Frequency</p>
+</header>
+
+<div class="wrap">
+
+  <!-- ── Row 1: toggles + preset values ── -->
+  <div class="top-bar">
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Filter Type</div>
+      <div class="toggle-row">
+        <button class="tog-btn active-lp" id="btnLP" onclick="setFilter('low')">Low Pass</button>
+        <button class="tog-btn" id="btnHP" onclick="setFilter('high')">High Pass</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Component</div>
+      <div class="toggle-row">
+        <button class="tog-btn active-rc" id="btnRC" onclick="setComp('RC')">RC (Capacitor)</button>
+        <button class="tog-btn" id="btnRL" onclick="setComp('RL')">RL (Inductor)</button>
+      </div>
+    </div>
+
+    <div class="preset-info">
+      <div class="preset-chip">
+        <div class="preset-chip-lbl">Resistance R</div>
+        <div class="preset-chip-val orange" id="rChip">1 kΩ</div>
+      </div>
+      <div class="preset-chip">
+        <div class="preset-chip-lbl" id="lcChipLbl">Capacitance C</div>
+        <div class="preset-chip-val purple" id="lcChip">159.15 nF</div>
+      </div>
+      <div class="preset-chip">
+        <div class="preset-chip-lbl">Cutoff Freq fc</div>
+        <div class="preset-chip-val" id="fcChip">1.000 kHz</div>
+      </div>
+      <div class="preset-chip">
+        <div class="preset-chip-lbl">Time const τ</div>
+        <div class="preset-chip-val" id="tauChip">159.15 μs</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Row 2: circuit + freq slider ── -->
+  <div class="row2">
+
+    <div class="panel">
+      <div class="panel-title">Circuit Diagram</div>
+      <canvas id="circuitCanvas" height="220"></canvas>
+    </div>
+
+    <div class="panel freq-panel">
+      <div>
+        <div class="freq-big" id="fBig">1.000 kHz</div>
+        <div class="freq-sub">Selected Frequency</div>
+      </div>
+
+      <div>
+        <div class="slider-wrap">
+          <input type="range" id="fSlider" min="0" max="500" value="300" oninput="onFreq()">
+          <div class="fc-tick" id="fcTick"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
+          <div class="freq-ticks" style="flex:1;">
+            <span>0.1 Hz</span><span>1 kHz</span><span>1 MHz</span><span>100 MHz</span>
+          </div>
+          <div class="snap-badge" id="snapBadge">
+            <span class="snap-dot"></span>Snapped to fc
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-bar">
+        <div class="pb-item">
+          <div class="pb-lbl">f / fc</div>
+          <div class="pb-val" id="pbRatio" style="color:var(--accent)">—</div>
+        </div>
+        <div class="pb-item">
+          <div class="pb-lbl">Gain Av</div>
+          <div class="pb-val" id="pbGain" style="color:var(--accent2)">—</div>
+        </div>
+        <div class="pb-item">
+          <div class="pb-lbl">Phase φ</div>
+          <div class="pb-val" id="pbPhase" style="color:var(--accent5)">—</div>
+        </div>
+        <div class="pb-item">
+          <div class="pb-lbl">Vout / Vin</div>
+          <div class="pb-val" id="pbVout" style="color:var(--accent3)">—</div>
+        </div>
+      </div>
+
+      <!-- Lead/lag statement -->
+      <div style="text-align:center;font-size:.75rem;color:var(--label);line-height:1.7;" id="llStatement">—</div>
+
+    </div>
+
+  </div>
+
+  <!-- ── Row 3: Bode + Phase + Phasor ── -->
+  <div class="graphs">
+
+    <div class="panel">
+      <div class="panel-title">Gain Response — Av (dB)</div>
+      <canvas id="bodeCanvas" height="280"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Phase Response — φ (degrees)</div>
+      <canvas id="phaseCanvas" height="280"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Phasor Diagram</div>
+      <canvas id="phasorCanvas" height="210"></canvas>
+      <div id="phasorInfo" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem .6rem;
+        padding:.5rem .6rem;border-top:1px solid #1e2d4a;margin-top:.2rem;">
+        <div><span style="font-size:.5rem;letter-spacing:.15em;color:#5a7a9a;text-transform:uppercase;display:block">Filter</span>
+          <span id="piFilter" style="font-family:Orbitron,sans-serif;font-size:.75rem;font-weight:700;color:#00e5ff">—</span></div>
+        <div><span style="font-size:.5rem;letter-spacing:.15em;color:#5a7a9a;text-transform:uppercase;display:block">Gain Av</span>
+          <span id="piGain" style="font-family:Orbitron,sans-serif;font-size:.75rem;font-weight:700;color:#ff6b35">—</span></div>
+        <div><span style="font-size:.5rem;letter-spacing:.15em;color:#5a7a9a;text-transform:uppercase;display:block">Phase φ</span>
+          <span id="piPhase" style="font-family:Orbitron,sans-serif;font-size:.75rem;font-weight:700;color:#a78bfa">—</span></div>
+        <div><span style="font-size:.5rem;letter-spacing:.15em;color:#5a7a9a;text-transform:uppercase;display:block">|Vout/Vin|</span>
+          <span id="piVout" style="font-family:Orbitron,sans-serif;font-size:.75rem;font-weight:700;color:#00ff99">—</span></div>
+        <div><span style="font-size:.5rem;letter-spacing:.15em;color:#5a7a9a;text-transform:uppercase;display:block">f / fc</span>
+          <span id="piRatio" style="font-family:Orbitron,sans-serif;font-size:.75rem;font-weight:700;color:#00e5ff">—</span></div>
+        <div><span style="font-size:.5rem;letter-spacing:.15em;color:#5a7a9a;text-transform:uppercase;display:block">Vout</span>
+          <span id="piLL" style="font-family:Orbitron,sans-serif;font-size:.75rem;font-weight:700">—</span></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>Barry Duncan · RC/RL Filter Phase Explorer</footer>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// PRESET VALUES — chosen so fc = 1 kHz exactly and numbers are textbook-clean
+// RC: R=1kΩ, C=1/(2π×1000×1000) ≈ 159.155 nF → fc = 1000 Hz
+// RL: R=1kΩ, L=1000/(2π×1000) ≈ 159.155 mH → fc = 1000 Hz
+// ─────────────────────────────────────────────────────────────────────────────
+const PRESETS = {
+  RC: { R: 1000, LC: 1/(2*Math.PI*1000*1000), fc: 1000,
+        Rlbl:'1 kΩ', LClbl:'159.15 nF', taulbl:'159.15 μs' },
+  RL: { R: 1000, LC: 1000/(2*Math.PI*1000), fc: 1000,
+        Rlbl:'1 kΩ', LClbl:'159.15 mH', taulbl:'159.15 μs' },
+};
+
+let filterType = 'low';
+let compType   = 'RC';
+let fVal       = 1000;
+
+const C_CYAN='#00e5ff', C_ORANGE='#ff6b35', C_GREEN='#00ff99',
+      C_YELLOW='#ffe600', C_PURPLE='#a78bfa', C_PINK='#ff3d9a', C_TEXT='#c8d8e8';
+
+// ── Frequency slider: log 0.1 Hz → 100 MHz ──────────────────────────────────
+function fFromSlider(v){ return 0.1 * Math.pow(1e9, v/500); }
+
+function formatFreq(f){
+  if(f>=1e6) return fmtN(f/1e6)+' MHz';
+  if(f>=1e3) return fmtN(f/1e3)+' kHz';
+  if(f>=1)   return fmtN(f)+' Hz';
+  return fmtN(f*1000)+' mHz';
+}
+function fmtN(n){ return parseFloat(n.toFixed(4)).toString(); }
+function formatImp(z){
+  if(z>=1e9) return (z/1e9).toFixed(2)+'GΩ';
+  if(z>=1e6) return (z/1e6).toFixed(2)+'MΩ';
+  if(z>=1e3) return (z/1e3).toFixed(2)+'kΩ';
+  return z.toFixed(1)+'Ω';
+}
+
+// ── Physics ──────────────────────────────────────────────────────────────────
+function calc(f){
+  const {R, LC, fc} = PRESETS[compType];
+  const isRL = compType==='RL';
+  const isHP = filterType==='high';
+  const X = isRL ? 2*Math.PI*f*LC : 1/(2*Math.PI*f*LC);
+  const ratio = f/fc;
+  let gainLin;
+  if(!isHP) gainLin = isRL ? R/Math.sqrt(R*R+X*X) : X/Math.sqrt(R*R+X*X);
+  else      gainLin = isRL ? X/Math.sqrt(R*R+X*X) : R/Math.sqrt(R*R+X*X);
+  gainLin = Math.max(gainLin,1e-10);
+  const gainDb = 20*Math.log10(gainLin);
+  const phaseRad = isHP ? Math.atan(1/ratio) : -Math.atan(ratio);
+  const phaseDeg = phaseRad*180/Math.PI;
+  return {fc, X, gainLin, gainDb, phaseRad, phaseDeg};
+}
+
+// ── Setters ──────────────────────────────────────────────────────────────────
+function setFilter(t){
+  filterType=t;
+  document.getElementById('btnLP').className='tog-btn'+(t==='low'?' active-lp':'');
+  document.getElementById('btnHP').className='tog-btn'+(t==='high'?' active-hp':'');
+  update();
+}
+function setComp(c){
+  compType=c;
+  document.getElementById('btnRC').className='tog-btn'+(c==='RC'?' active-rc':'');
+  document.getElementById('btnRL').className='tog-btn'+(c==='RL'?' active-rl':'');
+  update();
+}
+// Slider value for fc (1000 Hz): fFromSlider(v)=0.1*(1e9)^(v/500)=1000 → v=500*log(10000)/log(1e9)=500*4/9≈222.2
+const FC_SLIDER_VAL = 500*Math.log(10000)/Math.log(1e9); // ≈222.2 for fc=1kHz
+const SNAP_RADIUS = 6; // slider units — snaps within ±6 of fc position
+
+function fcSliderPos(fc){ return 500*Math.log(fc/0.1)/Math.log(1e9); }
+
+function onFreq(){
+  const sl=document.getElementById('fSlider');
+  const raw=parseFloat(sl.value);
+  const fc=PRESETS[compType].fc;
+  const fcPos=fcSliderPos(fc);
+  const snapped=Math.abs(raw-fcPos)<=SNAP_RADIUS;
+  if(snapped){
+    sl.value=fcPos;
+    fVal=fc;
+  } else {
+    fVal=fFromSlider(raw);
+  }
+  document.getElementById('snapBadge').classList.toggle('visible',snapped);
+  // colour thumb green when snapped
+  sl.style.setProperty('--thumb-col',snapped?'#00ff99':'#ffe600');
+  update();
+}
+
+function positionFcTick(){
+  const fc=PRESETS[compType].fc;
+  const pos=fcSliderPos(fc)/500*100; // percent
+  document.getElementById('fcTick').style.left=pos+'%';
+}
+
+// ── Canvas helpers ────────────────────────────────────────────────────────────
+const DPR=()=>window.devicePixelRatio||1;
+function sizeCanvas(cv,h){
+  const d=DPR(), w=cv.parentElement.getBoundingClientRect().width-18;
+  cv.width=w*d; cv.height=h*d;
+  cv.style.width=w+'px'; cv.style.height=h+'px';
+  cv.getContext('2d').scale(d,d);
+}
+function cW(cv){return cv.width/DPR();} function cH(cv){return cv.height/DPR();}
+
+const bodeCanvas=document.getElementById('bodeCanvas');
+const phaseCanvas=document.getElementById('phaseCanvas');
+const phasorCanvas=document.getElementById('phasorCanvas');
+const circuitCanvas=document.getElementById('circuitCanvas');
+
+function resizeAll(){
+  sizeCanvas(bodeCanvas,280); sizeCanvas(phaseCanvas,280);
+  sizeCanvas(phasorCanvas,210); sizeCanvas(circuitCanvas,220);
+}
+
+// ── Shared plot padding ───────────────────────────────────────────────────────
+const PAD={l:52,r:16,t:16,b:36};
+
+// ── Bode plot ─────────────────────────────────────────────────────────────────
+function drawBode(){
+  const cv=bodeCanvas, cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  cx.clearRect(0,0,fw,fh);
+  const fc=PRESETS[compType].fc;
+  const logFc=Math.log10(fc), lmin=logFc-2.5, lmax=logFc+2.5;
+  const dbMin=-65,dbMax=8,dbR=dbMax-dbMin;
+  function dbY(db){return PAD.t+ph*(1-(db-dbMin)/dbR);}
+  function lfX(lf){return PAD.l+pw*(lf-lmin)/(lmax-lmin);}
+
+  // Grid
+  [-60,-40,-20,-10,-3,0,6].forEach(db=>{
+    const y=dbY(db); if(y<PAD.t||y>PAD.t+ph)return;
+    cx.setLineDash(db===0?[]:[2,5]);
+    cx.strokeStyle=db===0?'rgba(0,229,255,.15)':db===-3?'rgba(255,107,53,.25)':'rgba(30,45,74,.7)';
+    cx.lineWidth=db===0||db===-3?1.4:1;
+    cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();
+    cx.setLineDash([]);
+    cx.fillStyle=db===-3?'rgba(255,107,53,.8)':'rgba(200,220,240,.5)';
+    cx.font='9px Share Tech Mono';cx.textAlign='right';cx.fillText(db+'dB',PAD.l-5,y+4);
+  });
+  for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
+    const x=lfX(lf);if(x<PAD.l||x>PAD.l+pw)continue;
+    cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;cx.setLineDash([2,5]);
+    cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
+  }
+
+  // Curve
+  const N=pw*3;
+  [[C_CYAN+'33',6,8],[C_CYAN,2,0]].forEach(([col,lw,bl])=>{
+    cx.shadowColor=C_CYAN;cx.shadowBlur=bl;cx.strokeStyle=col;cx.lineWidth=lw;
+    cx.beginPath();let s=false;
+    for(let i=0;i<=N;i++){
+      const lf=lmin+(i/N)*(lmax-lmin),f=Math.pow(10,lf);
+      const {gainDb}=calc(f);
+      const x=lfX(lf),y=Math.max(PAD.t,Math.min(PAD.t+ph,dbY(gainDb)));
+      s?cx.lineTo(x,y):cx.moveTo(x,y);s=true;
+    }
+    cx.stroke();cx.shadowBlur=0;
+  });
+
+  // fc line
+  const xFc=lfX(logFc);
+  cx.strokeStyle='rgba(0,255,153,.5)';cx.lineWidth=1.2;cx.setLineDash([4,4]);
+  cx.beginPath();cx.moveTo(xFc,PAD.t);cx.lineTo(xFc,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+  cx.fillStyle='rgba(0,255,153,.8)';cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('fc='+formatFreq(fc),xFc,PAD.t+ph+28);
+
+  // Marker
+  const logF=Math.log10(Math.max(fVal,1e-9)),xF=lfX(logF);
+  const {gainDb:gdb}=calc(fVal);
+  const yF=Math.max(PAD.t,Math.min(PAD.t+ph,dbY(gdb)));
+  if(xF>=PAD.l&&xF<=PAD.l+pw){
+    cx.strokeStyle='rgba(255,230,0,.55)';cx.lineWidth=1;cx.setLineDash([3,4]);
+    cx.beginPath();cx.moveTo(xF,PAD.t);cx.lineTo(xF,PAD.t+ph);cx.stroke();
+    cx.beginPath();cx.moveTo(PAD.l,yF);cx.lineTo(PAD.l+pw,yF);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle=C_YELLOW;cx.shadowColor=C_YELLOW;cx.shadowBlur=14;
+    cx.beginPath();cx.arc(xF,yF,6,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
+    const align=xF>PAD.l+pw*0.75?'right':'left';
+    const off=align==='right'?-9:9;
+    cx.fillStyle=C_YELLOW;cx.font='bold 10px Share Tech Mono';cx.textAlign=align;
+    cx.fillText(gdb.toFixed(2)+'dB',xF+off,yF-6);
+  }
+
+  // Axis
+  cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
+  cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('GAIN (dB)',0,0);cx.restore();
+}
+
+// ── Phase plot ────────────────────────────────────────────────────────────────
+function drawPhase(){
+  const cv=phaseCanvas, cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  cx.clearRect(0,0,fw,fh);
+  const fc=PRESETS[compType].fc;
+  const logFc=Math.log10(fc), lmin=logFc-2.5, lmax=logFc+2.5;
+  const isHP=filterType==='high';
+  const phMin=isHP?-10:  -95, phMax=isHP?95:10, phRange=phMax-phMin;
+  function phY(d){return PAD.t+ph*(1-(d-phMin)/phRange);}
+  function lfX(lf){return PAD.l+pw*(lf-lmin)/(lmax-lmin);}
+
+  const ticks=isHP?[90,45,0]:[0,-45,-90];
+  ticks.forEach(d=>{
+    const y=phY(d); if(y<PAD.t||y>PAD.t+ph)return;
+    cx.setLineDash(Math.abs(d)===45?[4,4]:[2,5]);
+    cx.strokeStyle=d===0?'rgba(0,229,255,.15)':Math.abs(d)===45?'rgba(255,107,53,.3)':'rgba(30,45,74,.7)';
+    cx.lineWidth=Math.abs(d)===45||d===0?1.4:1;
+    cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle=Math.abs(d)===45?'rgba(255,107,53,.85)':'rgba(200,220,240,.5)';
+    cx.font='9px Share Tech Mono';cx.textAlign='right';cx.fillText(d+'°',PAD.l-5,y+4);
+  });
+  for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
+    const x=lfX(lf);if(x<PAD.l||x>PAD.l+pw)continue;
+    cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;cx.setLineDash([2,5]);
+    cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
+  }
+
+  // Curve
+  const N=pw*3;
+  [[C_PURPLE+'44',6,8],[C_PURPLE,2,0]].forEach(([col,lw,bl])=>{
+    cx.shadowColor=C_PURPLE;cx.shadowBlur=bl;cx.strokeStyle=col;cx.lineWidth=lw;
+    cx.beginPath();let s=false;
+    for(let i=0;i<=N;i++){
+      const lf=lmin+(i/N)*(lmax-lmin),f=Math.pow(10,lf);
+      const {phaseDeg}=calc(f);
+      const x=lfX(lf),y=Math.max(PAD.t,Math.min(PAD.t+ph,phY(phaseDeg)));
+      s?cx.lineTo(x,y):cx.moveTo(x,y);s=true;
+    }
+    cx.stroke();cx.shadowBlur=0;
+  });
+
+  // fc line + −45° dot
+  const xFc=lfX(logFc);
+  cx.strokeStyle='rgba(0,255,153,.5)';cx.lineWidth=1.2;cx.setLineDash([4,4]);
+  cx.beginPath();cx.moveTo(xFc,PAD.t);cx.lineTo(xFc,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+  const y45=phY(isHP?45:-45);
+  cx.fillStyle=C_GREEN;cx.shadowColor=C_GREEN;cx.shadowBlur=10;
+  cx.beginPath();cx.arc(xFc,y45,5,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
+  cx.fillStyle='rgba(0,255,153,.8)';cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('fc='+formatFreq(fc),xFc,PAD.t+ph+28);
+
+  // Marker
+  const logF=Math.log10(Math.max(fVal,1e-9)),xF=lfX(logF);
+  const {phaseDeg:pd}=calc(fVal);
+  const yF=Math.max(PAD.t,Math.min(PAD.t+ph,phY(pd)));
+  if(xF>=PAD.l&&xF<=PAD.l+pw){
+    cx.strokeStyle='rgba(255,230,0,.55)';cx.lineWidth=1;cx.setLineDash([3,4]);
+    cx.beginPath();cx.moveTo(xF,PAD.t);cx.lineTo(xF,PAD.t+ph);cx.stroke();
+    cx.beginPath();cx.moveTo(PAD.l,yF);cx.lineTo(PAD.l+pw,yF);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle=C_YELLOW;cx.shadowColor=C_YELLOW;cx.shadowBlur=14;
+    cx.beginPath();cx.arc(xF,yF,6,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
+    const align=xF>PAD.l+pw*0.75?'right':'left';
+    const off=align==='right'?-9:9;
+    cx.fillStyle=C_YELLOW;cx.font='bold 10px Share Tech Mono';cx.textAlign=align;
+    cx.fillText(pd.toFixed(2)+'°',xF+off,yF-6);
+  }
+
+  cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
+  cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('PHASE (°)',0,0);cx.restore();
+}
+
+// ── Phasor diagram ────────────────────────────────────────────────────────────
+function drawPhasor(){
+  const cv=phasorCanvas, cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv);
+  cx.clearRect(0,0,fw,fh);
+
+  const {phaseDeg,gainLin,gainDb}=calc(fVal);
+  const isHP=filterType==='high', isRL=compType==='RL';
+  const phRad=phaseDeg*Math.PI/180;
+  const absPh=Math.abs(phRad);
+
+  // Centre + scale
+  const Ox=fw*0.40, Oy=fh*0.50;
+  const maxR=Math.min(fw*0.30,fh*0.38);
+  const Vin=maxR;
+  const VR=Vin*Math.cos(absPh);
+  const VX=Vin*Math.sin(absPh);
+
+  function arrow(x1,y1,x2,y2,col,lw,hs){
+    const ang=Math.atan2(y2-y1,x2-x1),h=hs||10;
+    cx.strokeStyle=col;cx.fillStyle=col;cx.lineWidth=lw||2.5;cx.lineCap='round';
+    cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+    cx.beginPath();
+    cx.moveTo(x2,y2);
+    cx.lineTo(x2-h*Math.cos(ang-0.38),y2-h*Math.sin(ang-0.38));
+    cx.lineTo(x2-h*Math.cos(ang+0.38),y2-h*Math.sin(ang+0.38));
+    cx.closePath();cx.fill();
+  }
+  function dash(x1,y1,x2,y2,col){
+    cx.strokeStyle=col;cx.lineWidth=1;cx.setLineDash([4,5]);
+    cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();cx.setLineDash([]);
+  }
+  function lbl(txt,x,y,col,sz,al){
+    cx.fillStyle=col;cx.font=(sz||11)+'px Share Tech Mono';cx.textAlign=al||'left';
+    cx.fillText(txt,x,y);
+  }
+
+  // Current reference arrow (small, below)
+  const Ilen=Math.min(VR*0.55,48);
+  arrow(Ox-Ilen/2,Oy+36,Ox+Ilen/2,Oy+36,'rgba(200,220,240,.4)',1.5,7);
+  lbl('I (reference)',Ox+Ilen/2+6,Oy+40,'rgba(200,220,240,.4)',8);
+
+  // Four topology cases:
+  // RC-LP: R series, C shunt → Vout=VC lags
+  //   VR→right, VC→down (both from origin), Vin→diagonal down-right
+  // RC-HP: C series, R shunt → Vout=VR leads
+  //   VC→down from origin (series drop), VR from VC tip →right; Vin from origin→ VR tip
+  // RL-LP: L series, R shunt → Vout=VR lags
+  //   VL→up from origin (series drop), VR from VL tip →right; Vin from origin→VR tip
+  // RL-HP: R series, L shunt → Vout=VL leads
+  //   VR→right, VL→up from VR tip; Vin from origin→VL tip
+
+  let vinTip,vrTip,vxTip;
+
+  if(!isRL&&!isHP){          // RC-LP
+    vrTip={x:Ox+VR,y:Oy};    // VR rightward from O
+    vxTip={x:Ox,y:Oy+VX};    // VC downward from O
+    vinTip={x:Ox+VR,y:Oy+VX};
+    arrow(Ox,Oy,vrTip.x,vrTip.y,C_ORANGE,2.5,9);
+    arrow(Ox,Oy,vxTip.x,vxTip.y,C_GREEN,2.8,9);
+    arrow(Ox,Oy,vinTip.x,vinTip.y,C_CYAN,3,11);
+    dash(vrTip.x,vrTip.y,vinTip.x,vinTip.y,'rgba(0,229,255,.25)');
+    dash(vxTip.x,vxTip.y,vinTip.x,vinTip.y,'rgba(255,107,53,.25)');
+    lbl('VR',(Ox+vrTip.x)/2,Oy-9,C_ORANGE,11,'center');
+    lbl('VC = Vout',Ox-88,( Oy+vxTip.y)/2+2,C_GREEN,11);
+    lbl('Vin',vinTip.x+7,vinTip.y+4,C_CYAN,11);
+    lbl('Vout LAGS Vin',Ox+6,(Oy+vinTip.y)/2+14,'rgba(255,61,154,.7)',10);
+  } else if(!isRL&&isHP){    // RC-HP
+    vxTip={x:Ox,y:Oy+VX};    // VC downward from O (series)
+    vrTip={x:Ox+VR,y:Oy+VX}; // VR rightward from VC tip
+    vinTip={x:Ox+VR,y:Oy+VX};// = VR tip
+    arrow(Ox,Oy,vxTip.x,vxTip.y,C_ORANGE,2.5,9);
+    arrow(vxTip.x,vxTip.y,vrTip.x,vrTip.y,C_GREEN,2.8,9);
+    arrow(Ox,Oy,vinTip.x,vinTip.y,C_CYAN,3,11);
+    dash(Ox,Oy,vrTip.x,Oy,'rgba(200,220,240,.15)');
+    dash(vrTip.x,Oy,vrTip.x,vrTip.y,'rgba(0,229,255,.25)');
+    lbl('VC',Ox-36,(Oy+vxTip.y)/2+2,C_ORANGE,11);
+    lbl('VR = Vout',vrTip.x+7,vrTip.y+4,C_GREEN,11);
+    lbl('Vin',vinTip.x-52,Oy-10,C_CYAN,11);
+    lbl('Vout LEADS Vin',Ox+6,(Oy+vxTip.y)/2,'rgba(0,255,153,.7)',10);
+  } else if(isRL&&!isHP){    // RL-LP
+    vxTip={x:Ox,y:Oy-VX};    // VL upward from O (series)
+    vrTip={x:Ox+VR,y:Oy-VX}; // VR rightward from VL tip
+    vinTip={x:Ox+VR,y:Oy-VX};
+    arrow(Ox,Oy,vxTip.x,vxTip.y,C_ORANGE,2.5,9);
+    arrow(vxTip.x,vxTip.y,vrTip.x,vrTip.y,C_GREEN,2.8,9);
+    arrow(Ox,Oy,vinTip.x,vinTip.y,C_CYAN,3,11);
+    dash(Ox,Oy,vrTip.x,Oy,'rgba(200,220,240,.15)');
+    dash(vrTip.x,Oy,vrTip.x,vrTip.y,'rgba(0,229,255,.25)');
+    lbl('VL',Ox-36,(Oy+vxTip.y)/2,C_ORANGE,11);
+    lbl('VR = Vout',vrTip.x+7,vrTip.y+4,C_GREEN,11);
+    lbl('Vin',vinTip.x+7,vinTip.y-5,C_CYAN,11);
+    lbl('Vout LAGS Vin',Ox+6,(Oy+vinTip.y)/2,'rgba(255,61,154,.7)',10);
+  } else {                   // RL-HP
+    vrTip={x:Ox+VR,y:Oy};    // VR rightward from O (series)
+    vxTip={x:Ox+VR,y:Oy-VX}; // VL upward from VR tip
+    vinTip={x:Ox+VR,y:Oy-VX};
+    arrow(Ox,Oy,vrTip.x,vrTip.y,C_ORANGE,2.5,9);
+    arrow(vrTip.x,vrTip.y,vxTip.x,vxTip.y,C_GREEN,2.8,9);
+    arrow(Ox,Oy,vinTip.x,vinTip.y,C_CYAN,3,11);
+    dash(Ox,vxTip.y,Ox,Oy,'rgba(200,220,240,.15)');
+    dash(Ox,vxTip.y,vxTip.x,vxTip.y,'rgba(0,229,255,.25)');
+    lbl('VR',(Ox+vrTip.x)/2,Oy+14,C_ORANGE,11,'center');
+    lbl('VL = Vout',vxTip.x+7,vxTip.y+4,C_GREEN,11);
+    lbl('Vin',vinTip.x-52,vinTip.y-8,C_CYAN,11);
+    lbl('Vout LEADS Vin',Ox+6,(Oy+vxTip.y)/2,'rgba(0,255,153,.7)',10);
+  }
+
+  // Phase angle arc
+  if(absPh>0.04&&absPh<Math.PI/2-0.04){
+    const arcR=Math.min(VR*0.32,32);
+    const vinAngle=Math.atan2(vinTip.y-Oy,vinTip.x-Ox);
+    cx.strokeStyle='rgba(255,230,0,.75)';cx.lineWidth=1.5;
+    cx.beginPath();
+    if(vinAngle>=0) cx.arc(Ox,Oy,arcR,0,vinAngle,false);
+    else            cx.arc(Ox,Oy,arcR,vinAngle,0,false);
+    cx.stroke();
+    const midA=vinAngle/2;
+    const lr=arcR+16;
+    cx.fillStyle=C_YELLOW;cx.font='bold 10px Share Tech Mono';cx.textAlign='center';
+    cx.fillText(Math.abs(phaseDeg).toFixed(1)+'°',
+      Ox+lr*Math.cos(midA),Oy+lr*Math.sin(midA)+4);
+  }
+
+}
+
+// ── Circuit diagram ───────────────────────────────────────────────────────────
+function drawCircuit(){
+  const cv=circuitCanvas, cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv);
+  cx.clearRect(0,0,fw,fh);
+
+  const isRL=compType==='RL', isHP=filterType==='high';
+  const mg=38, wireY=fh*0.28, gndY=fh*0.82;
+  const lx=mg, rx=fw-mg, jx=fw*0.63, smx=(lx+jx)/2;
+
+  function wire(x1,y1,x2,y2,col,lw){
+    cx.strokeStyle=col||C_CYAN;cx.lineWidth=lw||1.8;cx.lineCap='round';
+    cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  }
+  function tDot(x,y){cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;cx.beginPath();cx.arc(x,y,4,0,Math.PI*2);cx.stroke();}
+  function jDot(x,y){cx.fillStyle=C_CYAN;cx.beginPath();cx.arc(x,y,3.5,0,Math.PI*2);cx.fill();}
+
+  wire(lx,wireY,smx-28,wireY); wire(smx+28,wireY,jx,wireY);
+  wire(jx,wireY,rx,wireY); wire(lx,gndY,rx,gndY); wire(jx,wireY,jx,gndY);
+  tDot(lx,wireY);tDot(lx,gndY);tDot(rx,wireY);tDot(rx,gndY);
+  jDot(jx,wireY);jDot(jx,gndY);
+
+  // Series element: RC-LP=R, RC-HP=C, RL-LP=L, RL-HP=R
+  const serIsR=(!isRL&&!isHP)||(isRL&&isHP);
+  // Shunt element: RC-LP=C, RC-HP=R, RL-LP=R, RL-HP=L
+  const shIsR=(!isRL&&isHP)||(isRL&&!isHP);
+  const shMidY=(wireY+gndY)/2;
+
+  serIsR ? drawZZ(cx,smx,wireY,true) : (isRL?drawL(cx,smx,wireY,true):drawC(cx,smx,wireY,true));
+  shIsR  ? drawZZ(cx,jx,shMidY,false): (isRL?drawL(cx,jx,shMidY,false):drawC(cx,jx,shMidY,false));
+
+  drawGnd(cx,jx,gndY+2);
+  drawVin(cx,lx,wireY,gndY);
+  drawVout(cx,rx,wireY,gndY);
+
+  // Labels
+  const p=PRESETS[compType];
+  const rStr=p.Rlbl, lcStr=p.LClbl;
+  const serLbl=serIsR?`R = ${rStr}`:(isRL?`L = ${lcStr}`:`C = ${lcStr}`);
+  const shLbl =shIsR ?`R = ${rStr}`:(isRL?`L = ${lcStr}`:`C = ${lcStr}`);
+
+  cx.fillStyle=C_TEXT;cx.font='10px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(serLbl,smx,wireY-28);
+  cx.textAlign='left';
+  cx.fillText(shLbl,jx+16,shMidY+4);
+
+  // Vout label hint
+  cx.fillStyle='rgba(0,255,153,.55)';cx.font='9px Share Tech Mono';cx.textAlign='right';
+  cx.fillText('Vout →',rx-4,wireY-8);
+}
+
+function drawZZ(cx,cx0,cy0,horiz){
+  const peaks=6,tot=58,h=8;
+  cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;cx.lineCap='round';cx.lineJoin='round';
+  cx.beginPath();
+  if(horiz){
+    const x0=cx0-tot/2,sw=tot/peaks;
+    cx.moveTo(x0,cy0);
+    for(let i=0;i<peaks;i++){cx.lineTo(x0+sw*i+sw/2,(i%2===0?cy0-h:cy0+h));cx.lineTo(x0+sw*(i+1),cy0);}
+  } else {
+    const y0=cy0-tot/2,sh=tot/peaks;
+    cx.moveTo(cx0,y0);
+    for(let i=0;i<peaks;i++){cx.lineTo((i%2===0?cx0+h:cx0-h),y0+sh*i+sh/2);cx.lineTo(cx0,y0+sh*(i+1));}
+  }
+  cx.stroke();
+}
+function drawL(cx,cx0,cy0,horiz){
+  const bumps=4,bs=8,tot=bumps*bs*2;
+  cx.strokeStyle=C_PURPLE;cx.lineWidth=1.8;cx.beginPath();
+  if(horiz){
+    const x0=cx0-tot/2;cx.moveTo(x0,cy0);
+    for(let i=0;i<bumps;i++)cx.arc(x0+i*bs*2+bs,cy0,bs,Math.PI,0,false);
+    cx.lineTo(x0+tot,cy0);
+  } else {
+    const y0=cy0-tot/2;cx.moveTo(cx0,y0);
+    for(let i=0;i<bumps;i++)cx.arc(cx0,y0+i*bs*2+bs,bs,Math.PI*1.5,Math.PI*0.5,false);
+    cx.lineTo(cx0,y0+tot);
+  }
+  cx.stroke();
+}
+function drawC(cx,cx0,cy0,horiz){
+  const gap=6,pl=22,stub=18;
+  cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;
+  if(horiz){
+    cx.beginPath();cx.moveTo(cx0-stub-gap,cy0);cx.lineTo(cx0-gap,cy0);cx.stroke();
+    cx.beginPath();cx.moveTo(cx0+gap,cy0);cx.lineTo(cx0+stub+gap,cy0);cx.stroke();
+    cx.fillStyle=C_CYAN;
+    cx.fillRect(cx0-gap-3,cy0-pl/2,4,pl);cx.fillRect(cx0+gap-1,cy0-pl/2,4,pl);
+  } else {
+    cx.fillStyle=C_CYAN;
+    cx.fillRect(cx0-pl/2,cy0-gap-3,pl,4);cx.fillRect(cx0-pl/2,cy0+gap-1,pl,4);
+  }
+}
+function drawGnd(cx,x,y){
+  [[22,0],[14,8],[6,16]].forEach(([len,dy])=>{
+    cx.strokeStyle='rgba(0,229,255,.6)';cx.lineWidth=1.8;cx.lineCap='round';
+    cx.beginPath();cx.moveTo(x-len/2,y+dy);cx.lineTo(x+len/2,y+dy);cx.stroke();
+  });
+}
+function drawVin(cx,x,wireY,gndY){
+  const midY=(wireY+gndY)/2,lx=x-22;
+  cx.fillStyle='rgba(200,220,240,.8)';cx.font='italic 12px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('V',lx-3,midY+5);cx.font='8px Share Tech Mono';cx.fillText('in',lx+5,midY+8);
+  cx.strokeStyle='rgba(200,220,240,.4)';cx.lineWidth=1.2;
+  [[wireY+4,midY-16,wireY+4],[gndY-4,midY+28,gndY-4]].forEach(([y1,y2,ya])=>{
+    cx.beginPath();cx.moveTo(lx,y1);cx.lineTo(lx,y2);cx.stroke();
+    cx.beginPath();cx.moveTo(lx,ya);cx.lineTo(lx-4,ya+8*(ya===wireY+4?1:-1));
+    cx.moveTo(lx,ya);cx.lineTo(lx+4,ya+8*(ya===wireY+4?1:-1));cx.stroke();
+  });
+}
+function drawVout(cx,x,wireY,gndY){
+  const midY=(wireY+gndY)/2,lx=x+22;
+  cx.fillStyle='rgba(0,255,153,.8)';cx.font='italic 12px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('V',lx-3,midY+5);cx.font='8px Share Tech Mono';cx.fillText('out',lx+8,midY+8);
+  cx.strokeStyle='rgba(0,255,153,.4)';cx.lineWidth=1.2;
+  [[wireY+4,midY-12,wireY+4],[gndY-4,midY+20,gndY-4]].forEach(([y1,y2,ya])=>{
+    cx.beginPath();cx.moveTo(lx,y1);cx.lineTo(lx,y2);cx.stroke();
+    cx.beginPath();cx.moveTo(lx,ya);cx.lineTo(lx-4,ya+8*(ya===wireY+4?1:-1));
+    cx.moveTo(lx,ya);cx.lineTo(lx+4,ya+8*(ya===wireY+4?1:-1));cx.stroke();
+  });
+}
+
+// ── Preset info bar ───────────────────────────────────────────────────────────
+function updatePresetBar(){
+  const p=PRESETS[compType], isRL=compType==='RL';
+  document.getElementById('rChip').textContent    = p.Rlbl;
+  document.getElementById('lcChip').textContent   = p.LClbl;
+  document.getElementById('lcChipLbl').textContent= isRL?'Inductance L':'Capacitance C';
+  document.getElementById('fcChip').textContent   = formatFreq(p.fc);
+  document.getElementById('tauChip').textContent  = p.taulbl;
+}
+
+// ── Frequency readout bar ─────────────────────────────────────────────────────
+function updateFreqBar(){
+  const {fc,gainDb,gainLin,phaseDeg}=calc(fVal);
+  const isLag=phaseDeg<0;
+  document.getElementById('fBig').textContent     = formatFreq(fVal);
+  document.getElementById('pbRatio').textContent  = (fVal/fc).toFixed(3)+'×';
+  document.getElementById('pbGain').textContent   = gainDb.toFixed(2)+' dB';
+  document.getElementById('pbPhase').textContent  = phaseDeg.toFixed(2)+'°';
+  document.getElementById('pbVout').textContent   = (gainLin*100).toFixed(1)+'%';
+
+  const isHP=filterType==='high', isRL=compType==='RL';
+  const voutName=(!isRL&&!isHP)||(isRL&&isHP) ? (isRL?'VL':'VC') : 'VR';
+  const llCol=isLag?'#ff3d9a':'#00ff99';
+  document.getElementById('llStatement').innerHTML =
+    `At this frequency, <strong style="color:${llCol}">${voutName} (Vout) ` +
+    `${isLag?'LAGS':'LEADS'} Vin by ${Math.abs(phaseDeg).toFixed(1)}°</strong>. ` +
+    `Gain&nbsp;=&nbsp;${gainDb.toFixed(2)}&nbsp;dB.`;
+}
+
+function updatePhasorInfo(){
+  const {gainDb,gainLin,phaseDeg,fc}=calc(fVal);
+  const isLag=phaseDeg<0;
+  const llCol=isLag?'#ff3d9a':'#00ff99';
+  document.getElementById('piFilter').textContent=(filterType==='low'?'LP':'HP')+' '+compType;
+  document.getElementById('piGain').textContent=gainDb.toFixed(2)+' dB';
+  document.getElementById('piPhase').textContent=phaseDeg.toFixed(2)+'°';
+  document.getElementById('piVout').textContent=(gainLin*100).toFixed(1)+'%';
+  document.getElementById('piRatio').textContent=(fVal/fc).toFixed(3)+'×';
+  document.getElementById('piLL').textContent=isLag?'LAGGING':'LEADING';
+  document.getElementById('piLL').style.color=llCol;
+}
+
+// ── Full update ───────────────────────────────────────────────────────────────
+function update(){
+  updatePresetBar();
+  updateFreqBar();
+  updatePhasorInfo();
+  positionFcTick();
+  drawBode();
+  drawPhase();
+  drawPhasor();
+  drawCircuit();
+}
+
+window.addEventListener('resize',()=>{resizeAll();update();});
+resizeAll();
+// Start slider near fc
+// Set slider to fc on load and trigger snap check
+const initFcPos = fcSliderPos(PRESETS[compType].fc);
+document.getElementById('fSlider').value = initFcPos;
+fVal = PRESETS[compType].fc;
+document.getElementById('snapBadge').classList.add('visible');
+update();
+</script>
+</body>
+</html>
