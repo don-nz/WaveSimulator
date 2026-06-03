@@ -36,9 +36,9 @@
     .top-bar{
       background:var(--panel);border:1px solid var(--border);border-radius:4px;
       padding:.9rem 1.4rem;
-      display:flex;gap:2rem;align-items:center;flex-wrap:wrap;
+      display:flex;gap:2rem;align-items:center;flex-wrap:wrap;justify-content:center;
     }
-    .ctrl-group{display:flex;flex-direction:column;gap:.4rem;}
+    .ctrl-group{display:flex;flex-direction:column;gap:.4rem;align-items:center;}
     .ctrl-label{font-size:.58rem;letter-spacing:.2em;color:var(--label);text-transform:uppercase;}
     .toggle-row{display:flex;gap:.4rem;}
     .tog-btn{
@@ -54,7 +54,7 @@
 
     /* preset value badges */
     .preset-info{
-      margin-left:auto;display:flex;gap:1.4rem;align-items:center;flex-wrap:wrap;
+      display:flex;gap:1.4rem;align-items:center;flex-wrap:wrap;justify-content:center;
     }
     .preset-chip{display:flex;flex-direction:column;gap:.15rem;align-items:center;}
     .preset-chip-lbl{font-size:.52rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;}
@@ -111,16 +111,6 @@
       letter-spacing:.1em;text-transform:uppercase;
     }
 
-    /* fc snap indicator */
-    .snap-badge{
-      display:none;align-items:center;gap:.4rem;justify-content:center;
-      font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;
-      color:var(--accent3);opacity:.85;
-    }
-    .snap-badge.visible{display:flex;}
-    .snap-dot{width:7px;height:7px;border-radius:50%;background:var(--accent3);
-      box-shadow:0 0 8px rgba(0,255,153,.8);animation:pulse .8s infinite alternate;}
-    @keyframes pulse{from{opacity:.5}to{opacity:1}}
 
     /* slider track tick mark at fc */
     .slider-wrap{position:relative;}
@@ -204,10 +194,7 @@
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
           <div class="freq-ticks" style="flex:1;">
-            <span>0.1 Hz</span><span>1 kHz</span><span>1 MHz</span><span>100 MHz</span>
-          </div>
-          <div class="snap-badge" id="snapBadge">
-            <span class="snap-dot"></span>Snapped to fc
+            <span>5 Hz</span><span>500 Hz</span><span>5 kHz</span><span>50 kHz</span><span>200 kHz</span>
           </div>
         </div>
       </div>
@@ -253,9 +240,9 @@
 
     <div class="panel">
       <div class="panel-title">Phasor Diagram</div>
-      <canvas id="phasorCanvas" height="210"></canvas>
-      <div id="phasorInfo" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem .6rem;
-        padding:.5rem .6rem;border-top:1px solid #1e2d4a;margin-top:.2rem;">
+      <canvas id="phasorCanvas" height="240"></canvas>
+      <div id="phasorInfo" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.25rem .5rem;
+        padding:.45rem .6rem;border-top:1px solid #1e2d4a;margin-top:.2rem;">
         <div><span style="font-size:.5rem;letter-spacing:.15em;color:#5a7a9a;text-transform:uppercase;display:block">Filter</span>
           <span id="piFilter" style="font-family:Orbitron,sans-serif;font-size:.75rem;font-weight:700;color:#00e5ff">—</span></div>
         <div><span style="font-size:.5rem;letter-spacing:.15em;color:#5a7a9a;text-transform:uppercase;display:block">Gain Av</span>
@@ -270,6 +257,8 @@
           <span id="piLL" style="font-family:Orbitron,sans-serif;font-size:.75rem;font-weight:700">—</span></div>
       </div>
     </div>
+
+  </div>
 
   </div>
 
@@ -297,8 +286,9 @@ let fVal       = 1000;
 const C_CYAN='#00e5ff', C_ORANGE='#ff6b35', C_GREEN='#00ff99',
       C_YELLOW='#ffe600', C_PURPLE='#a78bfa', C_PINK='#ff3d9a', C_TEXT='#c8d8e8';
 
-// ── Frequency slider: log 0.1 Hz → 100 MHz ──────────────────────────────────
-function fFromSlider(v){ return 0.1 * Math.pow(1e9, v/500); }
+// ── Frequency slider: log 5 Hz → 200 kHz ───────────────────────────────────
+const F_MIN=5, F_MAX=200000;
+function fFromSlider(v){ return F_MIN * Math.pow(F_MAX/F_MIN, v/500); }
 
 function formatFreq(f){
   if(f>=1e6) return fmtN(f/1e6)+' MHz';
@@ -348,7 +338,7 @@ function setComp(c){
 const FC_SLIDER_VAL = 500*Math.log(10000)/Math.log(1e9); // ≈222.2 for fc=1kHz
 const SNAP_RADIUS = 6; // slider units — snaps within ±6 of fc position
 
-function fcSliderPos(fc){ return 500*Math.log(fc/0.1)/Math.log(1e9); }
+function fcSliderPos(fc){ return 500*Math.log(fc/F_MIN)/Math.log(F_MAX/F_MIN); }
 
 function onFreq(){
   const sl=document.getElementById('fSlider');
@@ -362,7 +352,6 @@ function onFreq(){
   } else {
     fVal=fFromSlider(raw);
   }
-  document.getElementById('snapBadge').classList.toggle('visible',snapped);
   // colour thumb green when snapped
   sl.style.setProperty('--thumb-col',snapped?'#00ff99':'#ffe600');
   update();
@@ -391,7 +380,7 @@ const circuitCanvas=document.getElementById('circuitCanvas');
 
 function resizeAll(){
   sizeCanvas(bodeCanvas,280); sizeCanvas(phaseCanvas,280);
-  sizeCanvas(phasorCanvas,210); sizeCanvas(circuitCanvas,220);
+  sizeCanvas(phasorCanvas,240); sizeCanvas(circuitCanvas,220);
 }
 
 // ── Shared plot padding ───────────────────────────────────────────────────────
@@ -556,12 +545,48 @@ function drawPhasor(){
   const phRad=phaseDeg*Math.PI/180;
   const absPh=Math.abs(phRad);
 
-  // Centre + scale
-  const Ox=fw*0.40, Oy=fh*0.50;
-  const maxR=Math.min(fw*0.30,fh*0.38);
-  const Vin=maxR;
-  const VR=Vin*Math.cos(absPh);
-  const VX=Vin*Math.sin(absPh);
+  // Drawing area above the info strip (52px) with 28px padding on all sides
+  const pad=24;
+  const drawW=fw-pad*2, drawH=fh-pad*2;
+
+  // Each topology forms a right-angle triangle with legs VR (horizontal) and VX (vertical).
+  // Vin is the hypotenuse. We scale so the triangle fills ~78% of the draw area.
+  // The right-angle corner position and which direction VX goes differs per topology:
+  //
+  //  RC-LP / RL-HP : right-angle at top-right  → VR left, VX down  from corner
+  //                  Origin (O) = top-left of triangle
+  //  RC-HP / RL-LP : right-angle at bottom-right → VR right, VX up  from O
+  //                  Origin = bottom-left
+  //
+  // Scale: fit the triangle into drawW × drawH at 78%
+  const FILL=0.78;
+  // At 45° VR=VX so we need square fit; otherwise width or height dominates
+  const sinA=Math.sin(absPh), cosA=Math.cos(absPh);
+  // Vin such that VR<=drawW*FILL and VX<=drawH*FILL
+  const VinByW = (cosA>0.01) ? (drawW*FILL)/cosA : 9999;
+  const VinByH = (sinA>0.01) ? (drawH*FILL)/sinA : 9999;
+  const Vin=Math.min(VinByW,VinByH);
+  const VR=Vin*cosA;
+  const VX=Vin*sinA;
+
+  // ── Unified phasor layout ────────────────────────────────────────────────
+  // All four topologies share the same visual shape:
+  //   O (origin, left) → VR horizontal right → reactive leg vertical → vinTip
+  //   Vin = diagonal from O to vinTip (the hypotenuse)
+  //   VC always drops DOWN from VR tip; VL always goes UP from VR tip.
+  //   Dashed lines complete the right-angle rectangle.
+  //
+  // Centring: bounding box spans VR wide × VX tall, centred in draw area.
+  // VC cases: origin at top-left  → Oy = pad+drawH/2 - VX/2
+  // VL cases: origin at bot-left  → Oy = pad+drawH/2 + VX/2
+  const Ox  = pad + drawW/2 - VR/2;
+  const vcDown = !isRL;   // capacitor drops down, inductor goes up
+  const Oy  = vcDown ? pad+drawH/2 - VX/2 : pad+drawH/2 + VX/2;
+
+  // Key points (same for all topologies)
+  const vrTip  = {x:Ox+VR, y:Oy};
+  const vxTip  = vcDown ? {x:Ox+VR, y:Oy+VX} : {x:Ox+VR, y:Oy-VX};
+  const vinTip = vxTip;  // Vin goes from O to vxTip (the far corner)
 
   function arrow(x1,y1,x2,y2,col,lw,hs){
     const ang=Math.atan2(y2-y1,x2-x1),h=hs||10;
@@ -582,75 +607,44 @@ function drawPhasor(){
     cx.fillText(txt,x,y);
   }
 
-  // Current reference arrow (small, below)
-  const Ilen=Math.min(VR*0.55,48);
-  arrow(Ox-Ilen/2,Oy+36,Ox+Ilen/2,Oy+36,'rgba(200,220,240,.4)',1.5,7);
-  lbl('I (reference)',Ox+Ilen/2+6,Oy+40,'rgba(200,220,240,.4)',8);
+  const lsz=12, lsm=10;
+  let llText='', llCol='';
 
-  // Four topology cases:
-  // RC-LP: R series, C shunt → Vout=VC lags
-  //   VR→right, VC→down (both from origin), Vin→diagonal down-right
-  // RC-HP: C series, R shunt → Vout=VR leads
-  //   VC→down from origin (series drop), VR from VC tip →right; Vin from origin→ VR tip
-  // RL-LP: L series, R shunt → Vout=VR lags
-  //   VL→up from origin (series drop), VR from VL tip →right; Vin from origin→VR tip
-  // RL-HP: R series, L shunt → Vout=VL leads
-  //   VR→right, VL→up from VR tip; Vin from origin→VL tip
+  // Determine names and lead/lag
+  const rxName  = isRL ? 'VL' : 'VC';
+  const isVout  = isHP ? false : true;   // LP: reactive = Vout; HP: VR = Vout
+  const vRlbl   = isHP ? 'VR = Vout' : 'VR';
+  const vXlbl   = isRL ? (isHP ? 'VL' : 'VL = Vout') : (isHP ? 'VC' : 'VC = Vout');
 
-  let vinTip,vrTip,vxTip;
+  // Draw VR (horizontal, orange)
+  arrow(Ox, Oy, vrTip.x, vrTip.y, C_ORANGE, 2.5, 9);
+  // Draw reactive leg (green) — vertical from VR tip
+  arrow(vrTip.x, vrTip.y, vxTip.x, vxTip.y, C_GREEN, 2.8, 9);
+  // Draw Vin (cyan diagonal) — dashed, from O to vxTip
+  dash(Ox, Oy, vxTip.x, vxTip.y, 'rgba(0,229,255,.7)');
+  // Right-angle marker at vrTip
+  const sq=10;
+  cx.strokeStyle='rgba(200,220,240,.3)';cx.lineWidth=1;
+  cx.strokeRect(vrTip.x - sq, vcDown ? vrTip.y : vrTip.y-sq, sq, sq);
+  // Dashed rectangle completion lines
+  dash(Ox, Oy, Ox, vxTip.y, 'rgba(200,220,240,.15)');
+  dash(Ox, vxTip.y, vxTip.x, vxTip.y, 'rgba(200,220,240,.15)');
 
-  if(!isRL&&!isHP){          // RC-LP
-    vrTip={x:Ox+VR,y:Oy};    // VR rightward from O
-    vxTip={x:Ox,y:Oy+VX};    // VC downward from O
-    vinTip={x:Ox+VR,y:Oy+VX};
-    arrow(Ox,Oy,vrTip.x,vrTip.y,C_ORANGE,2.5,9);
-    arrow(Ox,Oy,vxTip.x,vxTip.y,C_GREEN,2.8,9);
-    arrow(Ox,Oy,vinTip.x,vinTip.y,C_CYAN,3,11);
-    dash(vrTip.x,vrTip.y,vinTip.x,vinTip.y,'rgba(0,229,255,.25)');
-    dash(vxTip.x,vxTip.y,vinTip.x,vinTip.y,'rgba(255,107,53,.25)');
-    lbl('VR',(Ox+vrTip.x)/2,Oy-9,C_ORANGE,11,'center');
-    lbl('VC = Vout',Ox-88,( Oy+vxTip.y)/2+2,C_GREEN,11);
-    lbl('Vin',vinTip.x+7,vinTip.y+4,C_CYAN,11);
-    lbl('Vout LAGS Vin',Ox+6,(Oy+vinTip.y)/2+14,'rgba(255,61,154,.7)',10);
-  } else if(!isRL&&isHP){    // RC-HP
-    vxTip={x:Ox,y:Oy+VX};    // VC downward from O (series)
-    vrTip={x:Ox+VR,y:Oy+VX}; // VR rightward from VC tip
-    vinTip={x:Ox+VR,y:Oy+VX};// = VR tip
-    arrow(Ox,Oy,vxTip.x,vxTip.y,C_ORANGE,2.5,9);
-    arrow(vxTip.x,vxTip.y,vrTip.x,vrTip.y,C_GREEN,2.8,9);
-    arrow(Ox,Oy,vinTip.x,vinTip.y,C_CYAN,3,11);
-    dash(Ox,Oy,vrTip.x,Oy,'rgba(200,220,240,.15)');
-    dash(vrTip.x,Oy,vrTip.x,vrTip.y,'rgba(0,229,255,.25)');
-    lbl('VC',Ox-36,(Oy+vxTip.y)/2+2,C_ORANGE,11);
-    lbl('VR = Vout',vrTip.x+7,vrTip.y+4,C_GREEN,11);
-    lbl('Vin',vinTip.x-52,Oy-10,C_CYAN,11);
-    lbl('Vout LEADS Vin',Ox+6,(Oy+vxTip.y)/2,'rgba(0,255,153,.7)',10);
-  } else if(isRL&&!isHP){    // RL-LP
-    vxTip={x:Ox,y:Oy-VX};    // VL upward from O (series)
-    vrTip={x:Ox+VR,y:Oy-VX}; // VR rightward from VL tip
-    vinTip={x:Ox+VR,y:Oy-VX};
-    arrow(Ox,Oy,vxTip.x,vxTip.y,C_ORANGE,2.5,9);
-    arrow(vxTip.x,vxTip.y,vrTip.x,vrTip.y,C_GREEN,2.8,9);
-    arrow(Ox,Oy,vinTip.x,vinTip.y,C_CYAN,3,11);
-    dash(Ox,Oy,vrTip.x,Oy,'rgba(200,220,240,.15)');
-    dash(vrTip.x,Oy,vrTip.x,vrTip.y,'rgba(0,229,255,.25)');
-    lbl('VL',Ox-36,(Oy+vxTip.y)/2,C_ORANGE,11);
-    lbl('VR = Vout',vrTip.x+7,vrTip.y+4,C_GREEN,11);
-    lbl('Vin',vinTip.x+7,vinTip.y-5,C_CYAN,11);
-    lbl('Vout LAGS Vin',Ox+6,(Oy+vinTip.y)/2,'rgba(255,61,154,.7)',10);
-  } else {                   // RL-HP
-    vrTip={x:Ox+VR,y:Oy};    // VR rightward from O (series)
-    vxTip={x:Ox+VR,y:Oy-VX}; // VL upward from VR tip
-    vinTip={x:Ox+VR,y:Oy-VX};
-    arrow(Ox,Oy,vrTip.x,vrTip.y,C_ORANGE,2.5,9);
-    arrow(vrTip.x,vrTip.y,vxTip.x,vxTip.y,C_GREEN,2.8,9);
-    arrow(Ox,Oy,vinTip.x,vinTip.y,C_CYAN,3,11);
-    dash(Ox,vxTip.y,Ox,Oy,'rgba(200,220,240,.15)');
-    dash(Ox,vxTip.y,vxTip.x,vxTip.y,'rgba(0,229,255,.25)');
-    lbl('VR',(Ox+vrTip.x)/2,Oy+14,C_ORANGE,11,'center');
-    lbl('VL = Vout',vxTip.x+7,vxTip.y+4,C_GREEN,11);
-    lbl('Vin',vinTip.x-52,vinTip.y-8,C_CYAN,11);
-    lbl('Vout LEADS Vin',Ox+6,(Oy+vxTip.y)/2,'rgba(0,255,153,.7)',10);
+  // Labels
+  lbl(vRlbl, (Ox+vrTip.x)/2, Oy+(vcDown?-10:14), C_ORANGE, lsz, 'center');
+  lbl(vXlbl, vrTip.x+10, (vrTip.y+vxTip.y)/2+4, C_GREEN, lsz);
+  // Vin label at the diagonal midpoint, offset away from triangle
+  lbl('Vin', Ox-10, (Oy+vxTip.y)/2, C_CYAN, lsz, 'right');
+
+  llText = isHP ? 'Vout LEADS Vin' : 'Vout LAGS Vin';
+  llCol  = isHP ? 'rgba(0,255,153,.85)' : 'rgba(255,61,154,.85)';
+
+  // Lag/Lead label — drawn below the triangle, centred, never obscured
+  if(llText){
+    cx.fillStyle=llCol;
+    cx.font='bold '+lsm+'px Share Tech Mono';
+    cx.textAlign='center';
+    cx.fillText(llText, fw/2, fh-12);
   }
 
   // Phase angle arc
@@ -670,58 +664,6 @@ function drawPhasor(){
   }
 
 }
-
-// ── Circuit diagram ───────────────────────────────────────────────────────────
-function drawCircuit(){
-  const cv=circuitCanvas, cx=cv.getContext('2d');
-  const fw=cW(cv),fh=cH(cv);
-  cx.clearRect(0,0,fw,fh);
-
-  const isRL=compType==='RL', isHP=filterType==='high';
-  const mg=38, wireY=fh*0.28, gndY=fh*0.82;
-  const lx=mg, rx=fw-mg, jx=fw*0.63, smx=(lx+jx)/2;
-
-  function wire(x1,y1,x2,y2,col,lw){
-    cx.strokeStyle=col||C_CYAN;cx.lineWidth=lw||1.8;cx.lineCap='round';
-    cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
-  }
-  function tDot(x,y){cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;cx.beginPath();cx.arc(x,y,4,0,Math.PI*2);cx.stroke();}
-  function jDot(x,y){cx.fillStyle=C_CYAN;cx.beginPath();cx.arc(x,y,3.5,0,Math.PI*2);cx.fill();}
-
-  wire(lx,wireY,smx-28,wireY); wire(smx+28,wireY,jx,wireY);
-  wire(jx,wireY,rx,wireY); wire(lx,gndY,rx,gndY); wire(jx,wireY,jx,gndY);
-  tDot(lx,wireY);tDot(lx,gndY);tDot(rx,wireY);tDot(rx,gndY);
-  jDot(jx,wireY);jDot(jx,gndY);
-
-  // Series element: RC-LP=R, RC-HP=C, RL-LP=L, RL-HP=R
-  const serIsR=(!isRL&&!isHP)||(isRL&&isHP);
-  // Shunt element: RC-LP=C, RC-HP=R, RL-LP=R, RL-HP=L
-  const shIsR=(!isRL&&isHP)||(isRL&&!isHP);
-  const shMidY=(wireY+gndY)/2;
-
-  serIsR ? drawZZ(cx,smx,wireY,true) : (isRL?drawL(cx,smx,wireY,true):drawC(cx,smx,wireY,true));
-  shIsR  ? drawZZ(cx,jx,shMidY,false): (isRL?drawL(cx,jx,shMidY,false):drawC(cx,jx,shMidY,false));
-
-  drawGnd(cx,jx,gndY+2);
-  drawVin(cx,lx,wireY,gndY);
-  drawVout(cx,rx,wireY,gndY);
-
-  // Labels
-  const p=PRESETS[compType];
-  const rStr=p.Rlbl, lcStr=p.LClbl;
-  const serLbl=serIsR?`R = ${rStr}`:(isRL?`L = ${lcStr}`:`C = ${lcStr}`);
-  const shLbl =shIsR ?`R = ${rStr}`:(isRL?`L = ${lcStr}`:`C = ${lcStr}`);
-
-  cx.fillStyle=C_TEXT;cx.font='10px Share Tech Mono';cx.textAlign='center';
-  cx.fillText(serLbl,smx,wireY-28);
-  cx.textAlign='left';
-  cx.fillText(shLbl,jx+16,shMidY+4);
-
-  // Vout label hint
-  cx.fillStyle='rgba(0,255,153,.55)';cx.font='9px Share Tech Mono';cx.textAlign='right';
-  cx.fillText('Vout →',rx-4,wireY-8);
-}
-
 function drawZZ(cx,cx0,cy0,horiz){
   const peaks=6,tot=58,h=8;
   cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;cx.lineCap='round';cx.lineJoin='round';
@@ -793,6 +735,54 @@ function drawVout(cx,x,wireY,gndY){
   });
 }
 
+// ── Circuit diagram ───────────────────────────────────────────────────────────
+function drawCircuit(){
+  const cv=circuitCanvas, cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv);
+  cx.clearRect(0,0,fw,fh);
+
+  const isRL=compType==='RL', isHP=filterType==='high';
+  const mg=38, wireY=fh*0.28, gndY=fh*0.82;
+  const lx=mg, rx=fw-mg, jx=fw*0.63, smx=(lx+jx)/2;
+
+  function wire(x1,y1,x2,y2,col,lw){
+    cx.strokeStyle=col||C_CYAN;cx.lineWidth=lw||1.8;cx.lineCap='round';
+    cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  }
+  function tDot(x,y){cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;cx.beginPath();cx.arc(x,y,4,0,Math.PI*2);cx.stroke();}
+  function jDot(x,y){cx.fillStyle=C_CYAN;cx.beginPath();cx.arc(x,y,3.5,0,Math.PI*2);cx.fill();}
+
+  wire(lx,wireY,smx-28,wireY); wire(smx+28,wireY,jx,wireY);
+  wire(jx,wireY,rx,wireY); wire(lx,gndY,rx,gndY); wire(jx,wireY,jx,gndY);
+  tDot(lx,wireY);tDot(lx,gndY);tDot(rx,wireY);tDot(rx,gndY);
+  jDot(jx,wireY);jDot(jx,gndY);
+
+  // Series element: RC-LP=R, RC-HP=C, RL-LP=L, RL-HP=R
+  const serIsR=(!isRL&&!isHP)||(isRL&&isHP);
+  // Shunt element: RC-LP=C, RC-HP=R, RL-LP=R, RL-HP=L
+  const shIsR=(!isRL&&isHP)||(isRL&&!isHP);
+  const shMidY=(wireY+gndY)/2;
+
+  serIsR ? drawZZ(cx,smx,wireY,true) : (isRL?drawL(cx,smx,wireY,true):drawC(cx,smx,wireY,true));
+  shIsR  ? drawZZ(cx,jx,shMidY,false): (isRL?drawL(cx,jx,shMidY,false):drawC(cx,jx,shMidY,false));
+
+  drawGnd(cx,jx,gndY+2);
+  drawVin(cx,lx,wireY,gndY);
+  drawVout(cx,rx,wireY,gndY);
+
+  const p=PRESETS[compType];
+  const serLbl=serIsR?`R = ${p.Rlbl}`:(isRL?`L = ${p.LClbl}`:`C = ${p.LClbl}`);
+  const shLbl =shIsR ?`R = ${p.Rlbl}`:(isRL?`L = ${p.LClbl}`:`C = ${p.LClbl}`);
+
+  cx.fillStyle=C_TEXT;cx.font='10px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(serLbl,smx,wireY-28);
+  cx.textAlign='left';
+  cx.fillText(shLbl,jx+16,shMidY+4);
+
+  cx.fillStyle='rgba(0,255,153,.55)';cx.font='9px Share Tech Mono';cx.textAlign='right';
+  cx.fillText('Vout →',rx-4,wireY-8);
+}
+
 // ── Preset info bar ───────────────────────────────────────────────────────────
 function updatePresetBar(){
   const p=PRESETS[compType], isRL=compType==='RL';
@@ -854,7 +844,6 @@ resizeAll();
 const initFcPos = fcSliderPos(PRESETS[compType].fc);
 document.getElementById('fSlider').value = initFcPos;
 fVal = PRESETS[compType].fc;
-document.getElementById('snapBadge').classList.add('visible');
 update();
 </script>
 </body>
