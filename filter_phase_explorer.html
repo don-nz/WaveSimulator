@@ -32,7 +32,6 @@
 
     .wrap{width:100%;max-width:1340px;display:flex;flex-direction:column;gap:.8rem;}
 
-    /* ── Row 1: filter toggles ── */
     .top-bar{
       background:var(--panel);border:1px solid var(--border);border-radius:4px;
       padding:.9rem 1.4rem;
@@ -52,17 +51,13 @@
     .tog-btn.active-rc{border-color:rgba(0,255,153,.5);background:rgba(0,255,153,.1);color:var(--accent3);}
     .tog-btn.active-rl{border-color:rgba(167,139,250,.5);background:rgba(167,139,250,.1);color:var(--accent5);}
 
-    /* preset value badges */
-    .preset-info{
-      display:flex;gap:1.4rem;align-items:center;flex-wrap:wrap;justify-content:center;
-    }
+    .preset-info{display:flex;gap:1.4rem;align-items:center;flex-wrap:wrap;justify-content:center;}
     .preset-chip{display:flex;flex-direction:column;gap:.15rem;align-items:center;}
     .preset-chip-lbl{font-size:.52rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;}
     .preset-chip-val{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;color:var(--accent3);}
     .preset-chip-val.orange{color:var(--accent2);}
     .preset-chip-val.purple{color:var(--accent5);}
 
-    /* ── Row 2: circuit + freq slider side by side ── */
     .row2{display:grid;grid-template-columns:380px 1fr;gap:.8rem;align-items:stretch;}
     @media(max-width:820px){.row2{grid-template-columns:1fr;}}
 
@@ -70,7 +65,6 @@
     .panel-title{font-size:.56rem;letter-spacing:.2em;color:var(--label);text-transform:uppercase;
       margin-bottom:.6rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);}
 
-    /* freq slider panel */
     .freq-panel{display:flex;flex-direction:column;justify-content:center;gap:1rem;padding:1.2rem 1.6rem;}
     .freq-big{font-family:'Orbitron',sans-serif;font-size:2.4rem;font-weight:900;
       color:var(--accent6);text-shadow:0 0 20px rgba(255,230,0,.4);text-align:center;line-height:1;}
@@ -89,7 +83,6 @@
 
     .freq-ticks{display:flex;justify-content:space-between;font-size:.58rem;color:var(--label);margin-top:.3rem;opacity:.6;}
 
-    /* phase / gain readout bar below slider */
     .phase-bar{
       display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;
       background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:3px;padding:.6rem .8rem;
@@ -98,21 +91,13 @@
     .pb-lbl{font-size:.52rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;}
     .pb-val{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;}
 
-    /* ── Row 3: three graphs ── */
     .graphs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;}
+    .graphs .panel{min-width:0;width:100%;}
     @media(max-width:900px){.graphs{grid-template-columns:1fr;}}
+    @media(max-width:900px){.row2{grid-template-columns:1fr;}}
 
-    canvas{display:block;width:100%;}
+    canvas{display:block;width:100%;max-width:100%;}
 
-    /* lead/lag pill */
-    .ll-pill{
-      display:inline-block;padding:.2rem .7rem;border-radius:12px;
-      font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;
-      letter-spacing:.1em;text-transform:uppercase;
-    }
-
-
-    /* slider track tick mark at fc */
     .slider-wrap{position:relative;}
     .fc-tick{
       position:absolute;bottom:-8px;width:2px;height:10px;
@@ -120,6 +105,26 @@
       transform:translateX(-50%);pointer-events:none;
       box-shadow:0 0 6px rgba(0,255,153,.7);
     }
+
+    /* ── Workings panel ── */
+    .workings-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:1rem 1.5rem;
+      padding:.4rem 0;
+    }
+    @media(max-width:700px){.workings-grid{grid-template-columns:1fr;}}
+    .wk-block{display:flex;flex-direction:column;gap:.35rem;}
+    .wk-title{
+      font-family:'Orbitron',sans-serif;font-size:.65rem;font-weight:700;
+      letter-spacing:.15em;text-transform:uppercase;
+      padding-bottom:.35rem;border-bottom:1px solid var(--border);
+      margin-bottom:.1rem;
+    }
+    .wk-line{font-size:.75rem;line-height:1.8;color:var(--text);}
+    .wk-line .sym{color:var(--label);min-width:2.2rem;display:inline-block;}
+    .wk-line .eq{color:var(--label);margin:0 .3rem;}
+    .wk-line .formula{color:rgba(200,220,240,.5);}
+    .wk-line .calc{color:rgba(200,220,240,.7);}
+    .wk-line .result{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;}
 
     footer{margin-top:1.2rem;font-size:.6rem;color:var(--label);opacity:.4;letter-spacing:.15em;text-transform:uppercase;}
   </style>
@@ -133,9 +138,7 @@
 
 <div class="wrap">
 
-  <!-- ── Row 1: toggles + preset values ── -->
   <div class="top-bar">
-
     <div class="ctrl-group">
       <div class="ctrl-label">Filter Type</div>
       <div class="toggle-row">
@@ -143,7 +146,6 @@
         <button class="tog-btn" id="btnHP" onclick="setFilter('high')">High Pass</button>
       </div>
     </div>
-
     <div class="ctrl-group">
       <div class="ctrl-label">Component</div>
       <div class="toggle-row">
@@ -151,7 +153,6 @@
         <button class="tog-btn" id="btnRL" onclick="setComp('RL')">RL (Inductor)</button>
       </div>
     </div>
-
     <div class="preset-info">
       <div class="preset-chip">
         <div class="preset-chip-lbl">Resistance R</div>
@@ -170,23 +171,18 @@
         <div class="preset-chip-val" id="tauChip">159.15 μs</div>
       </div>
     </div>
-
   </div>
 
-  <!-- ── Row 2: circuit + freq slider ── -->
   <div class="row2">
-
     <div class="panel">
       <div class="panel-title">Circuit Diagram</div>
       <canvas id="circuitCanvas" height="220"></canvas>
     </div>
-
     <div class="panel freq-panel">
       <div>
         <div class="freq-big" id="fBig">1.000 kHz</div>
         <div class="freq-sub">Selected Frequency</div>
       </div>
-
       <div>
         <div class="slider-wrap">
           <input type="range" id="fSlider" min="0" max="500" value="300" oninput="onFreq()">
@@ -198,7 +194,6 @@
           </div>
         </div>
       </div>
-
       <div class="phase-bar">
         <div class="pb-item">
           <div class="pb-lbl">f / fc</div>
@@ -217,27 +212,19 @@
           <div class="pb-val" id="pbVout" style="color:var(--accent3)">—</div>
         </div>
       </div>
-
-      <!-- Lead/lag statement -->
       <div style="text-align:center;font-size:.75rem;color:var(--label);line-height:1.7;" id="llStatement">—</div>
-
     </div>
-
   </div>
 
-  <!-- ── Row 3: Bode + Phase + Phasor ── -->
   <div class="graphs">
-
     <div class="panel">
       <div class="panel-title">Gain Response — Av (dB)</div>
       <canvas id="bodeCanvas" height="280"></canvas>
     </div>
-
     <div class="panel">
       <div class="panel-title">Phase Response — φ (degrees)</div>
       <canvas id="phaseCanvas" height="280"></canvas>
     </div>
-
     <div class="panel">
       <div class="panel-title">Phasor Diagram</div>
       <canvas id="phasorCanvas" height="240"></canvas>
@@ -257,9 +244,12 @@
           <span id="piLL" style="font-family:Orbitron,sans-serif;font-size:.75rem;font-weight:700">—</span></div>
       </div>
     </div>
-
   </div>
 
+  <!-- ── Worked calculations panel ── -->
+  <div class="panel">
+    <div class="panel-title">Worked Calculations — at f = <span id="wkFreq">—</span></div>
+    <div class="workings-grid" id="workingsGrid"></div>
   </div>
 
 </div>
@@ -267,28 +257,18 @@
 <footer>Barry Duncan · RC/RL Filter Phase Explorer</footer>
 
 <script>
-// ─────────────────────────────────────────────────────────────────────────────
-// PRESET VALUES — chosen so fc = 1 kHz exactly and numbers are textbook-clean
-// RC: R=1kΩ, C=1/(2π×1000×1000) ≈ 159.155 nF → fc = 1000 Hz
-// RL: R=1kΩ, L=1000/(2π×1000) ≈ 159.155 mH → fc = 1000 Hz
-// ─────────────────────────────────────────────────────────────────────────────
 const PRESETS = {
-  RC: { R: 1000, LC: 1/(2*Math.PI*1000*1000), fc: 1000,
-        Rlbl:'1 kΩ', LClbl:'159.15 nF', taulbl:'159.15 μs' },
-  RL: { R: 1000, LC: 1000/(2*Math.PI*1000), fc: 1000,
-        Rlbl:'1 kΩ', LClbl:'159.15 mH', taulbl:'159.15 μs' },
+  RC: { R:1000, LC:1/(2*Math.PI*1000*1000), fc:1000, Rlbl:'1 kΩ', LClbl:'159.15 nF', taulbl:'159.15 μs' },
+  RL: { R:1000, LC:1000/(2*Math.PI*1000),   fc:1000, Rlbl:'1 kΩ', LClbl:'159.15 mH', taulbl:'159.15 μs' },
 };
 
-let filterType = 'low';
-let compType   = 'RC';
-let fVal       = 1000;
+let filterType='low', compType='RC', fVal=1000;
 
 const C_CYAN='#00e5ff', C_ORANGE='#ff6b35', C_GREEN='#00ff99',
       C_YELLOW='#ffe600', C_PURPLE='#a78bfa', C_PINK='#ff3d9a', C_TEXT='#c8d8e8';
 
-// ── Frequency slider: log 5 Hz → 200 kHz ───────────────────────────────────
 const F_MIN=5, F_MAX=200000;
-function fFromSlider(v){ return F_MIN * Math.pow(F_MAX/F_MIN, v/500); }
+function fFromSlider(v){ return F_MIN*Math.pow(F_MAX/F_MIN,v/500); }
 
 function formatFreq(f){
   if(f>=1e6) return fmtN(f/1e6)+' MHz';
@@ -304,24 +284,21 @@ function formatImp(z){
   return z.toFixed(1)+'Ω';
 }
 
-// ── Physics ──────────────────────────────────────────────────────────────────
 function calc(f){
-  const {R, LC, fc} = PRESETS[compType];
-  const isRL = compType==='RL';
-  const isHP = filterType==='high';
-  const X = isRL ? 2*Math.PI*f*LC : 1/(2*Math.PI*f*LC);
-  const ratio = f/fc;
+  const {R,LC,fc}=PRESETS[compType];
+  const isRL=compType==='RL', isHP=filterType==='high';
+  const X=isRL?2*Math.PI*f*LC:1/(2*Math.PI*f*LC);
+  const ratio=f/fc;
   let gainLin;
-  if(!isHP) gainLin = isRL ? R/Math.sqrt(R*R+X*X) : X/Math.sqrt(R*R+X*X);
-  else      gainLin = isRL ? X/Math.sqrt(R*R+X*X) : R/Math.sqrt(R*R+X*X);
-  gainLin = Math.max(gainLin,1e-10);
-  const gainDb = 20*Math.log10(gainLin);
-  const phaseRad = isHP ? Math.atan(1/ratio) : -Math.atan(ratio);
-  const phaseDeg = phaseRad*180/Math.PI;
-  return {fc, X, gainLin, gainDb, phaseRad, phaseDeg};
+  if(!isHP) gainLin=isRL?R/Math.sqrt(R*R+X*X):X/Math.sqrt(R*R+X*X);
+  else      gainLin=isRL?X/Math.sqrt(R*R+X*X):R/Math.sqrt(R*R+X*X);
+  gainLin=Math.max(gainLin,1e-10);
+  const gainDb=20*Math.log10(gainLin);
+  const phaseRad=isHP?Math.atan(1/ratio):-Math.atan(ratio);
+  const phaseDeg=phaseRad*180/Math.PI;
+  return {fc,X,gainLin,gainDb,phaseRad,phaseDeg};
 }
 
-// ── Setters ──────────────────────────────────────────────────────────────────
 function setFilter(t){
   filterType=t;
   document.getElementById('btnLP').className='tog-btn'+(t==='low'?' active-lp':'');
@@ -334,10 +311,8 @@ function setComp(c){
   document.getElementById('btnRL').className='tog-btn'+(c==='RL'?' active-rl':'');
   update();
 }
-// Slider value for fc (1000 Hz): fFromSlider(v)=0.1*(1e9)^(v/500)=1000 → v=500*log(10000)/log(1e9)=500*4/9≈222.2
-const FC_SLIDER_VAL = 500*Math.log(10000)/Math.log(1e9); // ≈222.2 for fc=1kHz
-const SNAP_RADIUS = 6; // slider units — snaps within ±6 of fc position
 
+const SNAP_RADIUS=6;
 function fcSliderPos(fc){ return 500*Math.log(fc/F_MIN)/Math.log(F_MAX/F_MIN); }
 
 function onFreq(){
@@ -346,27 +321,20 @@ function onFreq(){
   const fc=PRESETS[compType].fc;
   const fcPos=fcSliderPos(fc);
   const snapped=Math.abs(raw-fcPos)<=SNAP_RADIUS;
-  if(snapped){
-    sl.value=fcPos;
-    fVal=fc;
-  } else {
-    fVal=fFromSlider(raw);
-  }
-  // colour thumb green when snapped
+  if(snapped){ sl.value=fcPos; fVal=fc; }
+  else { fVal=fFromSlider(raw); }
   sl.style.setProperty('--thumb-col',snapped?'#00ff99':'#ffe600');
   update();
 }
 
 function positionFcTick(){
-  const fc=PRESETS[compType].fc;
-  const pos=fcSliderPos(fc)/500*100; // percent
+  const pos=fcSliderPos(PRESETS[compType].fc)/500*100;
   document.getElementById('fcTick').style.left=pos+'%';
 }
 
-// ── Canvas helpers ────────────────────────────────────────────────────────────
 const DPR=()=>window.devicePixelRatio||1;
 function sizeCanvas(cv,h){
-  const d=DPR(), w=cv.parentElement.getBoundingClientRect().width-18;
+  const d=DPR(),w=cv.parentElement.getBoundingClientRect().width-18;
   cv.width=w*d; cv.height=h*d;
   cv.style.width=w+'px'; cv.style.height=h+'px';
   cv.getContext('2d').scale(d,d);
@@ -383,40 +351,35 @@ function resizeAll(){
   sizeCanvas(phasorCanvas,240); sizeCanvas(circuitCanvas,220);
 }
 
-// ── Shared plot padding ───────────────────────────────────────────────────────
 const PAD={l:52,r:16,t:16,b:36};
 
 // ── Bode plot ─────────────────────────────────────────────────────────────────
 function drawBode(){
-  const cv=bodeCanvas, cx=cv.getContext('2d');
+  const cv=bodeCanvas,cx=cv.getContext('2d');
   const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
   cx.clearRect(0,0,fw,fh);
   const fc=PRESETS[compType].fc;
-  const logFc=Math.log10(fc), lmin=logFc-2.5, lmax=logFc+2.5;
+  const logFc=Math.log10(fc),lmin=logFc-2.5,lmax=logFc+2.5;
   const dbMin=-65,dbMax=8,dbR=dbMax-dbMin;
   function dbY(db){return PAD.t+ph*(1-(db-dbMin)/dbR);}
   function lfX(lf){return PAD.l+pw*(lf-lmin)/(lmax-lmin);}
 
-  // Grid
   [-60,-40,-20,-10,-3,0,6].forEach(db=>{
     const y=dbY(db); if(y<PAD.t||y>PAD.t+ph)return;
     cx.setLineDash(db===0?[]:[2,5]);
     cx.strokeStyle=db===0?'rgba(0,229,255,.15)':db===-3?'rgba(255,107,53,.25)':'rgba(30,45,74,.7)';
     cx.lineWidth=db===0||db===-3?1.4:1;
-    cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();
-    cx.setLineDash([]);
+    cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
     cx.fillStyle=db===-3?'rgba(255,107,53,.8)':'rgba(200,220,240,.5)';
     cx.font='9px Share Tech Mono';cx.textAlign='right';cx.fillText(db+'dB',PAD.l-5,y+4);
   });
   for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
-    const x=lfX(lf);if(x<PAD.l||x>PAD.l+pw)continue;
+    const x=lfX(lf); if(x<PAD.l||x>PAD.l+pw)continue;
     cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;cx.setLineDash([2,5]);
     cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
     cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
     cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
   }
-
-  // Curve
   const N=pw*3;
   [[C_CYAN+'33',6,8],[C_CYAN,2,0]].forEach(([col,lw,bl])=>{
     cx.shadowColor=C_CYAN;cx.shadowBlur=bl;cx.strokeStyle=col;cx.lineWidth=lw;
@@ -429,15 +392,11 @@ function drawBode(){
     }
     cx.stroke();cx.shadowBlur=0;
   });
-
-  // fc line
   const xFc=lfX(logFc);
   cx.strokeStyle='rgba(0,255,153,.5)';cx.lineWidth=1.2;cx.setLineDash([4,4]);
   cx.beginPath();cx.moveTo(xFc,PAD.t);cx.lineTo(xFc,PAD.t+ph);cx.stroke();cx.setLineDash([]);
   cx.fillStyle='rgba(0,255,153,.8)';cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
   cx.fillText('fc='+formatFreq(fc),xFc,PAD.t+ph+28);
-
-  // Marker
   const logF=Math.log10(Math.max(fVal,1e-9)),xF=lfX(logF);
   const {gainDb:gdb}=calc(fVal);
   const yF=Math.max(PAD.t,Math.min(PAD.t+ph,dbY(gdb)));
@@ -452,8 +411,6 @@ function drawBode(){
     cx.fillStyle=C_YELLOW;cx.font='bold 10px Share Tech Mono';cx.textAlign=align;
     cx.fillText(gdb.toFixed(2)+'dB',xF+off,yF-6);
   }
-
-  // Axis
   cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
   cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
   cx.fillText('GAIN (dB)',0,0);cx.restore();
@@ -461,13 +418,13 @@ function drawBode(){
 
 // ── Phase plot ────────────────────────────────────────────────────────────────
 function drawPhase(){
-  const cv=phaseCanvas, cx=cv.getContext('2d');
+  const cv=phaseCanvas,cx=cv.getContext('2d');
   const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
   cx.clearRect(0,0,fw,fh);
   const fc=PRESETS[compType].fc;
-  const logFc=Math.log10(fc), lmin=logFc-2.5, lmax=logFc+2.5;
+  const logFc=Math.log10(fc),lmin=logFc-2.5,lmax=logFc+2.5;
   const isHP=filterType==='high';
-  const phMin=isHP?-10:  -95, phMax=isHP?95:10, phRange=phMax-phMin;
+  const phMin=isHP?-10:-95,phMax=isHP?95:10,phRange=phMax-phMin;
   function phY(d){return PAD.t+ph*(1-(d-phMin)/phRange);}
   function lfX(lf){return PAD.l+pw*(lf-lmin)/(lmax-lmin);}
 
@@ -475,21 +432,19 @@ function drawPhase(){
   ticks.forEach(d=>{
     const y=phY(d); if(y<PAD.t||y>PAD.t+ph)return;
     cx.setLineDash(Math.abs(d)===45?[4,4]:[2,5]);
-    cx.strokeStyle=d===0?'rgba(0,229,255,.15)':Math.abs(d)===45?'rgba(255,107,53,.3)':'rgba(30,45,74,.7)';
+    cx.strokeStyle=d===0?'rgba(0,229,255,.15)':Math.abs(d)===45?'rgba(167,139,250,.3)':'rgba(30,45,74,.7)';
     cx.lineWidth=Math.abs(d)===45||d===0?1.4:1;
     cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
-    cx.fillStyle=Math.abs(d)===45?'rgba(255,107,53,.85)':'rgba(200,220,240,.5)';
+    cx.fillStyle=Math.abs(d)===45?'rgba(167,139,250,.9)':'rgba(200,220,240,.5)';
     cx.font='9px Share Tech Mono';cx.textAlign='right';cx.fillText(d+'°',PAD.l-5,y+4);
   });
   for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
-    const x=lfX(lf);if(x<PAD.l||x>PAD.l+pw)continue;
+    const x=lfX(lf); if(x<PAD.l||x>PAD.l+pw)continue;
     cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;cx.setLineDash([2,5]);
     cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
     cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
     cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
   }
-
-  // Curve
   const N=pw*3;
   [[C_PURPLE+'44',6,8],[C_PURPLE,2,0]].forEach(([col,lw,bl])=>{
     cx.shadowColor=C_PURPLE;cx.shadowBlur=bl;cx.strokeStyle=col;cx.lineWidth=lw;
@@ -502,8 +457,6 @@ function drawPhase(){
     }
     cx.stroke();cx.shadowBlur=0;
   });
-
-  // fc line + −45° dot
   const xFc=lfX(logFc);
   cx.strokeStyle='rgba(0,255,153,.5)';cx.lineWidth=1.2;cx.setLineDash([4,4]);
   cx.beginPath();cx.moveTo(xFc,PAD.t);cx.lineTo(xFc,PAD.t+ph);cx.stroke();cx.setLineDash([]);
@@ -512,23 +465,21 @@ function drawPhase(){
   cx.beginPath();cx.arc(xFc,y45,5,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
   cx.fillStyle='rgba(0,255,153,.8)';cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
   cx.fillText('fc='+formatFreq(fc),xFc,PAD.t+ph+28);
-
-  // Marker
   const logF=Math.log10(Math.max(fVal,1e-9)),xF=lfX(logF);
   const {phaseDeg:pd}=calc(fVal);
   const yF=Math.max(PAD.t,Math.min(PAD.t+ph,phY(pd)));
   if(xF>=PAD.l&&xF<=PAD.l+pw){
-    cx.strokeStyle='rgba(255,230,0,.55)';cx.lineWidth=1;cx.setLineDash([3,4]);
+    // Phase marker — purple throughout
+    cx.strokeStyle='rgba(167,139,250,.55)';cx.lineWidth=1;cx.setLineDash([3,4]);
     cx.beginPath();cx.moveTo(xF,PAD.t);cx.lineTo(xF,PAD.t+ph);cx.stroke();
     cx.beginPath();cx.moveTo(PAD.l,yF);cx.lineTo(PAD.l+pw,yF);cx.stroke();cx.setLineDash([]);
-    cx.fillStyle=C_YELLOW;cx.shadowColor=C_YELLOW;cx.shadowBlur=14;
+    cx.fillStyle=C_PURPLE;cx.shadowColor=C_PURPLE;cx.shadowBlur=14;
     cx.beginPath();cx.arc(xF,yF,6,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
     const align=xF>PAD.l+pw*0.75?'right':'left';
     const off=align==='right'?-9:9;
-    cx.fillStyle=C_YELLOW;cx.font='bold 10px Share Tech Mono';cx.textAlign=align;
+    cx.fillStyle=C_PURPLE;cx.font='bold 10px Share Tech Mono';cx.textAlign=align;
     cx.fillText(pd.toFixed(2)+'°',xF+off,yF-6);
   }
-
   cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
   cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
   cx.fillText('PHASE (°)',0,0);cx.restore();
@@ -536,64 +487,37 @@ function drawPhase(){
 
 // ── Phasor diagram ────────────────────────────────────────────────────────────
 function drawPhasor(){
-  const cv=phasorCanvas, cx=cv.getContext('2d');
+  const cv=phasorCanvas,cx=cv.getContext('2d');
   const fw=cW(cv),fh=cH(cv);
   cx.clearRect(0,0,fw,fh);
 
   const {phaseDeg,gainLin,gainDb}=calc(fVal);
-  const isHP=filterType==='high', isRL=compType==='RL';
+  const isHP=filterType==='high',isRL=compType==='RL';
   const phRad=phaseDeg*Math.PI/180;
   const absPh=Math.abs(phRad);
 
-  // Drawing area above the info strip (52px) with 28px padding on all sides
   const pad=24;
-  const drawW=fw-pad*2, drawH=fh-pad*2;
-
-  // Each topology forms a right-angle triangle with legs VR (horizontal) and VX (vertical).
-  // Vin is the hypotenuse. We scale so the triangle fills ~78% of the draw area.
-  // The right-angle corner position and which direction VX goes differs per topology:
-  //
-  //  RC-LP / RL-HP : right-angle at top-right  → VR left, VX down  from corner
-  //                  Origin (O) = top-left of triangle
-  //  RC-HP / RL-LP : right-angle at bottom-right → VR right, VX up  from O
-  //                  Origin = bottom-left
-  //
-  // Scale: fit the triangle into drawW × drawH at 78%
+  const drawW=fw-pad*2,drawH=fh-pad*2;
   const FILL=0.78;
-  // At 45° VR=VX so we need square fit; otherwise width or height dominates
-  const sinA=Math.sin(absPh), cosA=Math.cos(absPh);
-  // Vin such that VR<=drawW*FILL and VX<=drawH*FILL
-  const VinByW = (cosA>0.01) ? (drawW*FILL)/cosA : 9999;
-  const VinByH = (sinA>0.01) ? (drawH*FILL)/sinA : 9999;
+  const sinA=Math.sin(absPh),cosA=Math.cos(absPh);
+  const VinByW=(cosA>0.01)?(drawW*FILL)/cosA:9999;
+  const VinByH=(sinA>0.01)?(drawH*FILL)/sinA:9999;
   const Vin=Math.min(VinByW,VinByH);
-  const VR=Vin*cosA;
-  const VX=Vin*sinA;
+  const VR=Vin*cosA, VX=Vin*sinA;
 
-  // ── Unified phasor layout ────────────────────────────────────────────────
-  // All four topologies share the same visual shape:
-  //   O (origin, left) → VR horizontal right → reactive leg vertical → vinTip
-  //   Vin = diagonal from O to vinTip (the hypotenuse)
-  //   VC always drops DOWN from VR tip; VL always goes UP from VR tip.
-  //   Dashed lines complete the right-angle rectangle.
-  //
-  // Centring: bounding box spans VR wide × VX tall, centred in draw area.
-  // VC cases: origin at top-left  → Oy = pad+drawH/2 - VX/2
-  // VL cases: origin at bot-left  → Oy = pad+drawH/2 + VX/2
-  const Ox  = pad + drawW/2 - VR/2;
-  const vcDown = !isRL;   // capacitor drops down, inductor goes up
-  const Oy  = vcDown ? pad+drawH/2 - VX/2 : pad+drawH/2 + VX/2;
+  const vcDown=!isRL;
+  const Ox=pad+drawW/2-VR/2;
+  const Oy=vcDown?pad+drawH/2-VX/2:pad+drawH/2+VX/2;
 
-  // Key points (same for all topologies)
-  const vrTip  = {x:Ox+VR, y:Oy};
-  const vxTip  = vcDown ? {x:Ox+VR, y:Oy+VX} : {x:Ox+VR, y:Oy-VX};
-  const vinTip = vxTip;  // Vin goes from O to vxTip (the far corner)
+  const vrTip ={x:Ox+VR,y:Oy};
+  const vxTip =vcDown?{x:Ox,y:Oy+VX}:{x:Ox,y:Oy-VX};
+  const vinTip=vcDown?{x:Ox+VR,y:Oy+VX}:{x:Ox+VR,y:Oy-VX};
 
   function arrow(x1,y1,x2,y2,col,lw,hs){
     const ang=Math.atan2(y2-y1,x2-x1),h=hs||10;
     cx.strokeStyle=col;cx.fillStyle=col;cx.lineWidth=lw||2.5;cx.lineCap='round';
     cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
-    cx.beginPath();
-    cx.moveTo(x2,y2);
+    cx.beginPath();cx.moveTo(x2,y2);
     cx.lineTo(x2-h*Math.cos(ang-0.38),y2-h*Math.sin(ang-0.38));
     cx.lineTo(x2-h*Math.cos(ang+0.38),y2-h*Math.sin(ang+0.38));
     cx.closePath();cx.fill();
@@ -607,74 +531,57 @@ function drawPhasor(){
     cx.fillText(txt,x,y);
   }
 
-  const lsz=12, lsm=10;
-  let llText='', llCol='';
+  const lsz=12,lsm=10;
+  let llText='',llCol='';
+  const vRlbl=isHP?'VR = Vout':'VR';
+  const vXlbl=isRL?(isHP?'VL':'VL = Vout'):(isHP?'VC':'VC = Vout');
 
-  // Determine names and lead/lag
-  const rxName  = isRL ? 'VL' : 'VC';
-  const isVout  = isHP ? false : true;   // LP: reactive = Vout; HP: VR = Vout
-  const vRlbl   = isHP ? 'VR = Vout' : 'VR';
-  const vXlbl   = isRL ? (isHP ? 'VL' : 'VL = Vout') : (isHP ? 'VC' : 'VC = Vout');
-
-  // Draw VR (horizontal, orange)
-  arrow(Ox, Oy, vrTip.x, vrTip.y, C_ORANGE, 2.5, 9);
-  // Draw reactive leg (green) — vertical from VR tip
-  arrow(vrTip.x, vrTip.y, vxTip.x, vxTip.y, C_GREEN, 2.8, 9);
-  // Draw Vin (cyan diagonal) — dashed, from O to vxTip
-  dash(Ox, Oy, vxTip.x, vxTip.y, 'rgba(0,229,255,.7)');
-  // Right-angle marker at vrTip
+  arrow(Ox,Oy,vrTip.x,vrTip.y,C_ORANGE,2.5,9);
+  arrow(Ox,Oy,vxTip.x,vxTip.y,C_GREEN,2.8,9);
+  arrow(Ox,Oy,vinTip.x,vinTip.y,C_CYAN,3,11);
+  dash(vrTip.x,vrTip.y,vinTip.x,vinTip.y,'rgba(0,229,255,.35)');
+  dash(vxTip.x,vxTip.y,vinTip.x,vinTip.y,'rgba(255,107,53,.25)');
   const sq=10;
   cx.strokeStyle='rgba(200,220,240,.3)';cx.lineWidth=1;
-  cx.strokeRect(vrTip.x - sq, vcDown ? vrTip.y : vrTip.y-sq, sq, sq);
-  // Dashed rectangle completion lines
-  dash(Ox, Oy, Ox, vxTip.y, 'rgba(200,220,240,.15)');
-  dash(Ox, vxTip.y, vxTip.x, vxTip.y, 'rgba(200,220,240,.15)');
+  cx.strokeRect(vrTip.x-sq,vcDown?vrTip.y:vrTip.y-sq,sq,sq);
 
-  // Labels
-  lbl(vRlbl, (Ox+vrTip.x)/2, Oy+(vcDown?-10:14), C_ORANGE, lsz, 'center');
-  lbl(vXlbl, vrTip.x+10, (vrTip.y+vxTip.y)/2+4, C_GREEN, lsz);
-  // Vin label at the diagonal midpoint, offset away from triangle
-  lbl('Vin', Ox-10, (Oy+vxTip.y)/2, C_CYAN, lsz, 'right');
+  lbl(vRlbl,(Ox+vrTip.x)/2,Oy+(vcDown?-10:16),C_ORANGE,lsz,'center');
+  lbl(vXlbl,Ox-10,(Oy+vxTip.y)/2+4,C_GREEN,lsz,'right');
+  const vinMidX=(Ox+vinTip.x)/2,vinMidY=(Oy+vinTip.y)/2;
+  lbl('Vin',vinMidX+10,vinMidY+(vcDown?-6:10),C_CYAN,lsz);
 
-  llText = isHP ? 'Vout LEADS Vin' : 'Vout LAGS Vin';
-  llCol  = isHP ? 'rgba(0,255,153,.85)' : 'rgba(255,61,154,.85)';
-
-  // Lag/Lead label — drawn below the triangle, centred, never obscured
+  llText=isHP?'Vout LEADS Vin':'Vout LAGS Vin';
+  llCol=isHP?'rgba(0,255,153,.85)':'rgba(255,61,154,.85)';
   if(llText){
-    cx.fillStyle=llCol;
-    cx.font='bold '+lsm+'px Share Tech Mono';
-    cx.textAlign='center';
-    cx.fillText(llText, fw/2, fh-12);
+    cx.fillStyle=llCol;cx.font='bold '+lsm+'px Share Tech Mono';cx.textAlign='center';
+    cx.fillText(llText,fw/2,fh-12);
   }
 
-  // Phase angle arc
+  // Phase angle arc — purple to match all other phase indicators
   if(absPh>0.04&&absPh<Math.PI/2-0.04){
     const arcR=Math.min(VR*0.32,32);
     const vinAngle=Math.atan2(vinTip.y-Oy,vinTip.x-Ox);
-    cx.strokeStyle='rgba(255,230,0,.75)';cx.lineWidth=1.5;
+    cx.strokeStyle='rgba(167,139,250,.75)';cx.lineWidth=1.5;
     cx.beginPath();
     if(vinAngle>=0) cx.arc(Ox,Oy,arcR,0,vinAngle,false);
     else            cx.arc(Ox,Oy,arcR,vinAngle,0,false);
     cx.stroke();
-    const midA=vinAngle/2;
-    const lr=arcR+16;
-    cx.fillStyle=C_YELLOW;cx.font='bold 10px Share Tech Mono';cx.textAlign='center';
-    cx.fillText(Math.abs(phaseDeg).toFixed(1)+'°',
-      Ox+lr*Math.cos(midA),Oy+lr*Math.sin(midA)+4);
+    const midA=vinAngle/2,lr=arcR+16;
+    cx.fillStyle=C_PURPLE;cx.font='bold 10px Share Tech Mono';cx.textAlign='center';
+    cx.fillText(Math.abs(phaseDeg).toFixed(1)+'°',Ox+lr*Math.cos(midA),Oy+lr*Math.sin(midA)+4);
   }
-
 }
+
+// ── Component drawing ─────────────────────────────────────────────────────────
 function drawZZ(cx,cx0,cy0,horiz){
   const peaks=6,tot=58,h=8;
   cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;cx.lineCap='round';cx.lineJoin='round';
   cx.beginPath();
   if(horiz){
-    const x0=cx0-tot/2,sw=tot/peaks;
-    cx.moveTo(x0,cy0);
+    const x0=cx0-tot/2,sw=tot/peaks;cx.moveTo(x0,cy0);
     for(let i=0;i<peaks;i++){cx.lineTo(x0+sw*i+sw/2,(i%2===0?cy0-h:cy0+h));cx.lineTo(x0+sw*(i+1),cy0);}
   } else {
-    const y0=cy0-tot/2,sh=tot/peaks;
-    cx.moveTo(cx0,y0);
+    const y0=cy0-tot/2,sh=tot/peaks;cx.moveTo(cx0,y0);
     for(let i=0;i<peaks;i++){cx.lineTo((i%2===0?cx0+h:cx0-h),y0+sh*i+sh/2);cx.lineTo(cx0,y0+sh*(i+1));}
   }
   cx.stroke();
@@ -697,11 +604,11 @@ function drawC(cx,cx0,cy0,horiz){
   const gap=6,pl=22,stub=18;
   cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;
   if(horiz){
-    cx.beginPath();cx.moveTo(cx0-stub-gap,cy0);cx.lineTo(cx0-gap,cy0);cx.stroke();
-    cx.beginPath();cx.moveTo(cx0+gap,cy0);cx.lineTo(cx0+stub+gap,cy0);cx.stroke();
     cx.fillStyle=C_CYAN;
     cx.fillRect(cx0-gap-3,cy0-pl/2,4,pl);cx.fillRect(cx0+gap-1,cy0-pl/2,4,pl);
   } else {
+    cx.beginPath();cx.moveTo(cx0,cy0-gap-3);cx.lineTo(cx0,cy0-gap-3-stub);cx.stroke();
+    cx.beginPath();cx.moveTo(cx0,cy0+gap+3);cx.lineTo(cx0,cy0+gap+3+stub);cx.stroke();
     cx.fillStyle=C_CYAN;
     cx.fillRect(cx0-pl/2,cy0-gap-3,pl,4);cx.fillRect(cx0-pl/2,cy0+gap-1,pl,4);
   }
@@ -714,36 +621,36 @@ function drawGnd(cx,x,y){
 }
 function drawVin(cx,x,wireY,gndY){
   const midY=(wireY+gndY)/2,lx=x-22;
-  cx.fillStyle='rgba(200,220,240,.8)';cx.font='italic 12px Share Tech Mono';cx.textAlign='center';
-  cx.fillText('V',lx-3,midY+5);cx.font='8px Share Tech Mono';cx.fillText('in',lx+5,midY+8);
-  cx.strokeStyle='rgba(200,220,240,.4)';cx.lineWidth=1.2;
-  [[wireY+4,midY-16,wireY+4],[gndY-4,midY+28,gndY-4]].forEach(([y1,y2,ya])=>{
-    cx.beginPath();cx.moveTo(lx,y1);cx.lineTo(lx,y2);cx.stroke();
-    cx.beginPath();cx.moveTo(lx,ya);cx.lineTo(lx-4,ya+8*(ya===wireY+4?1:-1));
-    cx.moveTo(lx,ya);cx.lineTo(lx+4,ya+8*(ya===wireY+4?1:-1));cx.stroke();
-  });
+  cx.fillStyle='rgba(200,220,240,.8)';cx.font='italic 12px Share Tech Mono';cx.textAlign='right';
+  cx.fillText('V',lx+10,midY+2);cx.font='8px Share Tech Mono';cx.fillText('in',lx+18,midY+8);
+  cx.strokeStyle='rgba(200,220,240,.4)';cx.lineWidth=1.5;
+  cx.beginPath();cx.moveTo(lx,gndY-4);cx.lineTo(lx,wireY+4);cx.stroke();
+  cx.beginPath();cx.moveTo(lx,wireY+4);cx.lineTo(lx-6,wireY+18);
+  cx.moveTo(lx,wireY+4);cx.lineTo(lx+6,wireY+18);cx.stroke();
+  cx.beginPath();cx.moveTo(lx,gndY-4);cx.lineTo(lx-6,gndY-18);
+  cx.moveTo(lx,gndY-4);cx.lineTo(lx+6,gndY-18);cx.stroke();
 }
 function drawVout(cx,x,wireY,gndY){
   const midY=(wireY+gndY)/2,lx=x+22;
-  cx.fillStyle='rgba(0,255,153,.8)';cx.font='italic 12px Share Tech Mono';cx.textAlign='center';
-  cx.fillText('V',lx-3,midY+5);cx.font='8px Share Tech Mono';cx.fillText('out',lx+8,midY+8);
-  cx.strokeStyle='rgba(0,255,153,.4)';cx.lineWidth=1.2;
-  [[wireY+4,midY-12,wireY+4],[gndY-4,midY+20,gndY-4]].forEach(([y1,y2,ya])=>{
-    cx.beginPath();cx.moveTo(lx,y1);cx.lineTo(lx,y2);cx.stroke();
-    cx.beginPath();cx.moveTo(lx,ya);cx.lineTo(lx-4,ya+8*(ya===wireY+4?1:-1));
-    cx.moveTo(lx,ya);cx.lineTo(lx+4,ya+8*(ya===wireY+4?1:-1));cx.stroke();
-  });
+  cx.fillStyle='rgba(0,255,153,.8)';cx.font='italic 12px Share Tech Mono';cx.textAlign='left';
+  cx.fillText('V',lx-22,midY+2);cx.font='8px Share Tech Mono';cx.fillText('out',lx-16,midY+8);
+  cx.strokeStyle='rgba(0,255,153,.4)';cx.lineWidth=1.5;
+  cx.beginPath();cx.moveTo(lx,gndY-4);cx.lineTo(lx,wireY+4);cx.stroke();
+  cx.beginPath();cx.moveTo(lx,wireY+4);cx.lineTo(lx-6,wireY+18);
+  cx.moveTo(lx,wireY+4);cx.lineTo(lx+6,wireY+18);cx.stroke();
+  cx.beginPath();cx.moveTo(lx,gndY-4);cx.lineTo(lx-6,gndY-18);
+  cx.moveTo(lx,gndY-4);cx.lineTo(lx+6,gndY-18);cx.stroke();
 }
 
 // ── Circuit diagram ───────────────────────────────────────────────────────────
 function drawCircuit(){
-  const cv=circuitCanvas, cx=cv.getContext('2d');
+  const cv=circuitCanvas,cx=cv.getContext('2d');
   const fw=cW(cv),fh=cH(cv);
   cx.clearRect(0,0,fw,fh);
 
-  const isRL=compType==='RL', isHP=filterType==='high';
-  const mg=38, wireY=fh*0.28, gndY=fh*0.82;
-  const lx=mg, rx=fw-mg, jx=fw*0.63, smx=(lx+jx)/2;
+  const isRL=compType==='RL',isHP=filterType==='high';
+  const mg=38,wireY=fh*0.28,gndY=fh*0.82;
+  const lx=mg,rx=fw-mg,jx=fw*0.63,smx=(lx+jx)/2;
 
   function wire(x1,y1,x2,y2,col,lw){
     cx.strokeStyle=col||C_CYAN;cx.lineWidth=lw||1.8;cx.lineCap='round';
@@ -752,66 +659,61 @@ function drawCircuit(){
   function tDot(x,y){cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;cx.beginPath();cx.arc(x,y,4,0,Math.PI*2);cx.stroke();}
   function jDot(x,y){cx.fillStyle=C_CYAN;cx.beginPath();cx.arc(x,y,3.5,0,Math.PI*2);cx.fill();}
 
-  wire(lx,wireY,smx-28,wireY); wire(smx+28,wireY,jx,wireY);
-  wire(jx,wireY,rx,wireY); wire(lx,gndY,rx,gndY); wire(jx,wireY,jx,gndY);
-  tDot(lx,wireY);tDot(lx,gndY);tDot(rx,wireY);tDot(rx,gndY);
-  jDot(jx,wireY);jDot(jx,gndY);
-
-  // Series element: RC-LP=R, RC-HP=C, RL-LP=L, RL-HP=R
   const serIsR=(!isRL&&!isHP)||(isRL&&isHP);
-  // Shunt element: RC-LP=C, RC-HP=R, RL-LP=R, RL-HP=L
   const shIsR=(!isRL&&isHP)||(isRL&&!isHP);
   const shMidY=(wireY+gndY)/2;
 
-  serIsR ? drawZZ(cx,smx,wireY,true) : (isRL?drawL(cx,smx,wireY,true):drawC(cx,smx,wireY,true));
-  shIsR  ? drawZZ(cx,jx,shMidY,false): (isRL?drawL(cx,jx,shMidY,false):drawC(cx,jx,shMidY,false));
+  const serGap=serIsR?29:(isRL?32:9);
+  wire(lx,wireY,smx-serGap,wireY); wire(smx+serGap,wireY,jx,wireY);
+  wire(jx,wireY,rx,wireY); wire(lx,gndY,rx,gndY);
+  const shGap=shIsR?30:(isRL?32:27);
+  wire(jx,wireY,jx,shMidY-shGap); wire(jx,shMidY+shGap,jx,gndY);
+  tDot(lx,wireY);tDot(lx,gndY);tDot(rx,wireY);tDot(rx,gndY);
+  jDot(jx,wireY);jDot(jx,gndY);
 
-  drawGnd(cx,jx,gndY+2);
+  serIsR?drawZZ(cx,smx,wireY,true):(isRL?drawL(cx,smx,wireY,true):drawC(cx,smx,wireY,true));
+  shIsR?drawZZ(cx,jx,shMidY,false):(isRL?drawL(cx,jx,shMidY,false):drawC(cx,jx,shMidY,false));
+
+  drawGnd(cx,jx,gndY+8);
   drawVin(cx,lx,wireY,gndY);
   drawVout(cx,rx,wireY,gndY);
 
   const p=PRESETS[compType];
   const serLbl=serIsR?`R = ${p.Rlbl}`:(isRL?`L = ${p.LClbl}`:`C = ${p.LClbl}`);
-  const shLbl =shIsR ?`R = ${p.Rlbl}`:(isRL?`L = ${p.LClbl}`:`C = ${p.LClbl}`);
-
+  const shLbl=shIsR?`R = ${p.Rlbl}`:(isRL?`L = ${p.LClbl}`:`C = ${p.LClbl}`);
   cx.fillStyle=C_TEXT;cx.font='10px Share Tech Mono';cx.textAlign='center';
   cx.fillText(serLbl,smx,wireY-28);
   cx.textAlign='left';
   cx.fillText(shLbl,jx+16,shMidY+4);
-
-  cx.fillStyle='rgba(0,255,153,.55)';cx.font='9px Share Tech Mono';cx.textAlign='right';
+  cx.fillStyle='rgba(0,255,153,.65)';cx.font='10px Share Tech Mono';cx.textAlign='right';
   cx.fillText('Vout →',rx-4,wireY-8);
 }
 
-// ── Preset info bar ───────────────────────────────────────────────────────────
+// ── Updates ───────────────────────────────────────────────────────────────────
 function updatePresetBar(){
-  const p=PRESETS[compType], isRL=compType==='RL';
-  document.getElementById('rChip').textContent    = p.Rlbl;
-  document.getElementById('lcChip').textContent   = p.LClbl;
-  document.getElementById('lcChipLbl').textContent= isRL?'Inductance L':'Capacitance C';
-  document.getElementById('fcChip').textContent   = formatFreq(p.fc);
-  document.getElementById('tauChip').textContent  = p.taulbl;
+  const p=PRESETS[compType],isRL=compType==='RL';
+  document.getElementById('rChip').textContent=p.Rlbl;
+  document.getElementById('lcChip').textContent=p.LClbl;
+  document.getElementById('lcChipLbl').textContent=isRL?'Inductance L':'Capacitance C';
+  document.getElementById('fcChip').textContent=formatFreq(p.fc);
+  document.getElementById('tauChip').textContent=p.taulbl;
 }
-
-// ── Frequency readout bar ─────────────────────────────────────────────────────
 function updateFreqBar(){
   const {fc,gainDb,gainLin,phaseDeg}=calc(fVal);
   const isLag=phaseDeg<0;
-  document.getElementById('fBig').textContent     = formatFreq(fVal);
-  document.getElementById('pbRatio').textContent  = (fVal/fc).toFixed(3)+'×';
-  document.getElementById('pbGain').textContent   = gainDb.toFixed(2)+' dB';
-  document.getElementById('pbPhase').textContent  = phaseDeg.toFixed(2)+'°';
-  document.getElementById('pbVout').textContent   = (gainLin*100).toFixed(1)+'%';
-
-  const isHP=filterType==='high', isRL=compType==='RL';
-  const voutName=(!isRL&&!isHP)||(isRL&&isHP) ? (isRL?'VL':'VC') : 'VR';
+  document.getElementById('fBig').textContent=formatFreq(fVal);
+  document.getElementById('pbRatio').textContent=(fVal/fc).toFixed(3)+'×';
+  document.getElementById('pbGain').textContent=gainDb.toFixed(2)+' dB';
+  document.getElementById('pbPhase').textContent=phaseDeg.toFixed(2)+'°';
+  document.getElementById('pbVout').textContent=(gainLin*100).toFixed(1)+'%';
+  const isHP=filterType==='high',isRL=compType==='RL';
+  const voutName=(!isRL&&!isHP)||(isRL&&isHP)?(isRL?'VL':'VC'):'VR';
   const llCol=isLag?'#ff3d9a':'#00ff99';
-  document.getElementById('llStatement').innerHTML =
-    `At this frequency, <strong style="color:${llCol}">${voutName} (Vout) ` +
-    `${isLag?'LAGS':'LEADS'} Vin by ${Math.abs(phaseDeg).toFixed(1)}°</strong>. ` +
+  document.getElementById('llStatement').innerHTML=
+    `At this frequency, <strong style="color:${llCol}">${voutName} (Vout) `+
+    `${isLag?'LAGS':'LEADS'} Vin by ${Math.abs(phaseDeg).toFixed(1)}°</strong>. `+
     `Gain&nbsp;=&nbsp;${gainDb.toFixed(2)}&nbsp;dB.`;
 }
-
 function updatePhasorInfo(){
   const {gainDb,gainLin,phaseDeg,fc}=calc(fVal);
   const isLag=phaseDeg<0;
@@ -825,25 +727,113 @@ function updatePhasorInfo(){
   document.getElementById('piLL').style.color=llCol;
 }
 
-// ── Full update ───────────────────────────────────────────────────────────────
+function fmtVal(v){
+  // format to 4 sig figs
+  if(Math.abs(v)>=1000) return (v/1000).toFixed(3)+' k';
+  if(Math.abs(v)>=1)    return v.toFixed(4);
+  if(Math.abs(v)>=1e-3) return (v*1000).toFixed(3)+' m';
+  if(Math.abs(v)>=1e-6) return (v*1e6).toFixed(3)+' μ';
+  if(Math.abs(v)>=1e-9) return (v*1e9).toFixed(3)+' n';
+  return (v*1e12).toFixed(3)+' p';
+}
+
+function updateWorkings(){
+  const {R,LC,fc}=PRESETS[compType];
+  const isRL=compType==='RL', isHP=filterType==='high';
+  const f=fVal;
+  const {X,gainLin,gainDb,phaseDeg}=calc(f);
+  const Z=Math.sqrt(R*R+X*X);
+  const Vout_ratio=gainLin;
+  const tau=R*LC;
+
+  document.getElementById('wkFreq').textContent=formatFreq(f);
+
+  const xName=isRL?'XL':'Xc';
+  const xFormula=isRL?'2π × f × L':'1 / (2π × f × C)';
+  const xCalcParts=isRL
+    ? `2π × ${formatFreq(f)} × ${fmtVal(LC)}H`
+    : `1 / (2π × ${formatFreq(f)} × ${fmtVal(LC)}F)`;
+
+  // fc block
+  const fcFormula=isRL?'R / (2π × L)':'1 / (2π × R × C)';
+  const fcCalc=isRL
+    ? `${fmtVal(R)}Ω / (2π × ${fmtVal(LC)}H)`
+    : `1 / (2π × ${fmtVal(R)}Ω × ${fmtVal(LC)}F)`;
+
+  // Z block — total impedance
+  const ZformStr=`√(R² + ${xName}²)`;
+  const ZcalcStr=`√(${fmtVal(R)}Ω² + ${fmtVal(X)}Ω²)`;
+
+  // Av block
+  const AvFormula=isHP
+    ? (isRL?`XL / Z`:`R / Z`)
+    : (isRL?`R / Z`:`Xc / Z`);
+  const voutEl=isHP?(isRL?'XL':'R'):(isRL?'R':'Xc');
+  const voutVal=isHP?(isRL?fmtVal(X):fmtVal(R)):(isRL?fmtVal(R):fmtVal(X));
+  const AvCalc=`${voutVal}Ω / ${fmtVal(Z)}Ω`;
+
+  // Phase block
+  const phFormula=isHP?`arctan(${isRL?'R / XL':'Xc / R'})`:`-arctan(${isRL?'XL / R':'Xc / R'})`;
+  const phRatioNum=isHP?(isRL?fmtVal(R):fmtVal(X)):(isRL?fmtVal(X):fmtVal(X));
+  const phRatioDen=isHP?(isRL?fmtVal(X):fmtVal(R)):(isRL?fmtVal(R):fmtVal(R));
+  const phCalc=`${isHP?'':'-'}arctan(${phRatioNum} / ${phRatioDen})`;
+
+  function block(title, colour, lines){
+    return `<div class="wk-block">
+      <div class="wk-title" style="color:${colour}">${title}</div>
+      ${lines.map(([sym,eq,cls])=>`<div class="wk-line">
+        <span class="sym">${sym}</span><span class="eq">=</span><span class="${cls||'formula'}">${eq}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  document.getElementById('workingsGrid').innerHTML =
+    block('Cutoff Frequency', '#00ff99', [
+      ['f<sub>c</sub>', fcFormula, 'formula'],
+      ['', fcCalc, 'calc'],
+      ['', `<span class="result" style="color:#00ff99">${formatFreq(fc)}</span>`, 'result'],
+    ]) +
+    block(xName+' — Reactance', '#a78bfa', [
+      [xName, xFormula, 'formula'],
+      ['', xCalcParts, 'calc'],
+      ['', `<span class="result" style="color:#a78bfa">${fmtVal(X)}Ω</span>`, 'result'],
+    ]) +
+    block('Z — Total Impedance', '#00e5ff', [
+      ['Z', ZformStr, 'formula'],
+      ['', ZcalcStr, 'calc'],
+      ['', `<span class="result" style="color:#00e5ff">${fmtVal(Z)}Ω</span>`, 'result'],
+    ]) +
+    block('Av — Voltage Gain', '#ff6b35', [
+      ['Av', `V<sub>out</sub> / V<sub>in</sub> = ${AvFormula}`, 'formula'],
+      ['', AvCalc, 'calc'],
+      ['', `<span class="result" style="color:#ff6b35">${gainLin.toFixed(4)}</span>`, 'result'],
+      ['Av(dB)', '20 × log(Av)', 'formula'],
+      ['', `20 × log(${gainLin.toFixed(4)})`, 'calc'],
+      ['', `<span class="result" style="color:#ff6b35">${gainDb.toFixed(2)} dB</span>`, 'result'],
+    ]) +
+    block('Phase Shift φ', '#a78bfa', [
+      ['φ', phFormula, 'formula'],
+      ['', phCalc, 'calc'],
+      ['', `<span class="result" style="color:#a78bfa">${phaseDeg.toFixed(2)}°</span>`, 'result'],
+    ]) +
+    block('V<sub>out</sub> / V<sub>in</sub>', '#00ff99', [
+      ['V<sub>out</sub>', `V<sub>in</sub> × Av`, 'formula'],
+      ['', `1 V × ${gainLin.toFixed(4)}`, 'calc'],
+      ['', `<span class="result" style="color:#00ff99">${gainLin.toFixed(4)} V</span>&nbsp;<span class="calc">(per 1 V in)</span>`, 'result'],
+    ]);
+}
+
 function update(){
-  updatePresetBar();
-  updateFreqBar();
-  updatePhasorInfo();
+  updatePresetBar(); updateFreqBar(); updatePhasorInfo(); updateWorkings();
   positionFcTick();
-  drawBode();
-  drawPhase();
-  drawPhasor();
-  drawCircuit();
+  drawBode(); drawPhase(); drawPhasor(); drawCircuit();
 }
 
 window.addEventListener('resize',()=>{resizeAll();update();});
 resizeAll();
-// Start slider near fc
-// Set slider to fc on load and trigger snap check
-const initFcPos = fcSliderPos(PRESETS[compType].fc);
-document.getElementById('fSlider').value = initFcPos;
-fVal = PRESETS[compType].fc;
+const initFcPos=fcSliderPos(PRESETS[compType].fc);
+document.getElementById('fSlider').value=initFcPos;
+fVal=PRESETS[compType].fc;
 update();
 </script>
 </body>
