@@ -188,10 +188,13 @@
           <input type="range" id="fSlider" min="0" max="500" value="300" oninput="onFreq()">
           <div class="fc-tick" id="fcTick"></div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
-          <div class="freq-ticks" style="flex:1;">
-            <span>5 Hz</span><span>500 Hz</span><span>5 kHz</span><span>50 kHz</span><span>200 kHz</span>
-          </div>
+        <!-- Log-positioned tick labels -->
+        <div style="position:relative;height:1.4rem;margin-top:.4rem;">
+          <span style="position:absolute;left:0%;transform:translateX(-0%);font-size:.58rem;color:var(--label);opacity:.7">10 Hz</span>
+          <span style="position:absolute;left:25%;transform:translateX(-50%);font-size:.58rem;color:var(--label);opacity:.7">100 Hz</span>
+          <span style="position:absolute;left:50%;transform:translateX(-50%);font-size:.58rem;color:var(--accent3);opacity:.9">1 kHz</span>
+          <span style="position:absolute;left:75%;transform:translateX(-50%);font-size:.58rem;color:var(--label);opacity:.7">10 kHz</span>
+          <span style="position:absolute;left:100%;transform:translateX(-100%);font-size:.58rem;color:var(--label);opacity:.7">100 kHz</span>
         </div>
       </div>
       <div class="phase-bar">
@@ -267,8 +270,11 @@ let filterType='low', compType='RC', fVal=1000;
 const C_CYAN='#00e5ff', C_ORANGE='#ff6b35', C_GREEN='#00ff99',
       C_YELLOW='#ffe600', C_PURPLE='#a78bfa', C_PINK='#ff3d9a', C_TEXT='#c8d8e8';
 
-const F_MIN=5, F_MAX=200000;
+// ── Frequency slider: log 5 Hz → 200 kHz ───────────────────────────────────
+const F_MIN=10, F_MAX=100000;
+const SLIDER_MAX=500;
 function fFromSlider(v){ return F_MIN*Math.pow(F_MAX/F_MIN,v/500); }
+function sliderFromF(f){ return 500*Math.log(f/F_MIN)/Math.log(F_MAX/F_MIN); }
 
 function formatFreq(f){
   if(f>=1e6) return fmtN(f/1e6)+' MHz';
@@ -313,7 +319,7 @@ function setComp(c){
 }
 
 const SNAP_RADIUS=6;
-function fcSliderPos(fc){ return 500*Math.log(fc/F_MIN)/Math.log(F_MAX/F_MIN); }
+function fcSliderPos(fc){ return sliderFromF(fc); }
 
 function onFreq(){
   const sl=document.getElementById('fSlider');
@@ -322,13 +328,13 @@ function onFreq(){
   const fcPos=fcSliderPos(fc);
   const snapped=Math.abs(raw-fcPos)<=SNAP_RADIUS;
   if(snapped){ sl.value=fcPos; fVal=fc; }
-  else { fVal=fFromSlider(raw); }
+  else { fVal=Math.round(fFromSlider(raw)); }
   sl.style.setProperty('--thumb-col',snapped?'#00ff99':'#ffe600');
   update();
 }
 
 function positionFcTick(){
-  const pos=fcSliderPos(PRESETS[compType].fc)/500*100;
+  const pos=fcSliderPos(PRESETS[compType].fc)/SLIDER_MAX*100;
   document.getElementById('fcTick').style.left=pos+'%';
 }
 
