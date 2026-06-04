@@ -685,8 +685,15 @@ function drawCircuit(){
   cx.fillText(serLbl,smx,wireY-28);
   cx.textAlign='left';
   cx.fillText(shLbl,jx+16,shMidY+4);
-  cx.fillStyle='rgba(0,255,153,.65)';cx.font='10px Share Tech Mono';cx.textAlign='right';
-  cx.fillText('Vout →',rx-4,wireY-8);
+  // Vout label + drawn arrow above top-right wire
+  cx.fillStyle='rgba(0,255,153,.75)';cx.font='10px Share Tech Mono';cx.textAlign='right';
+  cx.fillText('Vout',rx-22,wireY-8);
+  // Drawn arrow
+  const ax1=rx-16, ax2=rx-2, ay=wireY-10;
+  cx.strokeStyle='rgba(0,255,153,.75)';cx.lineWidth=2;cx.lineCap='round';
+  cx.beginPath();cx.moveTo(ax1,ay);cx.lineTo(ax2,ay);cx.stroke();
+  cx.fillStyle='rgba(0,255,153,.75)';
+  cx.beginPath();cx.moveTo(ax2,ay);cx.lineTo(ax2-8,ay-4);cx.lineTo(ax2-8,ay+4);cx.closePath();cx.fill();
 }
 
 // ── Updates ───────────────────────────────────────────────────────────────────
