@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RLC Resonance Explorer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg:#0a0d14; --panel:#0f1420; --border:#1e2d4a;
+      --accent:#00e5ff; --accent2:#ff6b35; --accent3:#00ff99;
+      --accent4:#ff3d9a; --accent5:#a78bfa; --accent6:#ffe600;
+      --accent7:#ff4444;
+      --grid:rgba(0,229,255,0.05); --text:#c8d8e8; --label:#5a7a9a;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      background:var(--bg);color:var(--text);
+      font-family:'Share Tech Mono',monospace;
+      min-height:100vh;display:flex;flex-direction:column;align-items:center;
+      padding:1.2rem 1rem 2rem;
+      background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+      background-size:40px 40px;
+    }
+    header{text-align:center;margin-bottom:1rem;}
+    header h1{
+      font-family:'Orbitron',sans-serif;font-size:clamp(1rem,3vw,1.8rem);
+      font-weight:900;letter-spacing:.12em;color:var(--accent);
+      text-shadow:0 0 28px rgba(0,229,255,.5);text-transform:uppercase;
+    }
+    header p{margin-top:.25rem;color:var(--label);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;}
+
+    .wrap{width:100%;max-width:1400px;display:flex;flex-direction:column;gap:.8rem;}
+
+    /* ── Top bar ── */
+    .top-bar{
+      background:var(--panel);border:1px solid var(--border);border-radius:4px;
+      padding:.9rem 1.4rem;
+      display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;justify-content:center;
+    }
+    .ctrl-group{display:flex;flex-direction:column;gap:.4rem;align-items:center;}
+    .ctrl-label{font-size:.58rem;letter-spacing:.2em;color:var(--label);text-transform:uppercase;}
+    .toggle-row{display:flex;gap:.4rem;}
+    .tog-btn{
+      padding:.35rem 1rem;border-radius:3px;
+      font-family:'Share Tech Mono',monospace;font-size:.7rem;
+      letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+      border:1px solid var(--border);background:transparent;color:var(--label);transition:all .15s;
+    }
+    .tog-btn.active-ser{border-color:rgba(0,229,255,.5);background:rgba(0,229,255,.1);color:var(--accent);}
+    .tog-btn.active-par{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.1);color:var(--accent2);}
+
+    /* Component inputs */
+    .comp-inputs{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;align-items:flex-end;}
+    .inp-group{display:flex;flex-direction:column;gap:.3rem;}
+    .inp-label{font-size:.55rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;}
+    .inp-row{display:flex;gap:.3rem;align-items:center;}
+    .comp-inp{
+      background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:3px;
+      color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.78rem;
+      padding:.3rem .5rem;width:80px;outline:none;
+      transition:border-color .15s;
+    }
+    .comp-inp:focus{border-color:rgba(0,229,255,.4);}
+    .inp-unit{font-size:.62rem;color:var(--label);}
+
+    .preset-info{display:flex;gap:1.4rem;align-items:center;flex-wrap:wrap;justify-content:center;}
+    .preset-chip{display:flex;flex-direction:column;gap:.15rem;align-items:center;}
+    .preset-chip-lbl{font-size:.52rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;}
+    .preset-chip-val{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;color:var(--accent3);}
+    .preset-chip-val.cyan{color:var(--accent);}
+    .preset-chip-val.orange{color:var(--accent2);}
+    .preset-chip-val.purple{color:var(--accent5);}
+    .preset-chip-val.yellow{color:var(--accent6);}
+
+    /* ── Middle row: circuit + frequency ── */
+    .row2{display:grid;grid-template-columns:420px 1fr;gap:.8rem;align-items:stretch;}
+    @media(max-width:860px){.row2{grid-template-columns:1fr;}}
+
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:.8rem;}
+    .panel-title{font-size:.56rem;letter-spacing:.2em;color:var(--label);text-transform:uppercase;
+      margin-bottom:.3rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);}
+    .graph-formula{
+      font-family:'Share Tech Mono',monospace;font-size:.72rem;
+      text-align:center;letter-spacing:.04em;
+      padding:.2rem 0 .4rem;color:var(--text);opacity:.85;
+    }
+
+    .freq-panel{display:flex;flex-direction:column;justify-content:center;gap:1rem;padding:1.2rem 1.6rem;}
+    .freq-big{font-family:'Orbitron',sans-serif;font-size:2.4rem;font-weight:900;
+      color:var(--accent6);text-shadow:0 0 20px rgba(255,230,0,.4);text-align:center;line-height:1;}
+    .freq-sub{text-align:center;font-size:.62rem;letter-spacing:.18em;color:var(--label);text-transform:uppercase;margin-top:.2rem;}
+
+    input[type=range]{
+      -webkit-appearance:none;width:100%;height:6px;border-radius:3px;
+      background:var(--border);outline:none;cursor:pointer;
+    }
+    input[type=range]::-webkit-slider-thumb{
+      -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+      background:var(--thumb-col,var(--accent6));box-shadow:0 0 12px rgba(255,230,0,.7);
+      cursor:pointer;transition:background .15s,transform .1s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
+
+    .slider-wrap{position:relative;}
+    .fr-tick{
+      position:absolute;bottom:-8px;width:2px;height:10px;
+      background:var(--accent3);border-radius:1px;
+      transform:translateX(-50%);pointer-events:none;
+      box-shadow:0 0 6px rgba(0,255,153,.7);
+    }
+
+    .results-bar{
+      display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;
+      background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:3px;padding:.6rem .8rem;
+    }
+    .rb-item{display:flex;flex-direction:column;gap:.18rem;align-items:center;}
+    .rb-lbl{font-size:.52rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;}
+    .rb-val{font-family:'Orbitron',sans-serif;font-size:.88rem;font-weight:700;}
+
+    /* ── Graphs ── */
+    .graphs{display:grid;gap:.8rem;}
+    .graphs-4{grid-template-columns:repeat(4,1fr);}
+    .graphs-3{grid-template-columns:repeat(3,1fr);}
+    @media(max-width:1100px){.graphs-4{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:960px){.graphs-3{grid-template-columns:1fr;}}
+    @media(max-width:640px){.graphs-4{grid-template-columns:1fr;}}
+    .graphs .panel{min-width:0;}
+    canvas{display:block;width:100%;max-width:100%;}
+
+    /* ── Phasor info ── */
+    .phasor-info{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:.25rem .5rem;
+      padding:.45rem .6rem;border-top:1px solid var(--border);margin-top:.2rem;
+    }
+    .pi-item span:first-child{font-size:.5rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;display:block;}
+    .pi-item span:last-child{font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:700;}
+
+    /* ── Workings ── */
+    .workings-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:1rem 1.5rem;
+      padding:.4rem 0;
+    }
+    @media(max-width:800px){.workings-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:480px){.workings-grid{grid-template-columns:1fr;}}
+    .wk-block{display:flex;flex-direction:column;gap:.35rem;}
+    .wk-title{
+      font-family:'Orbitron',sans-serif;font-size:.65rem;font-weight:700;
+      letter-spacing:.15em;text-transform:uppercase;
+      padding-bottom:.35rem;border-bottom:1px solid var(--border);margin-bottom:.1rem;
+    }
+    .wk-line{font-size:.75rem;line-height:1.8;color:var(--text);}
+    .wk-line .sym{color:var(--label);min-width:2.4rem;display:inline-block;}
+    .wk-line .eq{color:var(--label);margin:0 .3rem;}
+    .wk-line .formula{color:rgba(200,220,240,.5);}
+    .wk-line .calc{color:rgba(200,220,240,.7);}
+    .wk-line .result{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;}
+
+    footer{margin-top:1.2rem;font-size:.6rem;color:var(--label);opacity:.4;letter-spacing:.15em;text-transform:uppercase;}
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>RLC Resonance Explorer</h1>
+  <p>Series &amp; Parallel · Impedance · Voltage · Phase · Interactive Frequency</p>
+</header>
+
+<div class="wrap">
+
+  <!-- ── Top bar ── -->
+  <div class="top-bar">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Circuit Type</div>
+      <div class="toggle-row">
+        <button class="tog-btn active-ser" id="btnSer" onclick="setCircuit('series')">Series RLC</button>
+        <button class="tog-btn" id="btnPar" onclick="setCircuit('parallel')">Parallel RLC</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Component Values</div>
+      <div class="comp-inputs">
+        <div class="inp-group">
+          <div class="inp-label">Resistance R</div>
+          <div class="inp-row">
+            <input class="comp-inp" id="inpR" type="number" value="10" min="0.01" step="any" oninput="onComp()">
+            <span class="inp-unit">Ω</span>
+          </div>
+        </div>
+        <div class="inp-group">
+          <div class="inp-label">Capacitance C</div>
+          <div class="inp-row">
+            <input class="comp-inp" id="inpC" type="number" value="0.5" min="0.001" step="any" oninput="onComp()">
+            <span class="inp-unit">μF</span>
+          </div>
+        </div>
+        <div class="inp-group">
+          <div class="inp-label">Inductance L</div>
+          <div class="inp-row">
+            <input class="comp-inp" id="inpL" type="number" value="0.1" min="0.0001" step="any" oninput="onComp()">
+            <span class="inp-unit">mH</span>
+          </div>
+        </div>
+        <div class="inp-group">
+          <div class="inp-label">Source V<sub>s</sub></div>
+          <div class="inp-row">
+            <input class="comp-inp" id="inpVs" type="number" value="10" min="0.01" step="any" oninput="onComp()">
+            <span class="inp-unit">V</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preset-info">
+      <div class="preset-chip">
+        <div class="preset-chip-lbl">Resonant f<sub>r</sub></div>
+        <div class="preset-chip-val" id="chipFr">—</div>
+      </div>
+      <div class="preset-chip">
+        <div class="preset-chip-lbl">ω<sub>r</sub> (rad/s)</div>
+        <div class="preset-chip-val cyan" id="chipWr">—</div>
+      </div>
+      <div class="preset-chip">
+        <div class="preset-chip-lbl">Q Factor</div>
+        <div class="preset-chip-val purple" id="chipQ">—</div>
+      </div>
+      <div class="preset-chip">
+        <div class="preset-chip-lbl">Bandwidth</div>
+        <div class="preset-chip-val orange" id="chipBW">—</div>
+      </div>
+      <div class="preset-chip">
+        <div class="preset-chip-lbl">Z at f<sub>r</sub></div>
+        <div class="preset-chip-val yellow" id="chipZr">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Circuit + Frequency ── -->
+  <div class="row2">
+    <div class="panel">
+      <div class="panel-title">Circuit Diagram</div>
+      <canvas id="circuitCanvas" height="240"></canvas>
+    </div>
+    <div class="panel freq-panel">
+      <div>
+        <div class="freq-big" id="fBig">—</div>
+        <div class="freq-sub">Selected Frequency</div>
+      </div>
+      <div>
+        <div class="slider-wrap">
+          <input type="range" id="fSlider" min="0" max="7600" value="200" oninput="onFreq()">
+          <div class="fr-tick" id="frTick"></div>
+        </div>
+        <div style="position:relative;height:1.4rem;margin-top:.4rem;">
+          <span style="position:absolute;left:0%;font-size:.58rem;color:var(--label);opacity:.7">100 Hz</span>
+          <span style="position:absolute;left:25%;transform:translateX(-50%);font-size:.58rem;color:var(--label);opacity:.7">3.2 kHz</span>
+          <span style="position:absolute;left:50%;transform:translateX(-50%);font-size:.58rem;color:var(--label);opacity:.7">22.4 kHz</span>
+          <span style="position:absolute;left:75%;transform:translateX(-50%);font-size:.58rem;color:var(--label);opacity:.7">707 kHz</span>
+          <span style="position:absolute;left:100%;transform:translateX(-100%);font-size:.58rem;color:var(--label);opacity:.7">5 MHz</span>
+        </div>
+      </div>
+      <div class="results-bar">
+        <div class="rb-item">
+          <div class="rb-lbl">f / f<sub>r</sub></div>
+          <div class="rb-val" id="rbRatio" style="color:var(--accent)">—</div>
+        </div>
+        <div class="rb-item">
+          <div class="rb-lbl">|Z| Ω</div>
+          <div class="rb-val" id="rbZ" style="color:var(--accent2)">—</div>
+        </div>
+        <div class="rb-item">
+          <div class="rb-lbl">I (A)</div>
+          <div class="rb-val" id="rbI" style="color:var(--accent5)">—</div>
+        </div>
+        <div class="rb-item">
+          <div class="rb-lbl">Phase φ</div>
+          <div class="rb-val" id="rbPhase" style="color:var(--accent4)">—</div>
+        </div>
+        <div class="rb-item">
+          <div class="rb-lbl">f (Hz)</div>
+          <div class="rb-val" id="rbFreq" style="color:var(--accent6)">—</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:.75rem;color:var(--label);line-height:1.7;" id="freqStatement">—</div>
+    </div>
+  </div>
+
+  <!-- ── Graphs row 1: 4 charts ── -->
+  <div class="graphs graphs-4">
+    <div class="panel">
+      <div class="panel-title">Capacitive Reactance X<sub>C</sub> vs Frequency</div>
+      <div class="graph-formula" id="fmlaXc" style="color:#00e5ff">Xc = 1 / (2π · f · C)</div>
+      <canvas id="xcCanvas" height="240"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Inductive Reactance X<sub>L</sub> vs Frequency</div>
+      <div class="graph-formula" id="fmlaXl" style="color:#a78bfa">XL = 2π · f · L</div>
+      <canvas id="xlCanvas" height="240"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Impedance |Z| vs Frequency</div>
+      <div class="graph-formula" id="fmlaZ" style="color:#ff6b35">—</div>
+      <canvas id="impCanvas" height="240"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Circuit Current I vs Frequency</div>
+      <div class="graph-formula" id="fmlaI" style="color:#00ff99">—</div>
+      <canvas id="currCanvas" height="240"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Graphs row 2: 3 charts ── -->
+  <div class="graphs graphs-3">
+    <div class="panel">
+      <div class="panel-title">V<sub>R</sub> (P.D. across Resistor) vs Frequency</div>
+      <div class="graph-formula" id="fmlaVR" style="color:#ff6b35">VR = I × R</div>
+      <canvas id="vrCanvas" height="240"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Voltages V<sub>R</sub> · V<sub>C</sub> · V<sub>L</sub> vs Frequency</div>
+      <div class="graph-formula" id="fmlaVolt">
+        <span style="color:#ff6b35">VR = <span id="fmlaVR_val">—</span></span>
+        <span style="color:rgba(200,220,240,.3)"> &nbsp;|&nbsp; </span>
+        <span style="color:#00e5ff">Xc = <span id="fmlaXc_val">—</span></span>
+        <span style="color:rgba(200,220,240,.3)"> &nbsp;|&nbsp; </span>
+        <span style="color:#a78bfa">XL = <span id="fmlaXL_val">—</span></span>
+      </div>
+      <canvas id="voltCanvas" height="240"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Phase Angle φ vs Frequency</div>
+      <div class="graph-formula" id="fmlaPhase" style="color:#ff3d9a">φ = arctan((XL − Xc) / R)</div>
+      <canvas id="phaseCanvas" height="240"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Worked Calculations ── -->
+  <div class="panel">
+    <div class="panel-title">Worked Calculations — at f = <span id="wkFreq">—</span></div>
+    <div class="workings-grid" id="workingsGrid"></div>
+  </div>
+
+</div>
+
+<footer>Barry Duncan · RLC Resonance Explorer</footer>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let circuitType = 'series';
+let R = 10, C = 0.5e-6, L = 0.1e-3, Vs = 10;
+let fVal = 22508;
+
+const C_CYAN='#00e5ff', C_ORANGE='#ff6b35', C_GREEN='#00ff99',
+      C_YELLOW='#ffe600', C_PURPLE='#a78bfa', C_PINK='#ff3d9a',
+      C_TEXT='#c8d8e8', C_RED='#ff4444';
+
+// ── Frequency slider: stepped integer mapping ─────────────────────────────────
+// 100–999: step 1       → 900 positions
+// 1000–9999: step 10    → 900 positions
+// 10000–99999: step 100 → 900 positions
+// 100000–999999: step 1000 → 900 positions
+// 1000000–5000000: step 1000 → 4000 positions
+// Total slider positions: 900+900+900+900+4000 = 7600
+const SLIDER_MAX=7600;
+
+function fFromSlider(v){
+  v=Math.round(v);
+  if(v<900)   return 100+v*1;
+  v-=900;
+  if(v<900)   return 1000+v*10;
+  v-=900;
+  if(v<900)   return 10000+v*100;
+  v-=900;
+  if(v<900)   return 100000+v*1000;
+  v-=900;
+  return 1000000+v*1000;
+}
+
+function sliderFromF(f){
+  f=Math.round(f);
+  if(f<=999)     return Math.round((f-100)/1);
+  if(f<=9999)    return 900+Math.round((f-1000)/10);
+  if(f<=99999)   return 1800+Math.round((f-10000)/100);
+  if(f<=999999)  return 2700+Math.round((f-100000)/1000);
+  return 3600+Math.round((f-1000000)/1000);
+}
+
+function formatFreq(f){
+  if(f>=1e6) return parseFloat((f/1e6).toFixed(4))+' MHz';
+  if(f>=1e3) return parseFloat((f/1e3).toFixed(4))+' kHz';
+  return parseFloat(f.toFixed(2))+' Hz';
+}
+function fmtImp(z){
+  if(z>=1e9) return (z/1e9).toFixed(3)+' GΩ';
+  if(z>=1e6) return (z/1e6).toFixed(3)+' MΩ';
+  if(z>=1e3) return (z/1e3).toFixed(3)+' kΩ';
+  return z.toFixed(3)+' Ω';
+}
+function fmtAmp(i){
+  if(Math.abs(i)>=1) return i.toFixed(4)+' A';
+  if(Math.abs(i)>=1e-3) return (i*1e3).toFixed(4)+' mA';
+  return (i*1e6).toFixed(4)+' μA';
+}
+function fmtV(v){
+  return Math.abs(v)>=0.001?v.toFixed(4)+' V':(v*1000).toFixed(4)+' mV';
+}
+function fmtVal(v){
+  const a=Math.abs(v);
+  if(a>=1e9) return (v/1e9).toFixed(3)+'G';
+  if(a>=1e6) return (v/1e6).toFixed(3)+'M';
+  if(a>=1e3) return (v/1e3).toFixed(3)+'k';
+  if(a>=1)   return v.toFixed(4);
+  if(a>=1e-3) return (v*1e3).toFixed(3)+'m';
+  if(a>=1e-6) return (v*1e6).toFixed(3)+'μ';
+  if(a>=1e-9) return (v*1e9).toFixed(3)+'n';
+  return (v*1e12).toFixed(3)+'p';
+}
+
+// ── Core calculations ────────────────────────────────────────────────────────
+function resonantFreq(){ return 1/(2*Math.PI*Math.sqrt(L*C)); }
+
+function calcSeries(f){
+  const w=2*Math.PI*f;
+  const Xc=1/(w*C);
+  const XL=w*L;
+  const Xnet=XL-Xc;
+  const Z=Math.sqrt(R*R+Xnet*Xnet);
+  const I=Vs/Z;
+  const VR=I*R, VC=I*Xc, VLv=I*XL;
+  const phase=Math.atan2(Xnet,R)*180/Math.PI;
+  return {Xc,XL,Xnet,Z,I,VR,VC,VL:VLv,phase};
+}
+
+function calcParallel(f){
+  const w=2*Math.PI*f;
+  const Xc=1/(w*C);
+  const XL=w*L;
+  // Admittances
+  const GR=1/R;
+  const BC=1/Xc;
+  const BL=1/XL;
+  const Bnet=BC-BL;
+  const Y=Math.sqrt(GR*GR+Bnet*Bnet);
+  const Z=1/Y;
+  const I=Vs*Y;     // total source current
+  const VR=I*R;     // I_total * R  (matches spreadsheet convention)
+  const VC=I*Xc;    // I_total * Xc
+  const VLv=I*XL;   // I_total * XL
+  const phase=-Math.atan2(Bnet,GR)*180/Math.PI;
+  return {Xc,XL,Xnet:Bnet,Z,I,VR,VC,VL:VLv,phase,Vtank:Vs};
+}
+
+function calc(f){
+  return circuitType==='series'?calcSeries(f):calcParallel(f);
+}
+
+function qFactor(){
+  if(circuitType==='series') return (1/R)*Math.sqrt(L/C);
+  else return R*Math.sqrt(C/L);
+}
+function bandwidth(){
+  const fr=resonantFreq(),Q=qFactor();
+  return fr/Q;
+}
+function zAtResonance(){
+  if(circuitType==='series') return R;
+  else return L/(C*R);
+}
+
+// ── Circuit type ─────────────────────────────────────────────────────────────
+function setCircuit(t){
+  circuitType=t;
+  document.getElementById('btnSer').className='tog-btn'+(t==='series'?' active-ser':'');
+  document.getElementById('btnPar').className='tog-btn'+(t==='parallel'?' active-par':'');
+  update();
+}
+
+function onComp(){
+  const rv=parseFloat(document.getElementById('inpR').value)||10;
+  const cv=parseFloat(document.getElementById('inpC').value)||0.5;
+  const lv=parseFloat(document.getElementById('inpL').value)||0.1;
+  const vsv=parseFloat(document.getElementById('inpVs').value)||10;
+  R=rv; C=cv*1e-6; L=lv*1e-3; Vs=vsv;
+  update();
+}
+
+const F_MIN=100, F_MAX=5e6;
+const SNAP_RADIUS=8;
+function onFreq(){
+  const sl=document.getElementById('fSlider');
+  const raw=Math.round(parseFloat(sl.value));
+  const fr=resonantFreq();
+  const frPos=Math.round(sliderFromF(fr));
+  const snapped=Math.abs(raw-frPos)<=SNAP_RADIUS;
+  if(snapped){ sl.value=frPos; fVal=fFromSlider(frPos); }
+  else { fVal=fFromSlider(raw); }
+  sl.style.setProperty('--thumb-col',snapped?'#00ff99':'#ffe600');
+  update();
+}
+
+function positionFrTick(){
+  const fr=resonantFreq();
+  const pos=Math.max(0,Math.min(100,sliderFromF(fr)/SLIDER_MAX*100));
+  document.getElementById('frTick').style.left=pos+'%';
+}
+
+// ── Canvas helpers ────────────────────────────────────────────────────────────
+const DPR=()=>window.devicePixelRatio||1;
+function sizeCanvas(cv,h){
+  const d=DPR(),w=cv.parentElement.getBoundingClientRect().width-18;
+  cv.width=w*d; cv.height=h*d;
+  cv.style.width=w+'px'; cv.style.height=h+'px';
+  cv.getContext('2d').scale(d,d);
+}
+function cW(cv){return cv.width/DPR();}
+function cH(cv){return cv.height/DPR();}
+
+const impCanvas=document.getElementById('impCanvas');
+const phaseCanvas=document.getElementById('phaseCanvas');
+const voltCanvas=document.getElementById('voltCanvas');
+const xcCanvas=document.getElementById('xcCanvas');
+const xlCanvas=document.getElementById('xlCanvas');
+const currCanvas=document.getElementById('currCanvas');
+const vrCanvas=document.getElementById('vrCanvas');
+const circuitCanvas=document.getElementById('circuitCanvas');
+const PAD={l:60,r:16,t:16,b:36};
+
+function resizeAll(){
+  [xcCanvas,xlCanvas,impCanvas,currCanvas,vrCanvas,voltCanvas,phaseCanvas].forEach(cv=>sizeCanvas(cv,240));
+  sizeCanvas(circuitCanvas,240);
+}
+
+// ── Shared graph helpers ──────────────────────────────────────────────────────
+// All graphs use log x-axis spanning F_MIN → F_MAX
+function makeLogX(cv){
+  const fw=cW(cv),pw=fw-PAD.l-PAD.r;
+  const lmin=Math.log10(F_MIN), lmax=Math.log10(F_MAX);
+  return lf => PAD.l+pw*(lf-lmin)/(lmax-lmin);
+}
+function drawLogGrid(cx,fw,fh,pw,ph,yFn,yTicks,yFmt,yAxisLabel,curveCol){
+  // vertical freq grid
+  const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX);
+  for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
+    [1,2,5].forEach(m=>{
+      const lff=Math.log10(m)+lf;
+      if(lff<lmin||lff>lmax) return;
+      const x=PAD.l+pw*(lff-lmin)/(lmax-lmin);
+      cx.setLineDash(m===1?[3,5]:[1,6]);
+      cx.strokeStyle=m===1?'rgba(30,45,74,.9)':'rgba(30,45,74,.45)';
+      cx.lineWidth=m===1?1:.7;
+      cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+    });
+    const x=PAD.l+pw*(lf-lmin)/(lmax-lmin);
+    cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
+  }
+  // horizontal value grid
+  yTicks.forEach(v=>{
+    const y=yFn(v); if(y<PAD.t-2||y>PAD.t+ph+2) return;
+    cx.setLineDash([2,5]);cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;
+    cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle='rgba(200,220,240,.45)';cx.font='9px Share Tech Mono';cx.textAlign='right';
+    cx.fillText(yFmt(v),PAD.l-5,y+4);
+  });
+  // axis label
+  cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
+  cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+  cx.fillText(yAxisLabel,0,0);cx.restore();
+}
+function drawFrLine(cx,fw,fh,ph,lfX){
+  const fr=resonantFreq(),xFr=lfX(Math.log10(fr));
+  if(xFr<PAD.l||xFr>PAD.l+(fw-PAD.l-PAD.r)) return;
+  cx.strokeStyle='rgba(0,255,153,.5)';cx.lineWidth=1.2;cx.setLineDash([4,4]);
+  cx.beginPath();cx.moveTo(xFr,PAD.t);cx.lineTo(xFr,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+  cx.fillStyle='rgba(0,255,153,.75)';cx.font='bold 8px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('fr',xFr,PAD.t+ph+26);
+}
+function drawMarker(cx,xF,yF,col,labelTxt,pw){
+  cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=12;
+  cx.beginPath();cx.arc(xF,yF,5,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
+  const align=xF>PAD.l+pw*0.72?'right':'left';
+  cx.fillStyle=col;cx.font='bold 9px Share Tech Mono';cx.textAlign=align;
+  cx.fillText(labelTxt,xF+(align==='right'?-8:8),yF-6);
+}
+
+// Draw formula text at top-right, inset a little from the edge
+function drawFormula(cx,col,formulaTxt,pw,ph,line2,extraRight){
+  cx.font='bold 9px Share Tech Mono';
+  const x=PAD.l+pw-(extraRight||18);
+  const y1=PAD.t+13;
+  cx.fillStyle=col;
+  cx.textAlign='right';
+  cx.fillText(formulaTxt, x, y1);
+  if(line2) cx.fillText(line2, x, y1+13);
+}
+function plotCurve(cx,col,fn,lfX,yFn,ph){
+  const pw=cW(cx.canvas)-PAD.l-PAD.r;
+  const N=pw*2;
+  const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX);
+  [[col+'33',5,7],[col,1.8,0]].forEach(([c,lw,bl])=>{
+    cx.shadowColor=col;cx.shadowBlur=bl;cx.strokeStyle=c;cx.lineWidth=lw;
+    cx.beginPath();let s=false,py=null;
+    for(let i=0;i<=N;i++){
+      const lf=lmin+(i/N)*(lmax-lmin),f=Math.pow(10,lf);
+      const v=fn(f); if(v===null||!isFinite(v)) {s=false;continue;}
+      const x=lfX(lf),y=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(v)));
+      if(py!==null&&Math.abs(y-py)>ph*0.8){cx.stroke();cx.beginPath();s=false;}
+      s?cx.lineTo(x,y):cx.moveTo(x,y);s=true;py=y;
+    }
+    cx.stroke();cx.shadowBlur=0;
+  });
+}
+
+// ── Linear Y, Log X — matches teacher's spreadsheet style ─────────────────────
+function smartFmt(ticks, fmtFull){
+  // If all tick values are integers, use no decimals; otherwise 1 dp
+  const allInt = ticks.every(v => Math.abs(v - Math.round(v)) < 1e-9);
+  return v => {
+    const a = Math.abs(v);
+    // Apply unit scaling same as fmtFull but with controlled decimals
+    let scaled, suffix;
+    if(a >= 1e9)      { scaled = v/1e9; suffix = ' GΩ'; }
+    else if(a >= 1e6) { scaled = v/1e6; suffix = ' MΩ'; }
+    else if(a >= 1e3) { scaled = v/1e3; suffix = ' kΩ'; }
+    else              { scaled = v;     suffix = ''; }
+    // For amps
+    if(fmtFull === 'amp'){
+      if(a >= 1)           { scaled = v;      suffix = ' A'; }
+      else if(a >= 1e-3)   { scaled = v*1e3;  suffix = ' mA'; }
+      else                 { scaled = v*1e6;  suffix = ' μA'; }
+    }
+    // For volts (plain numbers, no unit suffix scaling needed)
+    if(fmtFull === 'volt'){ scaled = v; suffix = ' V'; }
+    const decimals = allInt ? 0 : 1;
+    return parseFloat(scaled.toFixed(decimals)) + suffix;
+  };
+}
+function makeLinY(vMin,vMax,ph){
+  const range=vMax-vMin||1;
+  const rawStep=range/6;
+  const mag=Math.pow(10,Math.floor(Math.log10(rawStep||1)));
+  const step=[1,2,2.5,5,10].map(m=>m*mag).find(s=>range/s<=8)||mag;
+  const tickMin=Math.ceil(vMin/step)*step;
+  const ticks=[];
+  // Use integer index to avoid float drift giving duplicate labels
+  for(let i=0;i<=50;i++){
+    const v=parseFloat((tickMin+i*step).toPrecision(10));
+    if(v>vMax*1.001) break;
+    if(ticks.length===0||Math.abs(v-ticks[ticks.length-1])>step*0.01) ticks.push(v);
+  }
+  return { yFn: v=>PAD.t+ph*(1-(v-vMin)/range), vMin, vMax, ticks };
+}
+function sweepVals(fn,N=300){
+  const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX),vals=[];
+  for(let i=0;i<=N;i++){
+    const f=Math.pow(10,lmin+(i/N)*(lmax-lmin));
+    const v=fn(f); if(isFinite(v)&&v>=0) vals.push(v);
+  }
+  return vals;
+}
+
+// ── Xc graph — log X, linear Y → hyperbolic decay curve (teacher's style) ────
+function drawXc(){
+  const cv=xcCanvas,cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  cx.clearRect(0,0,fw,fh);
+  const lfX=makeLogX(cv);
+  const fn=f=>1/(2*Math.PI*f*C);
+  const vals=sweepVals(fn);
+  const {yFn,ticks}=makeLinY(0,Math.max(...vals)*1.05,ph);
+  drawLogGrid(cx,fw,fh,pw,ph,yFn,ticks,smartFmt(ticks,'imp'),'Xc (Ω)',C_CYAN);
+  plotCurve(cx,C_CYAN,fn,lfX,yFn,ph);
+  const xF=lfX(Math.log10(Math.max(fVal,F_MIN)));
+  const xcF=fn(fVal),yF=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(xcF)));
+  if(xF>=PAD.l&&xF<=PAD.l+pw) drawMarker(cx,xF,yF,C_YELLOW,fmtImp(xcF),pw);
+  // Scale note
+  const noteY=yFn(1000);
+  cx.fillStyle='#ffffff';cx.font='bold 9px Share Tech Mono';cx.textAlign='right';
+  cx.fillText('(Note: Logarithmic scale)',PAD.l+pw-4,noteY);
+  // Show theoretical max message on whichever side the dot has disappeared off
+  const xcMax=1/(2*Math.PI*F_MIN*C);
+  const xcMin=1/(2*Math.PI*F_MAX*C);
+  if(xF<PAD.l){
+    // Dot off left — max is at F_MIN (left)
+    cx.fillStyle=C_CYAN;cx.font='bold 9px Share Tech Mono';cx.textAlign='left';
+    cx.fillText(`Theoretical max: ${fmtImp(xcMax)} at ${formatFreq(F_MIN)}`,PAD.l+6,PAD.t+13);
+  } else if(xF>PAD.l+pw){
+    // Dot off right — min is at F_MAX (right)
+    cx.fillStyle=C_CYAN;cx.font='bold 9px Share Tech Mono';cx.textAlign='right';
+    cx.fillText(`Theoretical min: ${fmtImp(xcMin)} at ${formatFreq(F_MAX)}`,PAD.l+pw-6,PAD.t+13);
+  }
+}
+
+// ── XL graph — linear X, linear Y → straight line (teacher's style) ──────────
+function drawXL(){
+  const cv=xlCanvas,cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  cx.clearRect(0,0,fw,fh);
+  // Linear X axis for XL
+  const linX=f=>PAD.l+pw*((f-F_MIN)/(F_MAX-F_MIN));
+  const fn=f=>2*Math.PI*f*L;
+  // Sample on linear scale
+  const linVals=[];
+  for(let i=0;i<=300;i++){const f=F_MIN+(i/300)*(F_MAX-F_MIN);linVals.push(fn(f));}
+  const {yFn,ticks}=makeLinY(0,Math.max(...linVals)*1.05,ph);
+  // Draw linear X grid
+  cx.clearRect(0,0,fw,fh);
+  const xDecades=[1e6,2e6,3e6,4e6,5e6];
+  xDecades.forEach(f=>{
+    if(f<F_MIN||f>F_MAX) return;
+    const x=linX(f);
+    cx.setLineDash([2,5]);cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;
+    cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillText(formatFreq(f),x,PAD.t+ph+14);
+  });
+  // Y grid
+  ticks.forEach(v=>{
+    const y=yFn(v); if(y<PAD.t-2||y>PAD.t+ph+2) return;
+    cx.setLineDash([2,5]);cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;
+    cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle='rgba(200,220,240,.45)';cx.font='9px Share Tech Mono';cx.textAlign='right';
+    cx.fillText(smartFmt(ticks,'imp')(v),PAD.l-5,y+4);
+  });
+  cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
+  cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('XL (Ω)',0,0);cx.restore();
+  // Straight line curve
+  [[C_PURPLE+'33',5,7],[C_PURPLE,1.8,0]].forEach(([col,lw,bl])=>{
+    cx.shadowColor=C_PURPLE;cx.shadowBlur=bl;cx.strokeStyle=col;cx.lineWidth=lw;
+    cx.beginPath();
+    for(let i=0;i<=300;i++){
+      const f=F_MIN+(i/300)*(F_MAX-F_MIN);
+      const x=linX(f),y=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(fn(f))));
+      i===0?cx.moveTo(x,y):cx.lineTo(x,y);
+    }
+    cx.stroke();cx.shadowBlur=0;
+  });
+  // Marker
+  const xF=linX(fVal);
+  const xlF=fn(fVal),yF=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(xlF)));
+  if(xF>=PAD.l&&xF<=PAD.l+pw) drawMarker(cx,xF,yF,C_YELLOW,fmtImp(xlF),pw);
+  // Scale note
+  const noteY=yFn(1000);
+  cx.fillStyle='#ffffff';cx.font='bold 9px Share Tech Mono';cx.textAlign='right';
+  cx.fillText('(Note: Linear scale)',PAD.l+pw-4,noteY);
+  // Show theoretical value message on whichever side the dot has disappeared off
+  const xlMin=2*Math.PI*F_MIN*L;
+  const xlMax=2*Math.PI*F_MAX*L;
+  if(xF<PAD.l){
+    cx.fillStyle=C_PURPLE;cx.font='bold 9px Share Tech Mono';cx.textAlign='left';
+    cx.fillText(`Theoretical min: ${fmtImp(xlMin)} at ${formatFreq(F_MIN)}`,PAD.l+6,PAD.t+13);
+  } else if(xF>PAD.l+pw){
+    cx.fillStyle=C_PURPLE;cx.font='bold 9px Share Tech Mono';cx.textAlign='right';
+    cx.fillText(`Theoretical max: ${fmtImp(xlMax)} at ${formatFreq(F_MAX)}`,PAD.l+pw-6,PAD.t+13);
+  }
+}
+
+// ── Impedance plot ────────────────────────────────────────────────────────────
+function drawImpedance(){
+  const cv=impCanvas,cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  cx.clearRect(0,0,fw,fh);
+  const lfX=makeLogX(cv);
+  const fn=f=>calc(f).Z;
+  const vals=sweepVals(fn);
+  const {yFn,ticks}=makeLinY(0,Math.max(...vals)*1.05,ph);
+  drawLogGrid(cx,fw,fh,pw,ph,yFn,ticks,smartFmt(ticks,'imp'),'|Z| (Ω)',C_ORANGE);
+  plotCurve(cx,C_ORANGE,fn,lfX,yFn,ph);
+  drawFrLine(cx,fw,fh,ph,lfX);
+  const xF=lfX(Math.log10(Math.max(fVal,F_MIN)));
+  const zF=fn(fVal),yF=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(zF)));
+  if(xF>=PAD.l&&xF<=PAD.l+pw){
+    drawMarker(cx,xF,yF,C_YELLOW,fmtImp(zF),pw);
+  }
+}
+
+// ── Current graph ─────────────────────────────────────────────────────────────
+function drawCurrent(){
+  const cv=currCanvas,cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  cx.clearRect(0,0,fw,fh);
+  const lfX=makeLogX(cv);
+  const fn=f=>calc(f).I;
+  const vals=sweepVals(fn);
+  const {yFn,ticks}=makeLinY(0,Math.max(...vals)*1.05,ph);
+  drawLogGrid(cx,fw,fh,pw,ph,yFn,ticks,smartFmt(ticks,'amp'),'I (A)',C_GREEN);
+  plotCurve(cx,C_GREEN,fn,lfX,yFn,ph);
+  drawFrLine(cx,fw,fh,ph,lfX);
+  const xF=lfX(Math.log10(Math.max(fVal,F_MIN)));
+  const iF=fn(fVal),yF=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(iF)));
+  if(xF>=PAD.l&&xF<=PAD.l+pw){
+    drawMarker(cx,xF,yF,C_YELLOW,fmtAmp(iF),pw);
+  }
+}
+
+// ── VR graph ──────────────────────────────────────────────────────────────────
+function drawVR(){
+  const cv=vrCanvas,cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  cx.clearRect(0,0,fw,fh);
+  const lfX=makeLogX(cv);
+  const fn=f=>{ const v=calc(f).VR; return (circuitType==='parallel'&&v>vRMax)?null:v; };
+  const vRMax=circuitType==='parallel'?calc(F_MIN).VR:null;
+  const vals=sweepVals(fn).filter(v=>v!==null&&isFinite(v));
+  const rawMax=Math.max(...vals);
+  const vMax=circuitType==='parallel'?rawMax*1.05:rawMax*1.05;
+  const {yFn,ticks}=makeLinY(0,vMax,ph);
+  drawLogGrid(cx,fw,fh,pw,ph,yFn,ticks,smartFmt(ticks,'volt'),'VR (V)',C_ORANGE);
+  plotCurve(cx,C_ORANGE,fn,lfX,yFn,ph);
+  drawFrLine(cx,fw,fh,ph,lfX);
+  const yVs=yFn(Vs);
+  if(yVs>=PAD.t&&yVs<=PAD.t+ph){
+    cx.strokeStyle='rgba(255,230,0,.25)';cx.lineWidth=1;cx.setLineDash([3,4]);
+    cx.beginPath();cx.moveTo(PAD.l,yVs);cx.lineTo(PAD.l+pw,yVs);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle='rgba(255,230,0,.5)';cx.font='8px Share Tech Mono';cx.textAlign='right';
+    cx.fillText('Vs',PAD.l-4,yVs+4);
+  }
+  const xF=lfX(Math.log10(Math.max(fVal,F_MIN)));
+  const vrF=fn(fVal),yF=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(vrF)));
+  if(xF>=PAD.l&&xF<=PAD.l+pw) drawMarker(cx,xF,yF,C_YELLOW,fmtV(vrF),pw);
+}
+
+// ── Phase plot ────────────────────────────────────────────────────────────────
+function drawPhase(){
+  const cv=phaseCanvas,cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  cx.clearRect(0,0,fw,fh);
+  const lfX=makeLogX(cv);
+  const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX);
+  const phMin=-95,phMax=95,phRange=phMax-phMin;
+  function phY(d){return PAD.t+ph*(1-(d-phMin)/phRange);}
+
+  // Horiz grid
+  [-90,-45,0,45,90].forEach(d=>{
+    const y=phY(d); if(y<PAD.t||y>PAD.t+ph) return;
+    cx.setLineDash(Math.abs(d)===45?[4,4]:d===0?[]:[2,5]);
+    cx.strokeStyle=d===0?'rgba(0,229,255,.15)':Math.abs(d)===45?'rgba(255,61,154,.3)':'rgba(30,45,74,.7)';
+    cx.lineWidth=Math.abs(d)===45||d===0?1.4:1;
+    cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle=Math.abs(d)===45?'rgba(255,61,154,.9)':'rgba(200,220,240,.5)';
+    cx.font='9px Share Tech Mono';cx.textAlign='right';cx.fillText(d+'°',PAD.l-5,y+4);
+  });
+  // Vert grid
+  for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
+    const x=lfX(lf); if(x<PAD.l||x>PAD.l+pw) continue;
+    cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;cx.setLineDash([2,5]);
+    cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
+  }
+  // Phase curve
+  [[C_PINK+'44',5,7],[C_PINK,1.8,0]].forEach(([c,lw,bl])=>{
+    cx.shadowColor=C_PINK;cx.shadowBlur=bl;cx.strokeStyle=c;cx.lineWidth=lw;
+    cx.beginPath();let s=false,py=null;
+    for(let i=0;i<=pw*2;i++){
+      const lf=lmin+(i/(pw*2))*(lmax-lmin),f=Math.pow(10,lf);
+      const {phase}=calc(f);
+      const x=lfX(lf),y=Math.max(PAD.t,Math.min(PAD.t+ph,phY(phase)));
+      if(py!==null&&Math.abs(y-py)>ph*0.8){cx.stroke();cx.beginPath();s=false;}
+      s?cx.lineTo(x,y):cx.moveTo(x,y);s=true;py=y;
+    }
+    cx.stroke();cx.shadowBlur=0;
+  });
+  drawFrLine(cx,fw,fh,ph,lfX);
+  // fr dot at 0°
+  const fr=resonantFreq(),xFr=lfX(Math.log10(fr));
+  cx.fillStyle=C_GREEN;cx.shadowColor=C_GREEN;cx.shadowBlur=10;
+  cx.beginPath();cx.arc(xFr,phY(0),5,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
+  // current freq marker
+  const logF=Math.log10(Math.max(fVal,F_MIN)),xF=lfX(logF);
+  const {phase:pd}=calc(fVal);
+  const yF=Math.max(PAD.t,Math.min(PAD.t+ph,phY(pd)));
+  if(xF>=PAD.l&&xF<=PAD.l+pw) drawMarker(cx,xF,yF,C_YELLOW,pd.toFixed(1)+'°',pw);
+  cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
+  cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+  cx.fillText('PHASE (°)',0,0);cx.restore();
+}
+
+// ── Voltages plot ─────────────────────────────────────────────────────────────
+function drawVoltages(){
+  const cv=voltCanvas,cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  cx.clearRect(0,0,fw,fh);
+  const lfX=makeLogX(cv);
+  const isParallel=circuitType==='parallel';
+  const CLIP=isParallel?calc(F_MIN).VR:Infinity;
+
+  const fnR=f=>{ const v=calc(f).VR; return v>CLIP?null:v; };
+  const fnC=f=>{ const v=calc(f).VC; return v>CLIP?null:v; };
+  const fnL=f=>{ const v=calc(f).VL; return v>CLIP?null:v; };
+
+  // Build Y range from clipped values only
+  const clippedVals=[fnR,fnC,fnL].flatMap(fn=>sweepVals(fn).filter(v=>v!==null&&isFinite(v)));
+  const {yFn,ticks}=makeLinY(0,Math.max(...clippedVals,1)*1.05,ph);
+  drawLogGrid(cx,fw,fh,pw,ph,yFn,ticks,smartFmt(ticks,'volt'),'V',C_CYAN);
+
+  plotCurve(cx,C_ORANGE,fnR,lfX,yFn,ph);
+  plotCurve(cx,C_CYAN,  fnC,lfX,yFn,ph);
+  plotCurve(cx,C_PURPLE,fnL,lfX,yFn,ph);
+  drawFrLine(cx,fw,fh,ph,lfX);
+
+  const xF=lfX(Math.log10(Math.max(fVal,F_MIN)));
+  const d=calc(fVal);
+
+  // Find cliff edges — where VL exits top-left and VC exits top-right of the plot
+  let vlCliffX=PAD.l, vlCliffF=F_MIN;
+  let vcCliffX=PAD.l+pw, vcCliffF=F_MAX;
+  if(isParallel){
+    const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX);
+    // VC cliff — scan left to right, find first f where VC is within plot (left cliff)
+    for(let i=0;i<=400;i++){
+      const lf=lmin+(i/400)*(lmax-lmin),f=Math.pow(10,lf);
+      const v=calc(f).VC;
+      if(isFinite(v)&&yFn(v)>=PAD.t){
+        vcCliffX=lfX(lf); vcCliffF=f; break;
+      }
+    }
+    // VL cliff — scan right to left, find first f where VL is within plot (right cliff)
+    for(let i=400;i>=0;i--){
+      const lf=lmin+(i/400)*(lmax-lmin),f=Math.pow(10,lf);
+      const v=calc(f).VL;
+      if(isFinite(v)&&yFn(v)>=PAD.t){
+        vlCliffX=lfX(lf); vlCliffF=f; break;
+      }
+    }
+  }
+
+  // VR dot always follows slider
+  if(xF>=PAD.l&&xF<=PAD.l+pw){
+    const yv=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(d.VR)));
+    cx.fillStyle=C_ORANGE;cx.shadowColor=C_ORANGE;cx.shadowBlur=8;
+    cx.beginPath();cx.arc(xF,yv,4,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
+    drawMarker(cx,xF,yv,C_YELLOW,fmtV(d.VR),pw);
+  }
+
+  if(isParallel){
+    const vlVal=calc(vlCliffF).VL;
+    const vcVal=calc(vcCliffF).VC;
+    const vlCliffY=Math.max(PAD.t+14,Math.min(PAD.t+ph-6,yFn(vlVal)));
+    const vcCliffY=Math.max(PAD.t+14,Math.min(PAD.t+ph-6,yFn(vcVal)));
+
+    if(xF>vlCliffX){
+      cx.fillStyle=C_PURPLE;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
+      cx.fillText(`${fmtV(d.VL)} at ${formatFreq(fVal)}`,vlCliffX,vlCliffY-20);
+    } else if(xF<vcCliffX){
+      cx.fillStyle=C_CYAN;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
+      cx.fillText(`${fmtV(d.VC)} at ${formatFreq(fVal)}`,vcCliffX,vcCliffY-20);
+    }
+
+    // Dots follow slider only when curve is within visible range
+    if(xF>=PAD.l&&xF<=PAD.l+pw){
+      if(yFn(d.VL)>=PAD.t){
+        const yv=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(d.VL)));
+        cx.fillStyle=C_PURPLE;cx.shadowColor=C_PURPLE;cx.shadowBlur=8;
+        cx.beginPath();cx.arc(xF,yv,4,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
+      }
+      if(yFn(d.VC)>=PAD.t){
+        const yv=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(d.VC)));
+        cx.fillStyle=C_CYAN;cx.shadowColor=C_CYAN;cx.shadowBlur=8;
+        cx.beginPath();cx.arc(xF,yv,4,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
+      }
+    }
+  } else {
+    // Series — both dots always follow slider
+    if(xF>=PAD.l&&xF<=PAD.l+pw){
+      [[d.VC,C_CYAN],[d.VL,C_PURPLE]].forEach(([v,col])=>{
+        const yv=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(v)));
+        cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=8;
+        cx.beginPath();cx.arc(xF,yv,4,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
+      });
+    }
+  }
+}
+
+// ── Circuit diagram ────────────────────────────────────────────────────────────
+function drawCircuit(){
+  const cv=circuitCanvas,cx=cv.getContext('2d');
+  const fw=cW(cv),fh=cH(cv);
+  cx.clearRect(0,0,fw,fh);
+
+  const isSeries=circuitType==='series';
+
+  function wire(x1,y1,x2,y2,col,lw){
+    cx.strokeStyle=col||C_CYAN;cx.lineWidth=lw||1.8;cx.lineCap='round';
+    cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  }
+  function dot(x,y,fill){
+    if(fill){cx.fillStyle=C_CYAN;cx.beginPath();cx.arc(x,y,4,0,Math.PI*2);cx.fill();}
+    else{cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;cx.beginPath();cx.arc(x,y,4,0,Math.PI*2);cx.stroke();}
+  }
+  function drawZZ(x,y,horiz){
+    const peaks=6,tot=52,h=7;
+    cx.strokeStyle=C_ORANGE;cx.lineWidth=1.8;cx.lineCap='round';cx.lineJoin='round';
+    cx.beginPath();
+    if(horiz){const x0=x-tot/2,sw=tot/peaks;cx.moveTo(x0,y);for(let i=0;i<peaks;i++){cx.lineTo(x0+sw*i+sw/2,(i%2===0?y-h:y+h));cx.lineTo(x0+sw*(i+1),y);}
+    }else{const y0=y-tot/2,sh=tot/peaks;cx.moveTo(x,y0);for(let i=0;i<peaks;i++){cx.lineTo((i%2===0?x+h:x-h),y0+sh*i+sh/2);cx.lineTo(x,y0+sh*(i+1));}}
+    cx.stroke();
+  }
+  function drawCap(x,y,horiz){
+    const gap=6,pl=22;
+    cx.strokeStyle=C_CYAN;cx.lineWidth=1.8;
+    if(horiz){cx.fillStyle=C_CYAN;cx.fillRect(x-gap-3,y-pl/2,4,pl);cx.fillRect(x+gap-1,y-pl/2,4,pl);}
+    else{
+      wire(x,y-28,x,y-gap-3);wire(x,y+gap+3,x,y+28);
+      cx.fillStyle=C_CYAN;cx.fillRect(x-pl/2,y-gap-3,pl,4);cx.fillRect(x-pl/2,y+gap-1,pl,4);
+    }
+  }
+  function drawInd(x,y,horiz){
+    const bumps=4,bs=7,tot=bumps*bs*2;
+    cx.strokeStyle=C_PURPLE;cx.lineWidth=1.8;cx.beginPath();
+    if(horiz){const x0=x-tot/2;cx.moveTo(x0,y);for(let i=0;i<bumps;i++)cx.arc(x0+i*bs*2+bs,y,bs,Math.PI,0,false);cx.lineTo(x0+tot,y);}
+    else{const y0=y-tot/2;cx.moveTo(x,y0);for(let i=0;i<bumps;i++)cx.arc(x,y0+i*bs*2+bs,bs,3*Math.PI/2,Math.PI/2,false);cx.lineTo(x,y0+tot);}
+    cx.stroke();
+  }
+  function drawGnd(x,y){
+    [[22,0],[14,8],[6,16]].forEach(([len,dy])=>{
+      cx.strokeStyle='rgba(0,229,255,.6)';cx.lineWidth=1.8;cx.lineCap='round';
+      cx.beginPath();cx.moveTo(x-len/2,y+dy);cx.lineTo(x+len/2,y+dy);cx.stroke();
+    });
+  }
+  function label(txt,x,y,col,sz,align){
+    cx.fillStyle=col||C_TEXT;cx.font=(sz||10)+'px Share Tech Mono';cx.textAlign=align||'center';
+    cx.fillText(txt,x,y);
+  }
+  function lv(txt,x,y,col){
+    cx.fillStyle=col||'rgba(200,220,240,.7)';cx.font='italic 11px Share Tech Mono';cx.textAlign='center';
+    cx.fillText(txt,x,y);
+  }
+
+  // ── shared Vout indicator: open circles top & bottom, arrow, label ──────────
+  function drawVout(topY,botY,x){
+    // open circles (no fill, no line through)
+    cx.strokeStyle=C_GREEN;cx.lineWidth=1.5;
+    cx.beginPath();cx.arc(x,topY,4,0,Math.PI*2);cx.stroke();
+    cx.beginPath();cx.arc(x,botY,4,0,Math.PI*2);cx.stroke();
+    // double-headed arrow between circles
+    const aTop=topY+8,aBot=botY-8;
+    cx.strokeStyle=C_GREEN;cx.lineWidth=1.5;
+    cx.beginPath();cx.moveTo(x,aTop);cx.lineTo(x,aBot);cx.stroke();
+    // arrowheads
+    cx.fillStyle=C_GREEN;
+    cx.beginPath();cx.moveTo(x,aTop);cx.lineTo(x-4,aTop+8);cx.lineTo(x+4,aTop+8);cx.closePath();cx.fill();
+    cx.beginPath();cx.moveTo(x,aBot);cx.lineTo(x-4,aBot-8);cx.lineTo(x+4,aBot-8);cx.closePath();cx.fill();
+    // label to the right, slightly larger
+    cx.fillStyle=C_GREEN;cx.font='bold 12px Share Tech Mono';cx.textAlign='left';
+    cx.fillText('Vout',x+8,(topY+botY)/2+5);
+  }
+
+  if(isSeries){
+    const top=fh*0.22,bot=fh*0.82,lx=38,rx=fw-52;
+    const midY=(top+bot)/2;
+    const rCx=fw*0.27,lCx=fw*0.5,cCx=fw*0.72;
+    const rGap=30,lGap=32,cGap=9;
+    const vsR=18; // circle radius
+    // Wires
+    wire(lx,top,rCx-rGap,top);
+    wire(rCx+rGap,top,lCx-lGap,top);
+    wire(lCx+lGap,top,cCx-cGap,top);
+    wire(cCx+cGap,top,rx,top);
+    wire(lx,bot,rx,bot);
+    wire(rx,top,rx,bot);
+    // Left wire split around Vs circle
+    wire(lx,top,lx,midY-vsR);
+    wire(lx,midY+vsR,lx,bot);
+    // Components
+    drawZZ(rCx,top,true);
+    drawInd(lCx,top,true);
+    drawCap(cCx,top,true);
+    // Labels
+    label('R='+parseFloat((R).toFixed(1))+'Ω',rCx,top-14,C_ORANGE,12);
+    label('L='+parseFloat((L*1000).toFixed(3))+'mH',lCx,top-14,C_PURPLE,12);
+    label('C='+parseFloat((C*1e6).toFixed(3))+'μF',cCx,top-14,C_CYAN,12);
+    // Vs source — clean circle with Vs inside, voltage to the right
+    cx.strokeStyle='rgba(200,220,240,.5)';cx.lineWidth=1.5;
+    cx.beginPath();cx.arc(lx,midY,vsR,0,Math.PI*2);cx.stroke();
+    cx.fillStyle='rgba(200,220,240,.85)';cx.font='bold 11px Share Tech Mono';cx.textAlign='center';
+    cx.fillText('Vs',lx,midY+4);
+    cx.fillStyle='rgba(200,220,240,.55)';cx.font='bold 12px Share Tech Mono';cx.textAlign='left';
+    cx.fillText(Vs+'V',lx+vsR+6,midY+2);
+    // Gnd
+    drawGnd((lx+rx)/2,bot+8);
+    // Current arrow — above the wire
+    const arX=rCx-50;
+    const arY=top-14;
+    cx.strokeStyle=C_GREEN;cx.lineWidth=1.8;
+    cx.beginPath();cx.moveTo(arX-12,arY);cx.lineTo(arX+12,arY);cx.stroke();
+    cx.fillStyle=C_GREEN;
+    cx.beginPath();cx.moveTo(arX+12,arY);cx.lineTo(arX+2,arY-5);cx.lineTo(arX+2,arY+5);cx.closePath();cx.fill();
+    label('I',arX-18,arY+4,C_GREEN,9);
+    // Junction dots
+    dot(lx,top,true);dot(lx,bot,true);dot(rx,top,true);dot(rx,bot,true);
+    // Vout
+    drawVout(top,bot,rx);
+
+  } else {
+    // Parallel: Vs + R, L, C as vertical branches
+    const top=fh*0.12,bot=fh*0.85;
+    const lx=46,rx=fw-52,totalW=rx-lx;
+    const vsX=lx+totalW*0.01;
+    const midY=(top+bot)/2;
+    // Vs — Vs inside circle, voltage to the right outside
+    cx.strokeStyle='rgba(200,220,240,.5)';cx.lineWidth=1.5;
+    cx.beginPath();cx.arc(vsX,midY,18,0,Math.PI*2);cx.stroke();
+    cx.fillStyle='rgba(200,220,240,.85)';cx.font='bold 11px Share Tech Mono';cx.textAlign='center';
+    cx.fillText('Vs',vsX,midY+4);
+    cx.fillStyle='rgba(200,220,240,.55)';cx.font='bold 12px Share Tech Mono';cx.textAlign='left';
+    cx.fillText(Vs+'V',vsX+22,midY+2);
+    wire(vsX,top,vsX,midY-18);wire(vsX,midY+18,vsX,bot);
+    // Bus wires — only from vsX outward (no wire left of Vs)
+    wire(vsX,top,rx,top);
+    wire(vsX,bot,rx,bot);
+    // Current arrow — above the top bus wire, starting from vsX
+    const arX=vsX+14,arY=top-14;
+    cx.strokeStyle=C_GREEN;cx.lineWidth=1.8;
+    cx.beginPath();cx.moveTo(arX,arY);cx.lineTo(arX+24,arY);cx.stroke();
+    cx.fillStyle=C_GREEN;
+    cx.beginPath();cx.moveTo(arX+24,arY);cx.lineTo(arX+14,arY-5);cx.lineTo(arX+14,arY+5);cx.closePath();cx.fill();
+    label('I',arX-8,arY+4,C_GREEN,9);
+    // R, L, C evenly spaced between vsX and rx
+    const span=rx-vsX;
+    const rX=vsX+span*0.27;
+    const lX=vsX+span*0.54;
+    const cX=vsX+span*0.78;
+    // R branch
+    const rGapV=26;
+    wire(rX,top,rX,midY-rGapV);wire(rX,midY+rGapV,rX,bot);
+    drawZZ(rX,midY,false);
+    label('R='+parseFloat(R.toFixed(1))+'Ω',rX+8,midY-rGapV-6,C_ORANGE,12,'left');
+    // L branch
+    const lGapV=28;
+    wire(lX,top,lX,midY-lGapV);wire(lX,midY+lGapV,lX,bot);
+    drawInd(lX,midY,false);
+    label('L='+parseFloat((L*1000).toFixed(3))+'mH',lX+8,midY-lGapV-6,C_PURPLE,12,'left');
+    // C branch
+    wire(cX,top,cX,midY-6-3);wire(cX,midY+6+3,cX,bot);
+    cx.fillStyle=C_CYAN;cx.fillRect(cX-18,midY-9,36,4);cx.fillRect(cX-18,midY+5,36,4);
+    label('C='+parseFloat((C*1e6).toFixed(3))+'μF',cX+8,midY-14,C_CYAN,12,'left');
+    // Gnd
+    drawGnd((vsX+rx)/2,bot+8);
+    // Junction dots — vsX and component branches only (no lx)
+    [vsX,rX,lX,cX].forEach(x=>{dot(x,top,true);dot(x,bot,true);});
+    dot(rx,top,true);dot(rx,bot,true);
+    // Vout
+    drawVout(top,bot,rx);
+  }
+}
+
+// ── Update panel displays ─────────────────────────────────────────────────────
+function updateTopBar(){
+  const fr=resonantFreq(),Q=qFactor(),BW=bandwidth(),Zr=zAtResonance();
+  document.getElementById('chipFr').textContent=formatFreq(fr);
+  document.getElementById('chipWr').textContent=parseFloat((2*Math.PI*fr).toFixed(2))+' r/s';
+  document.getElementById('chipQ').textContent=Q.toFixed(3);
+  document.getElementById('chipBW').textContent=formatFreq(BW);
+  document.getElementById('chipZr').textContent=fmtImp(Zr);
+  // Formula subtitles — update when circuit type changes
+  const isSeries=circuitType==='series';
+  document.getElementById('fmlaZ').textContent=isSeries
+    ?'Z = √(R² + (XL − Xc)²)'
+    :'Z = 1 / √((1/R)² + (1/Xc − 1/XL)²)';
+  document.getElementById('fmlaI').textContent=isSeries
+    ?'I = Vs / Z'
+    :'I = Vs × Y  where Y = 1/Z';
+  document.getElementById('fmlaVR').textContent='VR = I × R';
+  document.getElementById('fmlaPhase').textContent=isSeries
+    ?'φ = arctan((XL − Xc) / R)'
+    :'φ = −arctan((1/Xc − 1/XL) / (1/R))';
+}
+
+function updateFreqBar(){
+  const fr=resonantFreq();
+  const {Z,I,VR,VC,VL,phase}=calc(fVal);
+  const ratio=fVal/fr;
+  document.getElementById('fBig').textContent=formatFreq(fVal);
+  document.getElementById('rbRatio').textContent=ratio.toFixed(4)+'×';
+  document.getElementById('rbZ').textContent=fmtImp(Z);
+  document.getElementById('rbI').textContent=fmtAmp(I);
+  document.getElementById('rbPhase').textContent=phase.toFixed(2)+'°';
+  document.getElementById('rbFreq').textContent=formatFreq(fVal);
+
+  const atRes=Math.abs(ratio-1)<0.01;
+  const isAbove=ratio>1;
+  let stmtCol,stmtText;
+  if(atRes){stmtCol='#00ff99';stmtText='At resonance — X<sub>L</sub> = X<sub>C</sub>, Z is '+
+    (circuitType==='series'?'minimum (= R)':'maximum')+'.';}
+  else if(isAbove){stmtCol=C_ORANGE;stmtText='Above resonance — circuit is '+
+    (circuitType==='series'?'inductive (X<sub>L</sub> > X<sub>C</sub>)':'capacitive')+'.';}
+  else{stmtCol=C_CYAN;stmtText='Below resonance — circuit is '+
+    (circuitType==='series'?'capacitive (X<sub>C</sub> > X<sub>L</sub>)':'inductive')+'.';}
+  document.getElementById('freqStatement').innerHTML=`<span style="color:${stmtCol}">${stmtText}</span>`;
+}
+
+function updateVoltInfo(){
+  const {VR,VC,VL,Xc,XL}=calc(fVal);
+  // Live formula bar values — strip insignificant zeros, VR to 4dp if non-integer
+  function niceNum(v,unit){
+    const isInt=Math.abs(v-Math.round(v))<1e-9;
+    const n=isInt?Math.round(v).toString():parseFloat(v.toFixed(4)).toString();
+    return n+unit;
+  }
+  document.getElementById('fmlaVR_val').textContent=niceNum(VR,'V');
+  document.getElementById('fmlaXc_val').textContent=niceNum(Xc,'Ω');
+  document.getElementById('fmlaXL_val').textContent=niceNum(XL,'Ω');
+}
+
+function updateWorkings(){
+  const fr=resonantFreq(),Q=qFactor(),BW=bandwidth();
+  const {Xc,XL,Z,I,VR,VC,VL,phase}=calc(fVal);
+  const w=2*Math.PI*fVal;
+
+  document.getElementById('wkFreq').textContent=formatFreq(fVal);
+
+  function block(title,colour,lines){
+    return `<div class="wk-block">
+      <div class="wk-title" style="color:${colour}">${title}</div>
+      ${lines.map(([sym,eq,cls])=>`<div class="wk-line">
+        <span class="sym">${sym}</span><span class="eq">=</span><span class="${cls||'formula'}">${eq}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  const lcStr=`1 / (2π √(LC))`;
+  const lcCalc=`1 / (2π × √(${fmtVal(L)}H × ${fmtVal(C)}F))`;
+
+  const XcFormula='1 / (2π × f × C)';
+  const XcCalc=`1 / (2π × ${formatFreq(fVal)} × ${fmtVal(C)}F)`;
+
+  const XLFormula='2π × f × L';
+  const XLCalc=`2π × ${formatFreq(fVal)} × ${fmtVal(L)}H`;
+
+  let ZFormula,ZCalc,ZVals,ZCalc2;
+  if(circuitType==='series'){
+    ZFormula='√(R² + (X<sub>L</sub> − X<sub>C</sub>)²)';
+    ZVals=`R=${fmtImp(R)},  Xc=${fmtImp(Xc)},  XL=${fmtImp(XL)}`;
+    ZCalc=`√(${fmtVal(R)}² + (${fmtVal(XL)} − ${fmtVal(Xc)})²)`;
+  } else {
+    ZFormula='1 / √((1/R)² + (1/X<sub>C</sub> − 1/X<sub>L</sub>)²)';
+    ZVals=`R=${fmtImp(R)},  Xc=${fmtImp(Xc)},  XL=${fmtImp(XL)}`;
+    ZCalc=`1 / √((1/${fmtVal(R)})² + (1/${fmtVal(Xc)} − 1/${fmtVal(XL)})²)`;
+  }
+
+  const phFormula=circuitType==='series'
+    ?'arctan((X<sub>L</sub>−X<sub>C</sub>) / R)'
+    :'−arctan((1/X<sub>C</sub> − 1/X<sub>L</sub>) / (1/R))';
+  const QFormula=circuitType==='series'?'(1/R) × √(L/C)':'R × √(C/L)';
+  const QCalc=circuitType==='series'
+    ?`(1/${fmtVal(R)}) × √(${fmtVal(L)}/${fmtVal(C)})`
+    :`${fmtVal(R)} × √(${fmtVal(C)}/${fmtVal(L)})`;
+
+  document.getElementById('workingsGrid').innerHTML =
+    block('Resonant Frequency','#00ff99',[
+      ['f<sub>r</sub>',lcStr,'formula'],
+      ['',lcCalc,'calc'],
+      ['',`<span class="result" style="color:#00ff99">${formatFreq(fr)}</span>`,''],
+    ]) +
+    block('Reactances','#a78bfa',[
+      ['X<sub>C</sub>',XcFormula,'formula'],
+      ['',XcCalc,'calc'],
+      ['',`<span class="result" style="color:#00e5ff">${fmtImp(Xc)}</span>`,''],
+      ['X<sub>L</sub>',XLFormula,'formula'],
+      ['',XLCalc,'calc'],
+      ['',`<span class="result" style="color:#a78bfa">${fmtImp(XL)}</span>`,''],
+    ]) +
+    block('Impedance |Z|','#ff6b35',[
+      ['Z',ZFormula,'formula'],
+      ['',ZVals,'calc'],
+      ['',ZCalc,'calc'],
+      ['',`<span class="result" style="color:#ff6b35">${fmtImp(Z)}</span>`,''],
+    ]) +
+    block('Circuit Current','#00ff99',[
+      ['I','V<sub>s</sub> / Z','formula'],
+      ['',`V<sub>s</sub>(${Vs}V) / Z(${fmtImp(Z)})`,'calc'],
+      ['',`<span class="result" style="color:#00ff99">${fmtAmp(I)}</span>`,''],
+    ]) +
+    block('Component Voltages','#ffe600',[
+      ['V<sub>R</sub>','I × R','formula'],
+      ['',`<span class="result" style="color:#ff6b35">${fmtV(VR)}</span>`,''],
+      ['V<sub>C</sub>','I × X<sub>C</sub>','formula'],
+      ['',`<span class="result" style="color:#00e5ff">${fmtV(VC)}</span>`,''],
+      ['V<sub>L</sub>','I × X<sub>L</sub>','formula'],
+      ['',`<span class="result" style="color:#a78bfa">${fmtV(VL)}</span>`,''],
+    ]) +
+    block('Q Factor & BW','#00ff99',[
+      ['Q',QFormula,'formula'],
+      ['',QCalc,'calc'],
+      ['',`<span class="result" style="color:#00ff99">${Q.toFixed(4)}</span>`,''],
+      ['BW','f<sub>r</sub> / Q','formula'],
+      ['',`${formatFreq(fr)} / ${Q.toFixed(4)}`,'calc'],
+      ['',`<span class="result" style="color:#00ff99">${formatFreq(BW)}</span>`,''],
+    ]) +
+    block('Phase Angle','#ff3d9a',[
+      ['φ',phFormula,'formula'],
+      ['',`<span class="result" style="color:#ff3d9a">${phase.toFixed(3)}°</span>`,''],
+    ]);
+}
+
+function update(){
+  updateTopBar();
+  updateFreqBar();
+  updateVoltInfo();
+  updateWorkings();
+  positionFrTick();
+  drawXc();
+  drawXL();
+  drawImpedance();
+  drawCurrent();
+  drawVR();
+  drawVoltages();
+  drawPhase();
+  drawCircuit();
+}
+
+window.addEventListener('resize',()=>{resizeAll();update();});
+resizeAll();
+
+// Default values match the spreadsheet: R=10Ω, C=0.5μF, L=0.1mH → fr≈22508 Hz
+document.getElementById('inpR').value=10;
+document.getElementById('inpC').value=0.5;
+document.getElementById('inpL').value=0.1;
+document.getElementById('inpVs').value=10;
+
+const initFr=resonantFreq();
+const initPos=Math.round(sliderFromF(Math.min(Math.max(initFr,F_MIN),F_MAX)));
+document.getElementById('fSlider').value=initPos;
+fVal=fFromSlider(initPos);
+update();
+</script>
+</body>
+</html>
