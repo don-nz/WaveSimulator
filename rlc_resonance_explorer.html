@@ -12,9 +12,8 @@
       --accent:#00e5ff; --accent2:#ff9500; --accent3:#00ff99;
       --accent4:#ff3d9a; --accent5:#818cf8; --accent6:#ffe600;
       --accent7:#ff4444;
-      /* Component colours (C and L) — warmer/softer variants distinct from their reactance lines */
-      --col-comp-C:#2dd4bf;   /* teal-cyan for capacitor C — similar to XC (#00e5ff) but softer */
-      --col-comp-L:#c4a0ff;   /* lavender for inductor L — similar to XL (#818cf8) but lighter */
+      --col-comp-C:#2dd4bf;
+      --col-comp-L:#c4a0ff;
       --grid:rgba(0,229,255,0.05); --text:#c8d8e8; --label:#5a7a9a;
     }
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -36,7 +35,6 @@
 
     .wrap{width:100%;max-width:1400px;display:flex;flex-direction:column;gap:.8rem;}
 
-    /* ── Top bar ── */
     .top-bar{
       background:var(--panel);border:1px solid var(--border);border-radius:4px;
       padding:.9rem 1.4rem;
@@ -54,7 +52,6 @@
     .tog-btn.active-ser{border-color:rgba(0,229,255,.5);background:rgba(0,229,255,.1);color:var(--accent);}
     .tog-btn.active-par{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.1);color:var(--accent2);}
 
-    /* Component inputs */
     .comp-inputs{display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;align-items:flex-end;}
     .inp-group{display:flex;flex-direction:column;gap:.4rem;}
     .inp-label{font-size:.58rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;padding-left:2px;}
@@ -66,14 +63,12 @@
       transition:border-color .15s;
     }
     .comp-inp:focus{border-color:rgba(0,229,255,.4);}
-    /* Unit label (R, Vs — no dropdown) */
     .inp-unit{
       font-size:.75rem;color:var(--label);
       background:rgba(0,0,0,.3);border:1px solid var(--border);border-left:none;
       border-radius:0 3px 3px 0;
       padding:.45rem .5rem;display:flex;align-items:center;white-space:nowrap;
     }
-    /* Unit dropdown (C, L) */
     .unit-select{
       font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--label);
       background:rgba(10,13,20,.95);border:1px solid var(--border);border-left:none;
@@ -85,7 +80,6 @@
       background-repeat:no-repeat;background-position:right 4px center;
     }
     .unit-select:focus{border-color:rgba(0,229,255,.4);}
-    /* Colour-code C and L input labels */
     .inp-label.lbl-C{color:var(--col-comp-C);}
     .inp-label.lbl-L{color:var(--col-comp-L);}
     .comp-inp.inp-C{border-color:rgba(56,217,245,.25);}
@@ -100,7 +94,6 @@
     .ratio-rule .rr-sep{color:var(--label);flex-shrink:0;}
     .ratio-rule .rr-txt{color:rgba(200,220,240,.7);}
 
-    /* ── Middle row: circuit + frequency ── */
     .row2{display:grid;grid-template-columns:420px 1fr;gap:.8rem;align-items:stretch;}
     @media(max-width:860px){.row2{grid-template-columns:1fr;}}
 
@@ -111,6 +104,13 @@
       font-family:'Share Tech Mono',monospace;font-size:.72rem;
       text-align:center;letter-spacing:.04em;
       padding:.2rem 0 .4rem;color:var(--text);opacity:.85;
+    }
+    /* Fixed formula heights so canvases align within each row */
+    .formula-row1{
+      height:28px;overflow:hidden;display:flex;align-items:center;justify-content:center;
+    }
+    .formula-row2{
+      height:52px;overflow:hidden;display:flex;flex-direction:column;justify-content:center;
     }
 
     .freq-panel{display:flex;flex-direction:column;justify-content:center;gap:1rem;padding:1.2rem 1.6rem;}
@@ -137,7 +137,37 @@
       box-shadow:0 0 6px rgba(52,211,153,.7);
     }
 
-    /* ── Slider formula row (replaces the old frequency label row) ── */
+    .freq-input-row{
+      display:flex;gap:.4rem;align-items:center;justify-content:center;margin-bottom:.5rem;
+    }
+    .freq-inp{
+      background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.3);border-radius:3px 0 0 3px;
+      color:#ffffff;font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;
+      padding:.4rem .6rem;width:110px;outline:none;text-align:right;
+      transition:border-color .15s;
+    }
+    .freq-inp:focus{border-color:rgba(255,255,255,.7);}
+    .freq-inp.inp-error{border-color:#ff4444;color:#ff4444;animation:shake .2s ease;}
+    .freq-inp.inp-clamped{border-color:#ff9500;color:#ff9500;}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+    .freq-range-hint{font-size:.58rem;letter-spacing:.12em;color:var(--label);text-align:center;
+      height:.9rem;transition:color .2s;}
+    .freq-range-hint.hint-error{color:#ff4444;}
+    .freq-range-hint.hint-clamped{color:#ff9500;}
+    .freq-unit-sel{
+      font-family:'Share Tech Mono',monospace;font-size:.8rem;font-weight:700;
+      color:#ffffff;background:rgba(0,0,0,.5);
+      border:1px solid rgba(255,255,255,.3);border-left:none;border-radius:0 3px 3px 0;
+      padding:.4rem .3rem;outline:none;cursor:pointer;
+      appearance:none;-webkit-appearance:none;
+      padding-right:1.4rem;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23ffffff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 5px center;
+      background-color:rgba(0,0,0,.5);
+      transition:border-color .15s;
+    }
+    .freq-unit-sel:focus{border-color:rgba(255,255,255,.7);}
+    .freq-inp-label{font-size:.58rem;letter-spacing:.18em;color:var(--label);text-transform:uppercase;text-align:center;}
     .slider-formula-row{
       position:relative;height:2rem;margin-top:.5rem;
       display:flex;align-items:center;justify-content:center;
@@ -158,7 +188,6 @@
     .rb-lbl{font-size:.52rem;letter-spacing:.15em;color:var(--label);text-transform:uppercase;}
     .rb-val{font-family:'Orbitron',sans-serif;font-size:.88rem;font-weight:700;}
 
-    /* ── Graphs ── */
     .graphs{display:grid;gap:.8rem;}
     .graphs-4{grid-template-columns:repeat(4,1fr);}
     .graphs-3{grid-template-columns:repeat(3,1fr);}
@@ -168,14 +197,11 @@
     .graphs .panel{min-width:0;}
     canvas{display:block;width:100%;max-width:100%;}
 
-    /* ── Graph + workings pairs for mobile ── */
     .graph-pair { display:block; min-width:0; }
-    /* Hide inline workings on desktop — shown in workingsRow divs instead */
     .graph-pair > div[id^="workingsInline"] { display:none; }
     @media(max-width:640px){
-      /* On mobile, inline workings appear below their graph */
-      .graph-pair > div[id^="workingsInline"] { display:flex !important; flex-direction:column; gap:.35rem; margin-top:.8rem; }
-      #workingsRow1, #workingsRow2 { display:none !important; }
+      body.workings-shown .graph-pair > div[id^="workingsInline"] { display:flex; flex-direction:column; gap:.35rem; margin-top:.8rem; }
+      body.workings-shown #workingsRow1, body.workings-shown #workingsRow2 { display:none !important; }
     }
     .workings-4{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;}
     .workings-3{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;}
@@ -183,7 +209,6 @@
     @media(max-width:960px){.workings-3{grid-template-columns:1fr;}}
     @media(max-width:640px){.workings-4{grid-template-columns:1fr;}}
 
-    /* Individual workings pane — same outer styling as .panel */
     .wk-pane{
       background:var(--panel);border:1px solid var(--border);border-radius:4px;
       padding:.7rem .9rem;display:flex;flex-direction:column;gap:.35rem;
@@ -206,7 +231,6 @@
       padding:.55rem .85rem;
     }
 
-    /* ── Normalised Frequency panel ── */
     .nf-panel{padding:.8rem 1.2rem;}
     .nf-body{display:flex;gap:2rem;align-items:center;flex-wrap:wrap;margin-top:.5rem;}
     .nf-value-col{display:flex;flex-direction:column;gap:.25rem;align-items:center;
@@ -228,7 +252,6 @@
 
 <div class="wrap">
 
-  <!-- ── Top bar ── -->
   <div class="top-bar">
     <div class="ctrl-group">
       <div class="ctrl-label">Circuit Type</div>
@@ -245,7 +268,11 @@
           <div class="inp-label" style="color:var(--accent2)">Resistance (R)</div>
           <div class="inp-row">
             <input class="comp-inp" id="inpR" type="number" value="10" min="0.01" step="any" oninput="onComp()">
-            <span class="inp-unit" style="color:#ff9500">Ω</span>
+            <select class="unit-select" id="selR" onchange="onComp()" style="color:#ff9500;border-color:rgba(255,149,0,.25);">
+              <option value="1" selected>Ω</option>
+              <option value="1000">kΩ</option>
+              <option value="1000000">MΩ</option>
+            </select>
           </div>
         </div>
         <div class="inp-group">
@@ -274,15 +301,32 @@
           <div class="inp-label" style="color:#ff4444">Source (V<sub>s</sub>)</div>
           <div class="inp-row">
             <input class="comp-inp" id="inpVs" type="number" value="10" min="0.01" step="any" oninput="onComp()">
-            <span class="inp-unit" style="color:#ff4444">V</span>
+            <select class="unit-select" id="selVs" onchange="onComp()" style="color:#ff4444;border-color:rgba(255,68,68,.25);">
+              <option value="0.001">mV</option>
+              <option value="1" selected>V</option>
+            </select>
           </div>
         </div>
       </div>
     </div>
 
+    <div class="ctrl-group" style="justify-content:flex-end;padding-top:.2rem;">
+      <div class="ctrl-label">Reset</div>
+      <button onclick="resetDefaults()" style="
+        font-family:'Share Tech Mono',monospace;font-size:.68rem;letter-spacing:.12em;
+        text-transform:uppercase;cursor:pointer;
+        border:1px solid rgba(200,220,240,.3);border-radius:3px;
+        background:transparent;color:rgba(200,220,240,.5);
+        padding:.35rem 1rem;transition:all .2s;
+      "
+      onmouseover="this.style.borderColor='#ff4444';this.style.color='#ff4444';"
+      onmouseout="this.style.borderColor='rgba(200,220,240,.3)';this.style.color='rgba(200,220,240,.5)';">
+        ↺ RESET TO DEFAULTS
+      </button>
+    </div>
+
   </div>
 
-  <!-- ── Circuit + Frequency ── -->
   <div class="row2">
     <div class="panel">
       <div class="panel-title">Circuit Diagram</div>
@@ -290,15 +334,23 @@
     </div>
     <div class="panel freq-panel">
       <div>
-        <div class="freq-big" id="fBig">—</div>
-        <div class="freq-sub">Selected Frequency</div>
+        <div class="freq-inp-label">Enter or drag frequency</div>
+        <div class="freq-input-row">
+          <input class="freq-inp" id="freqInp" type="number" min="0.1" step="any"
+            oninput="onFreqInput()" onchange="onFreqInput()" placeholder="—">
+          <select class="freq-unit-sel" id="freqUnit" onchange="onFreqUnitChange()">
+            <option value="1">Hz</option>
+            <option value="1000" selected>kHz</option>
+            <option value="1000000">MHz</option>
+          </select>
+        </div>
+        <div class="freq-range-hint" id="freqHint">100 Hz – 5 MHz</div>
       </div>
-      <div>
+      <div style="margin-top:-12px;">
         <div class="slider-wrap">
           <input type="range" id="fSlider" min="0" max="4000" value="200" oninput="onFreq()">
           <div class="fr-tick" id="frTick"></div>
         </div>
-        <!-- Formula row replacing the old frequency labels -->
         <div class="slider-formula-row">
           <div class="slider-formula-box">
             <span><span style="color:#34d399;font-weight:700">f<sub>r</sub></span> = 1 / (2π √(<span style="color:#c4a0ff;font-weight:700">L</span><span style="color:#2dd4bf;font-weight:700">C</span>))</span>
@@ -310,22 +362,21 @@
       <div class="freq-statement" id="freqStatement">—</div>
       <div style="text-align:center;margin-top:.3rem;">
         <button id="btnWorkings" onclick="toggleWorkings()" style="
-          font-family:'Share Tech Mono',monospace;font-size:.62rem;letter-spacing:.15em;
+          font-family:'Share Tech Mono',monospace;font-size:.75rem;letter-spacing:.12em;
           text-transform:uppercase;cursor:pointer;
-          border:1px solid #ffffff;border-radius:3px;
+          border:2px solid #ffffff;border-radius:3px;
           background:#ffffff;color:#000000;
-          padding:.3rem 1.1rem;transition:all .2s;
-        ">▶ Show Workings</button>
+          padding:.4rem 1.4rem;transition:all .2s;font-weight:700;
+        ">▶ SHOW STEP-BY-STEP WORKINGS</button>
       </div>
     </div>
   </div>
 
-  <!-- ── Graphs row 1: 4 charts (Xc, XL, Impedance, Current) ── -->
   <div class="graphs graphs-4">
     <div class="graph-pair">
       <div class="panel">
         <div class="panel-title" style="color:#00e5ff">Capacitive Reactance (<span style="color:#00e5ff">X<sub>C</sub></span>) <span style="color:#fff">vs Frequency</span></div>
-        <div class="graph-formula" id="fmlaXc"><span style="color:#fff"><span style="color:#fff">(</span><span style="color:#00e5ff;font-weight:700">X<sub>C</sub></span><span style="color:#fff">)</span> = 1 / (2π · f · <span style="color:#fff">(</span><span style="color:#2dd4bf;font-weight:700">C</span><span style="color:#fff">)</span>)</span></div>
+        <div class="graph-formula formula-row1" id="fmlaXc"><span style="color:#fff"><span style="color:#fff">(</span><span style="color:#00e5ff;font-weight:700">X<sub>C</sub></span><span style="color:#fff">)</span> = 1 / (2π · f · <span style="color:#fff">(</span><span style="color:#2dd4bf;font-weight:700">C</span><span style="color:#fff">)</span>)</span></div>
         <canvas id="xcCanvas" height="240"></canvas>
       </div>
       <div id="workingsInlineXc"></div>
@@ -333,7 +384,7 @@
     <div class="graph-pair">
       <div class="panel">
         <div class="panel-title" style="color:#818cf8">Inductive Reactance (<span style="color:#818cf8">X<sub>L</sub></span>) <span style="color:#fff">vs Frequency</span></div>
-        <div class="graph-formula" id="fmlaXl"><span style="color:#fff"><span style="color:#fff">(</span><span style="color:#818cf8;font-weight:700">X<sub>L</sub></span><span style="color:#fff">)</span> = 2π · f · <span style="color:#fff">(</span><span style="color:#c4a0ff;font-weight:700">L</span><span style="color:#fff">)</span></span></div>
+        <div class="graph-formula formula-row1" id="fmlaXl"><span style="color:#fff"><span style="color:#fff">(</span><span style="color:#818cf8;font-weight:700">X<sub>L</sub></span><span style="color:#fff">)</span> = 2π · f · <span style="color:#fff">(</span><span style="color:#c4a0ff;font-weight:700">L</span><span style="color:#fff">)</span></span></div>
         <canvas id="xlCanvas" height="240"></canvas>
       </div>
       <div id="workingsInlineXl"></div>
@@ -341,7 +392,7 @@
     <div class="graph-pair">
       <div class="panel">
         <div class="panel-title" style="color:#ff9500">Impedance |<span style="color:#ff9500">Z</span>| <span style="color:#fff">vs Frequency</span></div>
-        <div class="graph-formula" id="fmlaZ"></div>
+        <div class="graph-formula formula-row1" id="fmlaZ"></div>
         <canvas id="impCanvas" height="240"></canvas>
       </div>
       <div id="workingsInlineZ"></div>
@@ -349,38 +400,36 @@
     <div class="graph-pair">
       <div class="panel">
         <div class="panel-title" style="color:#00ff99">Circuit Current (<span style="color:#00ff99">I</span>) <span style="color:#fff">vs Frequency</span></div>
-        <div class="graph-formula" id="fmlaI"></div>
+        <div class="graph-formula formula-row1" id="fmlaI"></div>
         <canvas id="currCanvas" height="240"></canvas>
       </div>
       <div id="workingsInlineI"></div>
     </div>
   </div>
 
-  <!-- ── Workings row 1 (toggleable) ── -->
   <div id="workingsSection" style="display:none">
   <div class="workings-4" id="workingsRow1"></div>
   </div>
 
-  <!-- ── Graphs row 2: always visible ── -->
   <div class="graphs graphs-3">
     <div class="graph-pair">
       <div class="panel">
         <div class="panel-title" style="color:#ffe600">Voltages (<span style="color:#ff9500">V<sub>R</sub></span>) · (<span style="color:#818cf8">V<sub>L</sub></span>) · (<span style="color:#00e5ff">V<sub>C</sub></span>) <span style="color:#fff">vs Frequency</span></div>
-        <div class="graph-formula" id="fmlaVolt">
-          <span style="color:#ff9500">VR = <span id="fmlaVR_val">—</span></span>
-          <span style="color:rgba(200,220,240,.3)"> &nbsp;|&nbsp; </span>
-          <span style="color:#818cf8">VL = <span id="fmlaVL_val">—</span></span>
-          <span style="color:rgba(200,220,240,.3)"> &nbsp;|&nbsp; </span>
-          <span style="color:#00e5ff">VC = <span id="fmlaVC_val">—</span></span>
+        <div class="graph-formula formula-row2" id="fmlaVolt" style="flex-direction:row;flex-wrap:nowrap;gap:.4rem;white-space:nowrap;font-size:.65rem;">
+          <span style="color:#ff9500">VR=<span id="fmlaVR_val">—</span></span>
+          <span style="color:rgba(200,220,240,.3)">|</span>
+          <span style="color:#818cf8">VL=<span id="fmlaVL_val">—</span></span>
+          <span style="color:rgba(200,220,240,.3)">|</span>
+          <span style="color:#00e5ff">VC=<span id="fmlaVC_val">—</span></span>
         </div>
-        <canvas id="voltCanvas" height="240"></canvas>
+        <canvas id="voltCanvas" height="262"></canvas>
       </div>
       <div id="workingsInlineVolt"></div>
     </div>
     <div class="graph-pair">
       <div class="panel">
         <div class="panel-title" style="color:var(--label)"><span style="color:#e879f9">Q Factor</span> (<span style="color:#e879f9">Q</span>) &amp; <span style="color:#a3e635">Bandwidth</span> (<span style="color:#a3e635">BW</span>) <span style="color:#fff">vs Frequency</span></div>
-        <div class="graph-formula" id="fmlaBW" style="display:flex;flex-direction:column;gap:.25rem;">
+        <div class="graph-formula formula-row2" id="fmlaBW">
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <span><span style="color:#e879f9;font-weight:700">Q</span><span style="color:rgba(200,220,240,.5)"> = (1/<span style="color:#ff9500;font-weight:700">R</span>) × √(<span style="color:#c4a0ff;font-weight:700">L</span>/<span style="color:#2dd4bf;font-weight:700">C</span>)</span></span>
             <span style="color:rgba(200,220,240,.2)">—</span>
@@ -393,25 +442,23 @@
             </span>
           </div>
         </div>
-        <canvas id="bwCanvas" height="240"></canvas>
+        <canvas id="bwCanvas" height="262"></canvas>
       </div>
       <div id="workingsInlineBW"></div>
     </div>
     <div class="graph-pair">
       <div class="panel">
         <div class="panel-title" style="color:#ff3d9a">Phase Angle (<span style="color:#ff3d9a">φ</span>) <span style="color:#fff">vs Frequency</span></div>
-        <div class="graph-formula" id="fmlaPhase"></div>
-        <canvas id="phaseCanvas" height="240"></canvas>
+        <div class="graph-formula formula-row2" id="fmlaPhase"></div>
+        <canvas id="phaseCanvas" height="262"></canvas>
       </div>
       <div id="workingsInlinePhase"></div>
     </div>
   </div>
 
-  <!-- ── Workings row 2 + NF panel (toggleable) ── -->
   <div id="workingsSection2" style="display:none">
   <div class="workings-3" id="workingsRow2"></div>
 
-  <!-- ── Normalised Frequency ── -->
   <div class="panel nf-panel" style="border-color:rgba(203,213,225,.2)">
     <div class="panel-title" style="color:#cbd5e1;font-size:.7rem">Normalised Frequency &nbsp;(<span style="text-transform:none;letter-spacing:0">f / f<sub>r</sub></span>)</div>
     <div class="nf-body">
@@ -440,11 +487,9 @@
     </div>
   </div>
 
-  </div> <!-- end workingsSection2 -->
+  </div>
 
 </div>
-
-
 
 <script>
 // ── Show/Hide workings ────────────────────────────────────────────────────────
@@ -454,11 +499,12 @@ function toggleWorkings(){
   const d=workingsVisible?'':'none';
   document.getElementById('workingsSection').style.display=d;
   document.getElementById('workingsSection2').style.display=d;
+  document.body.classList.toggle('workings-shown', workingsVisible);
   const btn=document.getElementById('btnWorkings');
-  btn.textContent=workingsVisible?'▼ Hide Workings':'▶ Show Workings';
-  btn.style.background=workingsVisible?'rgba(0,0,0,.3)':'#ffffff';
-  btn.style.color=workingsVisible?'var(--label)':'#000';
-  btn.style.borderColor=workingsVisible?'var(--border)':'#ffffff';
+  btn.textContent=workingsVisible?'▲ HIDE STEP-BY-STEP WORKINGS':'▶ SHOW STEP-BY-STEP WORKINGS';
+  btn.style.background=workingsVisible?'transparent':'#ffffff';
+  btn.style.color=workingsVisible?'#ffffff':'#000000';
+  btn.style.borderColor=workingsVisible?'#ffffff':'#ffffff';
 }
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -469,26 +515,17 @@ let fVal = 22508;
 const C_CYAN='#00e5ff', C_ORANGE='#ff9500', C_GREEN='#00ff99',
       C_YELLOW='#ffe600', C_PURPLE='#818cf8', C_PINK='#ff3d9a',
       C_TEXT='#c8d8e8', C_RED='#ff4444';
-const C_FR   = '#34d399';  // emerald — resonant frequency fr
-const C_FREQ = '#fbbf24';  // warm gold — selected frequency marker dot
+const C_FR   = '#34d399';
+const C_FREQ = '#fbbf24';
 
-// Graph line colours — match exactly what's plotted
-const COL_XC = C_CYAN;      // #00e5ff — XC reactance line
-const COL_XL = C_PURPLE;    // #818cf8 — XL reactance line
-const COL_R  = C_ORANGE;    // #ff9500 — R / impedance / VR
-const COL_I  = C_GREEN;     // #00ff99 — current
-
-// Component symbol colours — visually related but distinct from their reactance colours
-const COL_C  = '#2dd4bf';   // teal-cyan — capacitor C (cf. XC #00e5ff)
-const COL_L  = '#c4a0ff';   // lavender  — inductor L  (cf. XL #818cf8)
+const COL_XC = C_CYAN;
+const COL_XL = C_PURPLE;
+const COL_R  = C_ORANGE;
+const COL_I  = C_GREEN;
+const COL_C  = '#2dd4bf';
+const COL_L  = '#c4a0ff';
 
 // ── Frequency slider ─────────────────────────────────────────────────────────
-// 100–999 Hz:      step 1 Hz      → 900 positions
-// 1k–9.99 kHz:     step 10 Hz     → 900 positions
-// 10k–99.9 kHz:    step 100 Hz    → 900 positions
-// 100k–999 kHz:    step 1,000 Hz  → 900 positions
-// 1 MHz–5 MHz:     step 10,000 Hz → 400 positions
-// Total: 4000
 const SLIDER_MAX=4000;
 
 function fFromSlider(v){
@@ -513,16 +550,28 @@ function sliderFromF(f){
   return 3600+Math.round((f-1000000)/10000);
 }
 
+// ── KEY FIX: quantised fr ────────────────────────────────────────────────────
+// Returns fr snapped to the nearest slider step, so all displayed values
+// (fr label, f/fr ratio, normalised frequency panel) use the same number.
+function resonantFreqQuantised(){
+  const frExact = resonantFreq();
+  const pos = Math.round(sliderFromF(Math.min(Math.max(frExact, F_MIN), F_MAX)));
+  return fFromSlider(Math.max(0, Math.min(SLIDER_MAX, pos)));
+}
+
 function formatFreq(f){
   if(f>=1e6) return parseFloat((f/1e6).toFixed(4))+' MHz';
   if(f>=1e3) return parseFloat((f/1e3).toFixed(4))+' kHz';
   return parseFloat(f.toFixed(2))+' Hz';
 }
 function fmtImp(z){
-  if(z>=1e9) return parseFloat((z/1e9).toFixed(4))+' GΩ';
-  if(z>=1e6) return parseFloat((z/1e6).toFixed(4))+' MΩ';
-  if(z>=1e3) return parseFloat((z/1e3).toFixed(4))+' kΩ';
-  return parseFloat(z.toFixed(4))+' Ω';
+  // Use 6 significant figures so intermediate Z values shown in workings
+  // are consistent with the final result (avoids e.g. "10V / 10Ω = 999.9995mA")
+  function sig6(n){ return parseFloat(n.toPrecision(6)); }
+  if(z>=1e9) return sig6(z/1e9)+' GΩ';
+  if(z>=1e6) return sig6(z/1e6)+' MΩ';
+  if(z>=1e3) return sig6(z/1e3)+' kΩ';
+  return sig6(z)+' Ω';
 }
 function fmtAmp(i){
   if(Math.abs(i)>=1) return parseFloat(i.toFixed(4))+' A';
@@ -544,7 +593,20 @@ function fmtVal(v){
   return parseFloat((v*1e12).toFixed(4))+'p';
 }
 
-// Format C and L values using the currently selected unit for circuit diagram labels
+function fmtCompR(){
+  const sel=document.getElementById('selR');
+  if(!sel) return parseFloat(R.toFixed(4))+'Ω';
+  const unitVal=parseFloat(sel.value);
+  const lbl=sel.options[sel.selectedIndex].text;
+  return parseFloat((R/unitVal).toFixed(4))+lbl;
+}
+function fmtCompVs(){
+  const sel=document.getElementById('selVs');
+  if(!sel) return parseFloat(Vs.toFixed(4))+'V';
+  const unitVal=parseFloat(sel.value);
+  const lbl=sel.options[sel.selectedIndex].text;
+  return parseFloat((Vs/unitVal).toFixed(4))+lbl;
+}
 function fmtCompC(){
   const sel=document.getElementById('selC');
   if(!sel) return parseFloat((C*1e6).toFixed(4))+'μF';
@@ -562,6 +624,17 @@ function fmtCompL(){
 
 // ── Core calculations ────────────────────────────────────────────────────────
 function resonantFreq(){ return 1/(2*Math.PI*Math.sqrt(L*C)); }
+
+// Returns exact fr when slider is snapped to resonance, else fVal.
+// This means workings at resonance use the mathematically clean fr,
+// while the displayed frequency label still shows the rounded slider value.
+function effectiveF(){
+  const frExact = resonantFreq();
+  const frQ = resonantFreqQuantised();
+  // Snapped = slider is at the quantised fr position
+  if(fVal === frQ && Math.abs(frExact - frQ) < 200) return frExact;
+  return fVal;
+}
 
 function calcSeries(f){
   const w=2*Math.PI*f;
@@ -602,7 +675,8 @@ function qFactor(){
   else return R*Math.sqrt(C/L);
 }
 function bandwidth(){
-  const fr=resonantFreq(),Q=qFactor();
+  // Use quantised fr so BW, f1, f2 are consistent with displayed fr
+  const fr=resonantFreqQuantised(),Q=qFactor();
   return fr/Q;
 }
 function zAtResonance(){
@@ -618,6 +692,29 @@ function setCircuit(t){
   update();
 }
 
+function resetDefaults(){
+  // Restore all component inputs to default values
+  document.getElementById('inpR').value   = 10;
+  document.getElementById('selR').value   = '1';        // Ω
+  document.getElementById('inpL').value   = 100;
+  document.getElementById('selL').value   = '1e-6';     // μH
+  document.getElementById('inpC').value   = 500;
+  document.getElementById('selC').value   = '1e-9';     // nF
+  document.getElementById('inpVs').value  = 10;
+  document.getElementById('selVs').value  = '1';        // V
+  // Reset circuit type to series
+  setCircuit('series');
+  // Reset frequency slider to fr
+  onComp(); // recalc R/L/C/Vs first so fr is correct
+  const fr = resonantFreq();
+  const initPos = Math.round(sliderFromF(Math.min(Math.max(fr, F_MIN), F_MAX)));
+  document.getElementById('fSlider').value = initPos;
+  fVal = fFromSlider(initPos);
+  clearFreqInputState();
+  syncFreqInput();
+  update();
+}
+
 function onComp(){
   const rv=parseFloat(document.getElementById('inpR').value)||10;
   const cv=parseFloat(document.getElementById('inpC').value)||500;
@@ -625,7 +722,9 @@ function onComp(){
   const vsv=parseFloat(document.getElementById('inpVs').value)||10;
   const cu=parseFloat(document.getElementById('selC').value)||1e-6;
   const lu=parseFloat(document.getElementById('selL').value)||1e-3;
-  R=rv; C=cv*cu; L=lv*lu; Vs=vsv;
+  const ru=parseFloat(document.getElementById('selR').value)||1;
+  const vsu=parseFloat(document.getElementById('selVs').value)||1;
+  R=rv*ru; C=cv*cu; L=lv*lu; Vs=vsv*vsu;
   update();
 }
 
@@ -639,7 +738,87 @@ function onFreq(){
   const snapped=Math.abs(raw-frPos)<=SNAP_RADIUS;
   if(snapped){ sl.value=frPos; }
   fVal=fFromSlider(Math.round(parseFloat(sl.value)));
+  clearFreqInputState();
+  syncFreqInput();
   update();
+}
+
+// Called when user types in the frequency input box
+function onFreqInput(){
+  const inp=document.getElementById('freqInp');
+  const hint=document.getElementById('freqHint');
+  const unit=parseFloat(document.getElementById('freqUnit').value);
+  const raw=parseFloat(inp.value);
+
+  // Clear previous state
+  inp.classList.remove('inp-error','inp-clamped');
+  hint.classList.remove('hint-error','hint-clamped');
+
+  // Non-numeric or empty
+  if(!isFinite(raw)||raw<=0){
+    if(inp.value!==''&&inp.value!=='-'){
+      inp.classList.add('inp-error');
+      hint.textContent='Enter a number greater than zero';
+      hint.classList.add('hint-error');
+    } else {
+      hint.textContent='100 Hz – 5 MHz';
+    }
+    return;
+  }
+
+  const hz=raw*unit;
+
+  // Out of range — clamp and warn
+  if(hz<F_MIN){
+    inp.classList.add('inp-clamped');
+    hint.textContent='Minimum is 100 Hz — clamped';
+    hint.classList.add('hint-clamped');
+  } else if(hz>F_MAX){
+    inp.classList.add('inp-clamped');
+    hint.textContent='Maximum is 5 MHz — clamped';
+    hint.classList.add('hint-clamped');
+  } else {
+    hint.textContent='100 Hz – 5 MHz';
+  }
+
+  const clamped=Math.max(F_MIN,Math.min(F_MAX,hz));
+  const sl=document.getElementById('fSlider');
+  const fr=resonantFreq();
+  const frPos=Math.round(sliderFromF(fr));
+  const targetPos=Math.round(sliderFromF(clamped));
+  const snapped=Math.abs(targetPos-frPos)<=SNAP_RADIUS;
+  sl.value=snapped?frPos:targetPos;
+  fVal=fFromSlider(Math.round(parseFloat(sl.value)));
+  update();
+}
+
+// Called when unit dropdown changes — restate same fVal in new unit
+function onFreqUnitChange(){
+  syncFreqInput();
+}
+
+// Keep the input box value in sync with fVal and selected unit
+// Auto-switches unit to keep the number readable (e.g. 22500 → 22.5 kHz)
+function clearFreqInputState(){
+  const inp=document.getElementById('freqInp');
+  const hint=document.getElementById('freqHint');
+  if(!inp||!hint) return;
+  inp.classList.remove('inp-error','inp-clamped');
+  hint.classList.remove('hint-error','hint-clamped');
+  hint.textContent='100 Hz – 5 MHz';
+}
+
+function syncFreqInput(){
+  const inp=document.getElementById('freqInp');
+  const sel=document.getElementById('freqUnit');
+  // Pick the best unit automatically
+  let unit, unitVal;
+  if(fVal>=1e6)       { unit='1000000'; unitVal=1e6; }
+  else if(fVal>=1000) { unit='1000';    unitVal=1e3; }
+  else                { unit='1';       unitVal=1;   }
+  sel.value=unit;
+  const inUnit=fVal/unitVal;
+  inp.value=parseFloat(inUnit.toPrecision(6));
 }
 
 function positionFrTick(){
@@ -668,64 +847,70 @@ const currCanvas=document.getElementById('currCanvas');
 const bwCanvas=document.getElementById('bwCanvas');
 const circuitCanvas=document.getElementById('circuitCanvas');
 const PAD={l:60,r:16,t:16,b:36};
+const PAD2={l:60,r:16,t:16,b:58}; // bottom row — extra space for 3-row x labels
 
 function resizeAll(){
-  [xcCanvas,xlCanvas,impCanvas,currCanvas,voltCanvas,phaseCanvas].forEach(cv=>sizeCanvas(cv,240));
-  sizeCanvas(bwCanvas,240);
+  [xcCanvas,xlCanvas,impCanvas,currCanvas].forEach(cv=>sizeCanvas(cv,240));
+  [voltCanvas,bwCanvas,phaseCanvas].forEach(cv=>sizeCanvas(cv,262));
   sizeCanvas(circuitCanvas,240);
 }
 
 // ── Shared graph helpers ──────────────────────────────────────────────────────
-function makeLogX(cv){
-  const fw=cW(cv),pw=fw-PAD.l-PAD.r;
+function makeLogX(cv,pad){
+  pad=pad||{l:60,r:16,t:16,b:36};
+  const fw=cW(cv),pw=fw-pad.l-pad.r;
   const lmin=Math.log10(F_MIN), lmax=Math.log10(F_MAX);
-  return lf => PAD.l+pw*(lf-lmin)/(lmax-lmin);
+  return lf => pad.l+pw*(lf-lmin)/(lmax-lmin);
 }
-function drawLogGrid(cx,fw,fh,pw,ph,yFn,yTicks,yFmt,yAxisLabel,curveCol){
+function drawLogGrid(cx,fw,fh,pw,ph,yFn,yTicks,yFmt,yAxisLabel,curveCol,pad){
+  pad=pad||{l:60,r:16,t:16,b:36};
   const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX);
   for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
     [1,2,5].forEach(m=>{
       const lff=Math.log10(m)+lf;
       if(lff<lmin||lff>lmax) return;
-      const x=PAD.l+pw*(lff-lmin)/(lmax-lmin);
+      const x=pad.l+pw*(lff-lmin)/(lmax-lmin);
       cx.setLineDash(m===1?[3,5]:[1,6]);
       cx.strokeStyle=m===1?'rgba(30,45,74,.9)':'rgba(30,45,74,.45)';
       cx.lineWidth=m===1?1:.7;
       cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
     });
-    const x=PAD.l+pw*(lf-lmin)/(lmax-lmin);
+    const x=pad.l+pw*(lf-lmin)/(lmax-lmin);
     cx.fillStyle='#ffffff';cx.font='8px Share Tech Mono';cx.textAlign='center';
     cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
   }
   yTicks.forEach(v=>{
-    const y=yFn(v); if(y<PAD.t-2||y>PAD.t+ph+2) return;
+    const y=yFn(v); if(y<pad.t-2||y>pad.t+ph+2) return;
     cx.setLineDash([2,5]);cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;
-    cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
+    cx.beginPath();cx.moveTo(pad.l,y);cx.lineTo(pad.l+pw,y);cx.stroke();cx.setLineDash([]);
     cx.fillStyle=curveCol;cx.font='9px Share Tech Mono';cx.textAlign='right';
-    cx.fillText(yFmt(v),PAD.l-5,y+4);
+    cx.fillText(yFmt(v),pad.l-5,y+4);
   });
-  cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
+  cx.save();cx.translate(11,pad.t+ph/2);cx.rotate(-Math.PI/2);
   cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
   cx.fillText(yAxisLabel,0,0);cx.restore();
 }
-function drawFrLine(cx,fw,fh,ph,lfX){
+function drawFrLine(cx,fw,fh,ph,lfX,pad){
+  pad=pad||{l:60,r:16,t:16,b:36};
   const fr=resonantFreq(),xFr=lfX(Math.log10(fr));
-  if(xFr<PAD.l||xFr>PAD.l+(fw-PAD.l-PAD.r)) return;
+  if(xFr<pad.l||xFr>pad.l+(fw-pad.l-pad.r)) return;
   cx.strokeStyle=C_FR+'99';cx.lineWidth=1.2;cx.setLineDash([4,4]);
-  cx.beginPath();cx.moveTo(xFr,PAD.t);cx.lineTo(xFr,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+  cx.beginPath();cx.moveTo(xFr,pad.t);cx.lineTo(xFr,pad.t+ph);cx.stroke();cx.setLineDash([]);
   cx.fillStyle=C_FR;cx.font='bold 8px Share Tech Mono';cx.textAlign='center';
-  cx.fillText('fr',xFr,PAD.t+ph+26);
+  cx.fillText('fr',xFr,pad.t+ph+26);
 }
-function drawMarker(cx,xF,yF,col,labelTxt,pw){
+function drawMarker(cx,xF,yF,col,labelTxt,pw,pad){
+  pad=pad||{l:60,r:16,t:16,b:36};
   cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=12;
   cx.beginPath();cx.arc(xF,yF,5,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
-  const align=xF>PAD.l+pw*0.72?'right':'left';
+  const align=xF>pad.l+pw*0.72?'right':'left';
   cx.fillStyle=col;cx.font='bold 9px Share Tech Mono';cx.textAlign=align;
   cx.fillText(labelTxt,xF+(align==='right'?-8:8),yF-6);
 }
 
-function plotCurve(cx,col,fn,lfX,yFn,ph){
-  const pw=cW(cx.canvas)-PAD.l-PAD.r;
+function plotCurve(cx,col,fn,lfX,yFn,ph,pad){
+  pad=pad||{l:60,r:16,t:16,b:36};
+  const pw=cW(cx.canvas)-pad.l-pad.r;
   const N=pw*2;
   const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX);
   [[col+'33',5,7],[col,1.8,0]].forEach(([c,lw,bl])=>{
@@ -734,7 +919,7 @@ function plotCurve(cx,col,fn,lfX,yFn,ph){
     for(let i=0;i<=N;i++){
       const lf=lmin+(i/N)*(lmax-lmin),f=Math.pow(10,lf);
       const v=fn(f); if(v===null||!isFinite(v)) {s=false;continue;}
-      const x=lfX(lf),y=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(v)));
+      const x=lfX(lf),y=Math.max(pad.t,Math.min(pad.t+ph,yFn(v)));
       if(py!==null&&Math.abs(y-py)>ph*0.8){cx.stroke();cx.beginPath();s=false;}
       s?cx.lineTo(x,y):cx.moveTo(x,y);s=true;py=y;
     }
@@ -900,34 +1085,38 @@ function drawCurrent(){
   drawFrLine(cx,fw,fh,ph,lfX);
   const xF=lfX(Math.log10(Math.max(fVal,F_MIN)));
   const iF=fn(fVal),yF=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(iF)));
-  if(xF>=PAD.l&&xF<=PAD.l+pw) drawMarker(cx,xF,yF,C_FREQ,fmtAmp(iF),pw);
+  // Use same rounding as workings: I = Vs / round(Z) so graph label matches pane
+  const zF=calc(fVal).Z;
+  const zRounded=parseFloat(fmtImp(zF));
+  const iFDisplay=isFinite(zRounded)&&zRounded>0?Vs/zRounded:iF;
+  if(xF>=PAD.l&&xF<=PAD.l+pw) drawMarker(cx,xF,yF,C_FREQ,fmtAmp(iFDisplay),pw);
 }
 
 // ── Phase plot ────────────────────────────────────────────────────────────────
 function drawPhase(){
   const cv=phaseCanvas,cx=cv.getContext('2d');
-  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD2.l-PAD2.r,ph=fh-PAD2.t-PAD2.b;
   cx.clearRect(0,0,fw,fh);
-  const lfX=makeLogX(cv);
+  const lfX=makeLogX(cv,PAD2);
   const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX);
   const phMin=-95,phMax=95,phRange=phMax-phMin;
-  function phY(d){return PAD.t+ph*(1-(d-phMin)/phRange);}
+  function phY(d){return PAD2.t+ph*(1-(d-phMin)/phRange);}
 
   [-90,-45,0,45,90].forEach(d=>{
-    const y=phY(d); if(y<PAD.t||y>PAD.t+ph) return;
+    const y=phY(d); if(y<PAD2.t||y>PAD2.t+ph) return;
     cx.setLineDash(Math.abs(d)===45?[4,4]:d===0?[]:[2,5]);
     cx.strokeStyle=d===0?'rgba(0,229,255,.15)':Math.abs(d)===45?'rgba(255,61,154,.3)':'rgba(30,45,74,.7)';
     cx.lineWidth=Math.abs(d)===45||d===0?1.4:1;
-    cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
+    cx.beginPath();cx.moveTo(PAD2.l,y);cx.lineTo(PAD2.l+pw,y);cx.stroke();cx.setLineDash([]);
     cx.fillStyle=C_PINK;
-    cx.font='9px Share Tech Mono';cx.textAlign='right';cx.fillText(d+'°',PAD.l-5,y+4);
+    cx.font='9px Share Tech Mono';cx.textAlign='right';cx.fillText(d+'°',PAD2.l-5,y+4);
   });
   for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
-    const x=lfX(lf); if(x<PAD.l||x>PAD.l+pw) continue;
+    const x=lfX(lf); if(x<PAD2.l||x>PAD2.l+pw) continue;
     cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;cx.setLineDash([2,5]);
-    cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+    cx.beginPath();cx.moveTo(x,PAD2.t);cx.lineTo(x,PAD2.t+ph);cx.stroke();cx.setLineDash([]);
     cx.fillStyle='#ffffff';cx.font='8px Share Tech Mono';cx.textAlign='center';
-    cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
+    cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD2.t+ph+14);
   }
   [[C_PINK+'44',5,7],[C_PINK,1.8,0]].forEach(([c,lw,bl])=>{
     cx.shadowColor=C_PINK;cx.shadowBlur=bl;cx.strokeStyle=c;cx.lineWidth=lw;
@@ -935,21 +1124,21 @@ function drawPhase(){
     for(let i=0;i<=pw*2;i++){
       const lf=lmin+(i/(pw*2))*(lmax-lmin),f=Math.pow(10,lf);
       const {phase}=calc(f);
-      const x=lfX(lf),y=Math.max(PAD.t,Math.min(PAD.t+ph,phY(phase)));
+      const x=lfX(lf),y=Math.max(PAD2.t,Math.min(PAD2.t+ph,phY(phase)));
       if(py!==null&&Math.abs(y-py)>ph*0.8){cx.stroke();cx.beginPath();s=false;}
       s?cx.lineTo(x,y):cx.moveTo(x,y);s=true;py=y;
     }
     cx.stroke();cx.shadowBlur=0;
   });
-  drawFrLine(cx,fw,fh,ph,lfX);
+  drawFrLine(cx,fw,fh,ph,lfX,PAD2);
   const fr=resonantFreq(),xFr=lfX(Math.log10(fr));
   cx.fillStyle=C_FR;cx.shadowColor=C_FR;cx.shadowBlur=10;
   cx.beginPath();cx.arc(xFr,phY(0),5,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
   const logF=Math.log10(Math.max(fVal,F_MIN)),xF=lfX(logF);
-  const {phase:pd}=calc(fVal);
-  const yF=Math.max(PAD.t,Math.min(PAD.t+ph,phY(pd)));
-  if(xF>=PAD.l&&xF<=PAD.l+pw) drawMarker(cx,xF,yF,C_FREQ,pd.toFixed(1)+'°',pw);
-  cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
+  const {phase:pd}=calc(effectiveF());
+  const yF=Math.max(PAD2.t,Math.min(PAD2.t+ph,phY(pd)));
+  if(xF>=PAD2.l&&xF<=PAD2.l+pw) drawMarker(cx,xF,yF,C_FREQ,pd.toFixed(1)+'°',pw,PAD2);
+  cx.save();cx.translate(11,PAD2.t+ph/2);cx.rotate(-Math.PI/2);
   cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
   cx.fillText('PHASE (°)',0,0);cx.restore();
 }
@@ -957,9 +1146,9 @@ function drawPhase(){
 // ── Voltages plot ─────────────────────────────────────────────────────────────
 function drawVoltages(){
   const cv=voltCanvas,cx=cv.getContext('2d');
-  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  const fw=cW(cv),fh=cH(cv),pw=fw-PAD2.l-PAD2.r,ph=fh-PAD2.t-PAD2.b;
   cx.clearRect(0,0,fw,fh);
-  const lfX=makeLogX(cv);
+  const lfX=makeLogX(cv,PAD2);
   const isParallel=circuitType==='parallel';
   const CLIP=isParallel?calc(F_MIN).VR:Infinity;
 
@@ -969,34 +1158,34 @@ function drawVoltages(){
 
   const clippedVals=[fnR,fnC,fnL].flatMap(fn=>sweepVals(fn).filter(v=>v!==null&&isFinite(v)));
   const {yFn,ticks}=makeLinY(0,Math.max(...clippedVals,1)*1.05,ph);
-  drawLogGrid(cx,fw,fh,pw,ph,yFn,ticks,smartFmt(ticks,'volt'),'V',C_YELLOW);
+  drawLogGrid(cx,fw,fh,pw,ph,yFn,ticks,smartFmt(ticks,'volt'),'V',C_YELLOW,PAD2);
 
-  plotCurve(cx,C_ORANGE,fnR,lfX,yFn,ph);
-  plotCurve(cx,C_CYAN,  fnC,lfX,yFn,ph);
-  plotCurve(cx,C_PURPLE,fnL,lfX,yFn,ph);
-  drawFrLine(cx,fw,fh,ph,lfX);
+  plotCurve(cx,C_ORANGE,fnR,lfX,yFn,ph,PAD2);
+  plotCurve(cx,C_CYAN,  fnC,lfX,yFn,ph,PAD2);
+  plotCurve(cx,C_PURPLE,fnL,lfX,yFn,ph,PAD2);
+  drawFrLine(cx,fw,fh,ph,lfX,PAD2);
 
   const xF=lfX(Math.log10(Math.max(fVal,F_MIN)));
   const d=calc(fVal);
 
-  let vlCliffX=PAD.l, vlCliffF=F_MIN;
-  let vcCliffX=PAD.l+pw, vcCliffF=F_MAX;
+  let vlCliffX=PAD2.l, vlCliffF=F_MIN;
+  let vcCliffX=PAD2.l+pw, vcCliffF=F_MAX;
   if(isParallel){
     const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX);
     for(let i=0;i<=400;i++){
       const lf=lmin+(i/400)*(lmax-lmin),f=Math.pow(10,lf);
       const v=calc(f).VC;
-      if(isFinite(v)&&yFn(v)>=PAD.t){ vcCliffX=lfX(lf); vcCliffF=f; break; }
+      if(isFinite(v)&&yFn(v)>=PAD2.t){ vcCliffX=lfX(lf); vcCliffF=f; break; }
     }
     for(let i=400;i>=0;i--){
       const lf=lmin+(i/400)*(lmax-lmin),f=Math.pow(10,lf);
       const v=calc(f).VL;
-      if(isFinite(v)&&yFn(v)>=PAD.t){ vlCliffX=lfX(lf); vlCliffF=f; break; }
+      if(isFinite(v)&&yFn(v)>=PAD2.t){ vlCliffX=lfX(lf); vlCliffF=f; break; }
     }
   }
 
-  if(xF>=PAD.l&&xF<=PAD.l+pw){
-    const yv=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(d.VR)));
+  if(xF>=PAD2.l&&xF<=PAD2.l+pw){
+    const yv=Math.max(PAD2.t,Math.min(PAD2.t+ph,yFn(d.VR)));
     cx.fillStyle=COL_R;cx.shadowColor=COL_R;cx.shadowBlur=8;
     cx.beginPath();cx.arc(xF,yv,4,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
   }
@@ -1004,32 +1193,32 @@ function drawVoltages(){
   if(isParallel){
     if(xF>vlCliffX){
       cx.fillStyle=C_PURPLE;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
-      cx.fillText('VL out of chart y-axis boundary',vlCliffX,PAD.t+10);
+      cx.fillText('VL out of chart y-axis boundary',vlCliffX,PAD2.t+10);
     } else if(xF<vcCliffX){
       cx.fillStyle=C_CYAN;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
-      cx.fillText('VC out of chart y-axis boundary',vcCliffX,PAD.t+10);
+      cx.fillText('VC out of chart y-axis boundary',vcCliffX,PAD2.t+10);
     }
 
-    if(xF>=PAD.l&&xF<=PAD.l+pw){
-      if(yFn(d.VL)>=PAD.t){
-        const yv=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(d.VL)));
+    if(xF>=PAD2.l&&xF<=PAD2.l+pw){
+      if(yFn(d.VL)>=PAD2.t){
+        const yv=Math.max(PAD2.t,Math.min(PAD2.t+ph,yFn(d.VL)));
         cx.fillStyle=C_PURPLE;cx.shadowColor=C_PURPLE;cx.shadowBlur=8;
         cx.beginPath();cx.arc(xF,yv,4,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
       }
-      if(yFn(d.VC)>=PAD.t){
-        const yv=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(d.VC)));
+      if(yFn(d.VC)>=PAD2.t){
+        const yv=Math.max(PAD2.t,Math.min(PAD2.t+ph,yFn(d.VC)));
         cx.fillStyle=C_CYAN;cx.shadowColor=C_CYAN;cx.shadowBlur=8;
         cx.beginPath();cx.arc(xF,yv,4,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
       }
     }
   } else {
-    if(xF>=PAD.l&&xF<=PAD.l+pw){
+    if(xF>=PAD2.l&&xF<=PAD2.l+pw){
       [[d.VC,C_CYAN,'VC'],[d.VL,C_PURPLE,'VL']].forEach(([v,col,name],idx)=>{
-        if(yFn(v)<PAD.t){
+        if(yFn(v)<PAD2.t){
           cx.fillStyle=col;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
-          cx.fillText(`${name} out of chart y-axis boundary`,xF,PAD.t+10+(idx*12));
+          cx.fillText(`${name} out of chart y-axis boundary`,xF,PAD2.t+10+(idx*12));
         } else {
-          const yv=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(v)));
+          const yv=Math.max(PAD2.t,Math.min(PAD2.t+ph,yFn(v)));
           cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=8;
           cx.beginPath();cx.arc(xF,yv,4,0,Math.PI*2);cx.fill();cx.shadowBlur=0;
         }
@@ -1042,17 +1231,14 @@ function drawVoltages(){
 function drawBandwidth(){
   const cv=bwCanvas,cx=cv.getContext('2d');
   const fw=cW(cv),fh=cH(cv);
-  // Local padding — larger bottom to fit 3 rows of x-axis labels
   const pad={l:PAD.l,r:PAD.r,t:PAD.t,b:58};
   const pw=fw-pad.l-pad.r,ph=fh-pad.t-pad.b;
   cx.clearRect(0,0,fw,fh);
   const lfX=lf=>pad.l+pw*(lf-Math.log10(F_MIN))/(Math.log10(F_MAX)-Math.log10(F_MIN));
   const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX);
 
-  // fr, Q, BW needed throughout
-  const fr=resonantFreq(),Q=qFactor(),BW=bandwidth();
+  const fr=resonantFreqQuantised(),Q=qFactor(),BW=bandwidth();
 
-  // Sweep current values — normalise to peak then scale by Q
   const Ivals=[];
   const N=400;
   for(let i=0;i<=N;i++){
@@ -1063,11 +1249,9 @@ function drawBandwidth(){
   const Imin=Math.min(...Ivals);
   const Irange=Imax-Imin||1;
 
-  // Y axis: 0 → Q (peak of curve = Q)
   const yMax=Q*1.05;
   const yFn=v=>pad.t+ph*(1-(v/yMax));
 
-  // Y grid lines: 0, 0.707Q (-3dB), Q (peak)
   const db3=0.707*Q;
   [[0,'0'],[db3,`-3dB (${db3.toFixed(3)})`],[Q,`Q = ${Q.toFixed(3)} (peak)`]].forEach(([v,lbl])=>{
     const y=yFn(v);
@@ -1080,7 +1264,6 @@ function drawBandwidth(){
     cx.fillText(lbl,pad.l-4,y+4);
   });
 
-  // Vertical freq grid
   for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
     const x=lfX(lf); if(x<pad.l||x>pad.l+pw) continue;
     cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;cx.setLineDash([2,5]);
@@ -1092,7 +1275,6 @@ function drawBandwidth(){
   cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
   cx.fillText('Q Factor',0,0);cx.restore();
 
-  // Response curve — scaled to Q
   [['#e879f933',5,7],['#e879f9',1.8,0]].forEach(([c,lw,bl])=>{
     cx.shadowColor='#e879f9';cx.shadowBlur=bl;cx.strokeStyle=c;cx.lineWidth=lw;
     cx.beginPath();
@@ -1105,8 +1287,7 @@ function drawBandwidth(){
     cx.stroke();cx.shadowBlur=0;
   });
 
-  // fr vertical line + label (just 'fr' like other graphs)
-  const xFr=lfX(Math.log10(fr));
+  const xFr=lfX(Math.log10(resonantFreq())); // exact fr for graph line position
   const f1=fr-BW/2,f2=fr+BW/2;
   const xF1=f1>F_MIN?lfX(Math.log10(f1)):null;
   const xF2=f2<F_MAX?lfX(Math.log10(f2)):null;
@@ -1116,16 +1297,12 @@ function drawBandwidth(){
   cx.fillStyle=C_FR;cx.font='bold 8px Share Tech Mono';cx.textAlign='center';
   cx.fillText('fr',xFr,pad.t+ph+26);
 
-  // -3dB line at 0.707*Q
   const y707=yFn(db3);
 
-  // BW shaded region (keep shading)
   const bwX1=xF1||pad.l, bwX2=xF2||pad.l+pw;
-  cx.fillStyle='rgba(163,230,53,.06)';  // lime tint matching BW colour
+  cx.fillStyle='rgba(163,230,53,.06)';
   cx.fillRect(bwX1,pad.t,bwX2-bwX1,ph);
 
-  // Dotted vertical lines from Q peak down to just above x-axis label area (pad.t+ph)
-  // for the f1 and f2 bandwidth edges
   const COL_BW_loc='#a3e635';
   if(xF1){
     cx.strokeStyle=COL_BW_loc+'88';cx.lineWidth=1;cx.setLineDash([3,4]);
@@ -1140,7 +1317,6 @@ function drawBandwidth(){
     cx.fillText('f₂',xF2,pad.t+ph+26);
   }
 
-  // -3dB horizontal bracket at 0.707*Q level
   if(xF1&&xF2){
     cx.strokeStyle=COL_BW_loc;cx.lineWidth=1.5;cx.setLineDash([]);
     cx.beginPath();cx.moveTo(xF1,y707);cx.lineTo(xF2,y707);cx.stroke();
@@ -1149,11 +1325,9 @@ function drawBandwidth(){
     });
   }
 
-  // BW label below fr on x-axis (instead of above bracket)
   cx.fillStyle=COL_BW_loc;cx.font='bold 8px Share Tech Mono';cx.textAlign='center';
   cx.fillText('BW = '+formatFreq(BW),xFr,pad.t+ph+38);
 
-  // Slider marker — yellow to match other charts
   const xF=lfX(Math.log10(Math.max(fVal,F_MIN)));
   const iNorm=(calc(fVal).I-Imin)/Irange;
   const qScaledVal=iNorm*Q;
@@ -1202,16 +1376,10 @@ function drawCircuit(){
   }
   function drawGnd(x,y){
     cx.strokeStyle='rgba(0,229,255,.6)';cx.lineWidth=1.8;cx.lineCap='round';
-    // Connecting line from bus wire down to earth symbol
     cx.beginPath();cx.moveTo(x,y);cx.lineTo(x,y+10);cx.stroke();
-    // Earth symbol bars
     [[22,10],[14,18],[6,26]].forEach(([len,dy])=>{
       cx.beginPath();cx.moveTo(x-len/2,y+dy);cx.lineTo(x+len/2,y+dy);cx.stroke();
     });
-  }
-  function label(txt,x,y,col,sz,align){
-    cx.fillStyle=col||C_TEXT;cx.font=(sz||10)+'px Share Tech Mono';cx.textAlign=align||'center';
-    cx.fillText(txt,x,y);
   }
   const C_VOUT='#ffe600';
   function drawVout(topY,botY,x){
@@ -1245,22 +1413,26 @@ function drawCircuit(){
     drawZZ(rCx,top,true);
     drawInd(lCx,top,true);
     drawCap(cCx,top,true);
-    label('R='+parseFloat((R).toFixed(1))+'Ω',rCx,top-14,COL_R,12);
-    label('L='+fmtCompL(),lCx,top-14,COL_L,12);
-    label('C='+fmtCompC(),cCx,top-14,COL_C,12);
+    cx.fillStyle=C_ORANGE;cx.font='bold 10px Share Tech Mono';cx.textAlign='center';
+    cx.fillText('R='+fmtCompR(),rCx,top-14);
+    cx.fillStyle=COL_L;cx.font='bold 10px Share Tech Mono';cx.textAlign='center';
+    cx.fillText('L='+fmtCompL(),lCx,top-14);
+    cx.fillStyle=COL_C;cx.font='bold 10px Share Tech Mono';cx.textAlign='center';
+    cx.fillText('C='+fmtCompC(),cCx,top-14);
     cx.strokeStyle='#ff4444';cx.lineWidth=1.5;
     cx.beginPath();cx.arc(lx,midY,vsR,0,Math.PI*2);cx.stroke();
     cx.fillStyle='#ff4444';cx.font='bold 11px Share Tech Mono';cx.textAlign='center';
     cx.fillText('Vs',lx,midY+4);
     cx.fillStyle='#ff4444';cx.font='bold 12px Share Tech Mono';cx.textAlign='left';
-    cx.fillText(Vs+'V',lx+vsR+6,midY+2);
+    cx.fillText(fmtCompVs(),lx+vsR+6,midY+2);
     drawGnd(lx+36,bot);
     const arX=rCx-50,arY=top-14;
     cx.strokeStyle=C_GREEN;cx.lineWidth=1.8;
     cx.beginPath();cx.moveTo(arX-12,arY);cx.lineTo(arX+12,arY);cx.stroke();
     cx.fillStyle=C_GREEN;
     cx.beginPath();cx.moveTo(arX+12,arY);cx.lineTo(arX+2,arY-5);cx.lineTo(arX+2,arY+5);cx.closePath();cx.fill();
-    label('I',arX-18,arY+4,C_GREEN,9);
+    cx.fillStyle=C_GREEN;cx.font='9px Share Tech Mono';cx.textAlign='right';
+    cx.fillText('I',arX-18,arY+4);
     dot(lx,top,true);dot(lx,bot,true);dot(rx,top,true);dot(rx,bot,true);
     drawVout(top,bot,rx);
   } else {
@@ -1273,7 +1445,7 @@ function drawCircuit(){
     cx.fillStyle='#ff4444';cx.font='bold 11px Share Tech Mono';cx.textAlign='center';
     cx.fillText('Vs',vsX,midY+4);
     cx.fillStyle='#ff4444';cx.font='bold 12px Share Tech Mono';cx.textAlign='left';
-    cx.fillText(Vs+'V',vsX+22,midY+2);
+    cx.fillText(fmtCompVs(),vsX+22,midY+2);
     wire(vsX,top,vsX,midY-18,'#ff4444');wire(vsX,midY+18,vsX,bot,'#ff4444');
     wire(vsX,top,rx,top);
     wire(vsX,bot,rx,bot);
@@ -1282,20 +1454,24 @@ function drawCircuit(){
     cx.beginPath();cx.moveTo(arX,arY);cx.lineTo(arX+24,arY);cx.stroke();
     cx.fillStyle=C_GREEN;
     cx.beginPath();cx.moveTo(arX+24,arY);cx.lineTo(arX+14,arY-5);cx.lineTo(arX+14,arY+5);cx.closePath();cx.fill();
-    label('I',arX-8,arY+4,C_GREEN,9);
+    cx.fillStyle=C_GREEN;cx.font='9px Share Tech Mono';cx.textAlign='left';
+    cx.fillText('I',arX-8,arY+4);
     const span=rx-vsX;
     const rX=vsX+span*0.27,lX=vsX+span*0.54,cX=vsX+span*0.78;
     const rGapV=26;
     wire(rX,top,rX,midY-rGapV);wire(rX,midY+rGapV,rX,bot);
     drawZZ(rX,midY,false);
-    label('R='+parseFloat(R.toFixed(1))+'Ω',rX+8,midY-rGapV-6,COL_R,12,'left');
+    cx.fillStyle=C_ORANGE;cx.font='bold 10px Share Tech Mono';cx.textAlign='left';
+    cx.fillText('R='+fmtCompR(),rX+8,midY-rGapV-6);
     const lGapV=28;
     wire(lX,top,lX,midY-lGapV);wire(lX,midY+lGapV,lX,bot);
     drawInd(lX,midY,false);
-    label('L='+fmtCompL(),lX+8,midY-lGapV-6,COL_L,12,'left');
+    cx.fillStyle=COL_L;cx.font='bold 10px Share Tech Mono';cx.textAlign='left';
+    cx.fillText('L='+fmtCompL(),lX+8,midY-lGapV-6);
     wire(cX,top,cX,midY-6-3);wire(cX,midY+6+3,cX,bot);
     cx.fillStyle=COL_C;cx.fillRect(cX-18,midY-9,36,4);cx.fillRect(cX-18,midY+5,36,4);
-    label('C='+fmtCompC(),cX+8,midY-14,COL_C,12,'left');
+    cx.fillStyle=COL_C;cx.font='bold 10px Share Tech Mono';cx.textAlign='left';
+    cx.fillText('C='+fmtCompC(),cX+8,midY-14);
     drawGnd(vsX+36,bot);
     [vsX,rX,lX,cX].forEach(x=>{dot(x,top,true);dot(x,bot,true);});
     dot(rx,top,true);dot(rx,bot,true);
@@ -1303,8 +1479,7 @@ function drawCircuit(){
   }
 }
 
-// ── Coloured HTML spans for component symbols ─────────────────────────────────
-// These match the line colours used in graphs
+// ── Coloured HTML spans ───────────────────────────────────────────────────────
 function cspan(txt, col){ return `<span style="color:${col};font-weight:700">${txt}</span>`; }
 const XC_s  = () => cspan('X<sub>C</sub>', COL_XC);
 const XL_s  = () => cspan('X<sub>L</sub>', COL_XL);
@@ -1315,14 +1490,13 @@ const L_s   = () => cspan('L',             COL_L);
 
 // ── Update panel displays ─────────────────────────────────────────────────────
 function updateTopBar(){
-  // fr formula in slider row
-  const fr=resonantFreq();
-  document.getElementById('sliderFrVal').textContent=formatFreq(fr);
+  // Use quantised fr for the displayed value
+  const frQ = resonantFreqQuantised();
+  document.getElementById('sliderFrVal').textContent = formatFreq(frQ);
 
   const isSeries=circuitType==='series';
   const w  = s => `<span style="color:#fff;font-weight:400">${s}</span>`;
   const sym = (s,col) => `<span style="color:${col};font-weight:700">${s}</span>`;
-  // Brackets normal weight white, symbol inside coloured bold
   const br  = s => `<span style="color:#fff;font-weight:400">${s}</span>`;
   const cs  = (s,col) => `${br('(')}${sym(s,col)}${br(')')}`;
 
@@ -1334,40 +1508,44 @@ function updateTopBar(){
   const Vs_s = cs('V<sub>s</sub>', '#ff4444');
   const phi_s= sym('φ',        '#ff3d9a');
 
-  document.getElementById('fmlaZ').innerHTML=w(isSeries
+  const fmlaZEl = document.getElementById('fmlaZ');
+  fmlaZEl.innerHTML=w(isSeries
     ?`${Z_s} = √(${R_s}² + (${XL_s} − ${XC_s})²)`
     :`${Z_s} = 1 / √((1/${R_s})² + (1/${XC_s} − 1/${XL_s})²)`);
+  // Scale font so the formula never wraps within the fixed-height row
+  fmlaZEl.style.fontSize = isSeries ? '.68rem' : '.58rem';
   document.getElementById('fmlaI').innerHTML=w(`${I_s} = ${Vs_s} / ${Z_s}`);
   document.getElementById('fmlaPhase').innerHTML=w(isSeries
     ?`${phi_s} = arctan((${XL_s} − ${XC_s}) / ${R_s})`
     :`${phi_s} = −arctan((1/${XC_s} − 1/${XL_s}) / (1/${R_s}))`);
-  const QFormula=isSeries?'Q = (1/R)√(L/C)':'Q = R√(C/L)';
-  // fmlaBW is static coloured HTML — do not overwrite
 }
 
 function updateFreqBar(){
-  const fr=resonantFreq();
+  // Use quantised fr everywhere in the UI
+  const frQ = resonantFreqQuantised();
   const {Z,I,VR,VC,VL,phase}=calc(fVal);
-  const ratio=fVal/fr;
-  document.getElementById('fBig').textContent=formatFreq(fVal);
-  // normalised frequency panel
-  const ratioEl=document.getElementById('rbRatioBig');
-  ratioEl.textContent=ratio.toFixed(4)+'×';
-  ratioEl.style.color=Math.abs(ratio-1)<0.01?'#ff9500':ratio>1?'#818cf8':'#00e5ff';
-  document.getElementById('nfFreqVal').textContent=formatFreq(fVal);
-  document.getElementById('nfFrVal').textContent=formatFreq(fr);
+  const ratio=fVal/frQ;
+  const fBigEl=document.getElementById('fBig');
+  if(fBigEl) fBigEl.textContent=formatFreq(fVal);
 
-  // ── Resonance statement — full coloured explanation ───────────────────────
+  const ratioEl=document.getElementById('rbRatioBig');
+  if(ratioEl){
+    ratioEl.textContent=ratio.toFixed(4)+'×';
+    ratioEl.style.color=Math.abs(ratio-1)<0.005?'#ff9500':ratio>1?'#818cf8':'#00e5ff';
+  }
+  const nfFreqEl=document.getElementById('nfFreqVal');
+  const nfFrEl=document.getElementById('nfFrVal');
+  if(nfFreqEl) nfFreqEl.textContent=formatFreq(fVal);
+  if(nfFrEl) nfFrEl.textContent=formatFreq(frQ);
+
   const xs = (sym,col) => `<span style="color:${col};font-weight:700">${sym}</span>`;
   const XLx = xs('X<sub>L</sub>', COL_XL);
   const XCx = xs('X<sub>C</sub>', COL_XC);
   const Zx  = xs('Z', COL_R);
   const Rx  = xs('R', COL_R);
   const Ix  = xs('I', COL_I);
-  const Lx  = xs('L', COL_L);
-  const Cx  = xs('C', COL_C);
 
-  const atRes=Math.abs(ratio-1)<0.01;
+  const atRes=Math.abs(ratio-1)<0.005;
   const isAbove=ratio>1;
   const isSeries=circuitType==='series';
 
@@ -1404,16 +1582,11 @@ function updateVoltInfo(){
   document.getElementById('fmlaVC_val').textContent=niceNum(VC,'V');
 }
 
-// ── Workings — row 1 (aligned under 4 charts) ────────────────────────────────
-// Panes: [Xc] [XL] [Impedance] [Current]
+// ── Workings row 1 ────────────────────────────────────────────────────────────
 function updateWorkingsRow1(){
-  const {Xc,XL,Z,I}=calc(fVal);
-  const w=2*Math.PI*fVal;
+  const ef=effectiveF(); // exact fr at resonance, else fVal
+  const {Xc,XL,Z,I}=calc(ef);
 
-  const XcFormula=`1 / (2π · f · ${R_s()})… wait`;
-
-  // Pane 1: Xc
-  const xcCalcStr=`1 / (2π × ${formatFreq(fVal)} × ${fmtVal(C)}F)`;
   const pane1=`<div class="wk-pane">
     <div class="wk-title" style="color:${COL_XC}">Capacitive Reactance (<span style="color:${COL_XC}">X<sub>C</sub></span>)</div>
     <div class="wk-line"><span class="sym">${XC_s()}</span><span class="eq">=</span><span class="formula">1 / (2π · f · ${C_s()})</span></div>
@@ -1421,8 +1594,6 @@ function updateWorkingsRow1(){
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${COL_XC}">${fmtImp(Xc)}</span></div>
   </div>`;
 
-  // Pane 2: XL
-  const xlCalcStr=`2π × ${formatFreq(fVal)} × ${fmtVal(L)}H`;
   const pane2=`<div class="wk-pane">
     <div class="wk-title" style="color:${COL_XL}">Inductive Reactance (<span style="color:${COL_XL}">X<sub>L</sub></span>)</div>
     <div class="wk-line"><span class="sym">${XL_s()}</span><span class="eq">=</span><span class="formula">2π · f · ${L_s()}</span></div>
@@ -1430,15 +1601,14 @@ function updateWorkingsRow1(){
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${COL_XL}">${fmtImp(XL)}</span></div>
   </div>`;
 
-  // Pane 3: Impedance
   const isSeries=circuitType==='series';
   const ZFormula=isSeries
     ?`√(${R_s()}² + (${XL_s()} − ${XC_s()})²)`
     :`1 / √((1/${R_s()})² + (1/${XC_s()} − 1/${XL_s()})²)`;
-  const cv = (val, col) => `<span style="color:${col};font-weight:700">${val}</span>`;
+  const cv2 = (val, col) => `<span style="color:${col};font-weight:700">${val}</span>`;
   const ZCalc=isSeries
-    ?`√(${cv(fmtVal(R),COL_R)}² + (${cv(fmtVal(XL),COL_XL)} − ${cv(fmtVal(Xc),COL_XC)})²)`
-    :`1 / √((1/${cv(fmtVal(R),COL_R)})² + (1/${cv(fmtVal(Xc),COL_XC)} − 1/${cv(fmtVal(XL),COL_XL)})²)`;
+    ?`√(${cv2(fmtVal(R),COL_R)}² + (${cv2(fmtVal(XL),COL_XL)} − ${cv2(fmtVal(Xc),COL_XC)})²)`
+    :`1 / √((1/${cv2(fmtVal(R),COL_R)})² + (1/${cv2(fmtVal(Xc),COL_XC)} − 1/${cv2(fmtVal(XL),COL_XL)})²)`;
   const pane3=`<div class="wk-pane">
     <div class="wk-title" style="color:${COL_R}">Impedance |<span style="color:${COL_R}">Z</span>|</div>
     <div class="wk-line"><span class="sym">Z</span><span class="eq">=</span><span class="formula">${ZFormula}</span></div>
@@ -1446,30 +1616,31 @@ function updateWorkingsRow1(){
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${COL_R}">${fmtImp(Z)}</span></div>
   </div>`;
 
-  // Pane 4: Current
+  // Derive displayed I from the rounded Z so student can verify Vs ÷ shown-Z = shown-I
+  const ZRounded = parseFloat(fmtImp(Z));
+  const IDisplayed = isFinite(ZRounded) && ZRounded > 0 ? Vs / ZRounded : I;
   const pane4=`<div class="wk-pane">
     <div class="wk-title" style="color:${COL_I}">Circuit Current (<span style="color:${COL_I}">I</span>)</div>
     <div class="wk-line"><span class="sym">${I_s()}</span><span class="eq">=</span><span class="formula"><span style="color:#ff4444;font-weight:700">V<sub>s</sub></span> / <span style="color:${COL_R};font-weight:700">Z</span></span></div>
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc"><span style="color:#ff4444;font-weight:700">${Vs}V</span> / <span style="color:${COL_R};font-weight:700">${fmtImp(Z)}</span></span></div>
-    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${COL_I}">${fmtAmp(I)}</span></div>
+    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${COL_I}">${fmtAmp(IDisplayed)}</span></div>
   </div>`;
 
   document.getElementById('workingsRow1').innerHTML=pane1+pane2+pane3+pane4;
-  // Also populate inline mobile placeholders
   document.getElementById('workingsInlineXc').innerHTML=pane1;
   document.getElementById('workingsInlineXl').innerHTML=pane2;
   document.getElementById('workingsInlineZ').innerHTML=pane3;
   document.getElementById('workingsInlineI').innerHTML=pane4;
 }
 
-// ── Workings — row 2 (aligned under 3 charts) ────────────────────────────────
-// Panes: [Voltages VR VC VL] [Q Factor & Bandwidth] [Phase]
+// ── Workings row 2 ────────────────────────────────────────────────────────────
 function updateWorkingsRow2(){
-  const {Xc,XL,Z,I,VR,VC,VL,phase}=calc(fVal);
-  const fr=resonantFreq(),Q=qFactor(),BW=bandwidth();
+  const ef=effectiveF();
+  const {Xc,XL,Z,I,VR,VC,VL,phase}=calc(ef);
+  // Use quantised fr for all displayed BW/Q values
+  const frQ=resonantFreqQuantised(),Q=qFactor(),BW=bandwidth();
   const isSeries=circuitType==='series';
 
-  // Pane 1: Voltages (was pane 5 before)
   const pane1=`<div class="wk-pane">
     <div class="wk-title" style="color:${C_YELLOW}">Component Voltages (<span style="color:${COL_R}">V<sub>R</sub></span>) · (<span style="color:${COL_XL}">V<sub>L</sub></span>) · (<span style="color:${COL_XC}">V<sub>C</sub></span>)</div>
     <div class="wk-line"><span class="sym" style="color:${COL_R}">V<sub>R</sub></span><span class="eq">=</span><span class="formula">${I_s()} × ${R_s()}</span></div>
@@ -1480,9 +1651,8 @@ function updateWorkingsRow2(){
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${COL_XL}">${fmtV(VL)}</span></div>
   </div>`;
 
-  // Pane 2: Q Factor & Bandwidth
-  const COL_Q  = '#e879f9';   // fuchsia
-  const COL_BW = '#a3e635';   // lime
+  const COL_Q  = '#e879f9';
+  const COL_BW = '#a3e635';
   const Q_s  = () => `<span style="color:${COL_Q};font-weight:700">Q</span>`;
   const BW_s = () => `<span style="color:${COL_BW};font-weight:700">BW</span>`;
   const fr_s = () => `<span style="color:${C_FR};font-weight:700">f<sub>r</sub></span>`;
@@ -1492,7 +1662,7 @@ function updateWorkingsRow2(){
   const QCalc=isSeries
     ?`(1/<span style="color:${COL_R};font-weight:700">${fmtVal(R)}</span>) × √(<span style="color:${COL_L};font-weight:700">${fmtCompL()}</span>/<span style="color:${COL_C};font-weight:700">${fmtCompC()}</span>)`
     :`<span style="color:${COL_R};font-weight:700">${fmtVal(R)}</span> × √(<span style="color:${COL_C};font-weight:700">${fmtCompC()}</span>/<span style="color:${COL_L};font-weight:700">${fmtCompL()}</span>)`;
-  const f1=fr-BW/2, f2=fr+BW/2;
+  const f1=frQ-BW/2, f2=frQ+BW/2;
   const f1_s=()=>`<span style="color:${C_FR};font-weight:700">f<sub>1</sub></span>`;
   const f2_s=()=>`<span style="color:${C_FR};font-weight:700">f<sub>2</sub></span>`;
   const pane2=`<div class="wk-pane">
@@ -1501,28 +1671,44 @@ function updateWorkingsRow2(){
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc">${QCalc}</span></div>
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${COL_Q}">${Q.toFixed(4)}</span></div>
     <div class="wk-line"><span class="sym">${BW_s()}</span><span class="eq">=</span><span class="formula">${fr_s()} / ${Q_s()}</span></div>
-    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc"><span style="color:${C_FR};font-weight:700">${formatFreq(fr)}</span> / <span style="color:${COL_Q};font-weight:700">${Q.toFixed(4)}</span></span></div>
+    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc"><span style="color:${C_FR};font-weight:700">${formatFreq(frQ)}</span> / <span style="color:${COL_Q};font-weight:700">${Q.toFixed(4)}</span></span></div>
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${COL_BW}">${formatFreq(BW)}</span></div>
     <div class="wk-line"><span class="sym">${f1_s()}</span><span class="eq">=</span><span class="formula">${fr_s()} − ${BW_s()}/2</span></div>
-    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc"><span style="color:${C_FR};font-weight:700">${formatFreq(fr)}</span> − <span style="color:${COL_BW};font-weight:700">${formatFreq(BW)}</span>/2</span></div>
+    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc"><span style="color:${C_FR};font-weight:700">${formatFreq(frQ)}</span> − <span style="color:${COL_BW};font-weight:700">${formatFreq(BW)}</span>/2</span></div>
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${C_FR}">${formatFreq(f1)}</span></div>
     <div class="wk-line"><span class="sym">${f2_s()}</span><span class="eq">=</span><span class="formula">${fr_s()} + ${BW_s()}/2</span></div>
-    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc"><span style="color:${C_FR};font-weight:700">${formatFreq(fr)}</span> + <span style="color:${COL_BW};font-weight:700">${formatFreq(BW)}</span>/2</span></div>
+    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc"><span style="color:${C_FR};font-weight:700">${formatFreq(frQ)}</span> + <span style="color:${COL_BW};font-weight:700">${formatFreq(BW)}</span>/2</span></div>
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${C_FR}">${formatFreq(f2)}</span></div>
   </div>`;
 
-  // Pane 3: Phase
   const phFormula=isSeries
     ?`arctan((${XL_s()}−${XC_s()}) / ${R_s()})`
     :`−arctan((1/${XC_s()} − 1/${XL_s()}) / (1/${R_s()}))`;
+
+  // Intermediate substituted values for the calc line
+  const cv3 = (val,col) => `<span style="color:${col};font-weight:700">${val}</span>`;
+  const phCalc = isSeries
+    ? `arctan((${cv3(fmtImp(XL),COL_XL)} − ${cv3(fmtImp(Xc),COL_XC)}) / ${cv3(fmtVal(R)+'Ω',COL_R)})`
+    : `−arctan((1/${cv3(fmtImp(Xc),COL_XC)} − 1/${cv3(fmtImp(XL),COL_XL)}) / (1/${cv3(fmtVal(R)+'Ω',COL_R)}))`;
+
+  // Simplified arctan argument for the next step
+  const phArg = isSeries
+    ? (XL - Xc) / R
+    : -(1/Xc - 1/XL) / (1/R);
+  const phArgStr = `arctan(${cv3(parseFloat(phArg.toFixed(6)).toString(), C_PINK)})`;
+
+  const phNote = ''; // effectiveF() uses exact fr at resonance so no offset
+
   const pane3=`<div class="wk-pane">
     <div class="wk-title" style="color:${C_PINK}">Phase Angle (<span style="color:${C_PINK}">φ</span>)</div>
     <div class="wk-line"><span class="sym">φ</span><span class="eq">=</span><span class="formula">${phFormula}</span></div>
+    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc">${phCalc}</span></div>
+    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc">${phArgStr}</span></div>
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${C_PINK}">${phase.toFixed(3)}°</span></div>
+    ${phNote}
   </div>`;
 
   document.getElementById('workingsRow2').innerHTML=pane1+pane2+pane3;
-  // Also populate inline mobile placeholders
   document.getElementById('workingsInlineVolt').innerHTML=pane1;
   document.getElementById('workingsInlineBW').innerHTML=pane2;
   document.getElementById('workingsInlinePhase').innerHTML=pane3;
@@ -1535,9 +1721,8 @@ function update(){
   updateWorkingsRow1();
   updateWorkingsRow2();
   positionFrTick();
-  // Slider thumb colour — emerald at fr, XL periwinkle if inductive, XC cyan if capacitive
-  const _fr=resonantFreq(), _ratio=fVal/_fr;
-  const _thumbCol=Math.abs(_ratio-1)<0.01?COL_R:(_ratio>1?COL_XL:COL_XC);
+  const frQ=resonantFreqQuantised(), _ratio=fVal/frQ;
+  const _thumbCol=Math.abs(_ratio-1)<0.005?COL_R:(_ratio>1?COL_XL:COL_XC);
   document.getElementById('fSlider').style.setProperty('--thumb-col',_thumbCol);
   drawXc();
   drawXL();
@@ -1553,18 +1738,20 @@ window.addEventListener('resize',()=>{resizeAll();update();});
 resizeAll();
 
 document.getElementById('inpR').value=10;
+document.getElementById('selR').value='1';
 document.getElementById('inpC').value=500;
 document.getElementById('selC').value='1e-9';
 document.getElementById('inpL').value=100;
 document.getElementById('selL').value='1e-6';
 document.getElementById('inpVs').value=10;
-// Read unit dropdowns for initial values
+document.getElementById('selVs').value='1';
 onComp();
 
 const initFr=resonantFreq();
 const initPos=Math.round(sliderFromF(Math.min(Math.max(initFr,F_MIN),F_MAX)));
 document.getElementById('fSlider').value=initPos;
 fVal=fFromSlider(initPos);
+syncFreqInput();
 update();
 </script>
 </body>
