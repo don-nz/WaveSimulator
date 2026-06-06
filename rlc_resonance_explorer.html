@@ -1128,8 +1128,11 @@ function drawCircuit(){
     cx.stroke();
   }
   function drawGnd(x,y){
-    [[22,0],[14,8],[6,16]].forEach(([len,dy])=>{
-      cx.strokeStyle='rgba(0,229,255,.6)';cx.lineWidth=1.8;cx.lineCap='round';
+    cx.strokeStyle='rgba(0,229,255,.6)';cx.lineWidth=1.8;cx.lineCap='round';
+    // Connecting line from bus wire down to earth symbol
+    cx.beginPath();cx.moveTo(x,y);cx.lineTo(x,y+10);cx.stroke();
+    // Earth symbol bars
+    [[22,10],[14,18],[6,26]].forEach(([len,dy])=>{
       cx.beginPath();cx.moveTo(x-len/2,y+dy);cx.lineTo(x+len/2,y+dy);cx.stroke();
     });
   }
@@ -1178,7 +1181,7 @@ function drawCircuit(){
     cx.fillText('Vs',lx,midY+4);
     cx.fillStyle='#ff4444';cx.font='bold 12px Share Tech Mono';cx.textAlign='left';
     cx.fillText(Vs+'V',lx+vsR+6,midY+2);
-    drawGnd((lx+rx)/2,bot+8);
+    drawGnd(lx+36,bot);
     const arX=rCx-50,arY=top-14;
     cx.strokeStyle=C_GREEN;cx.lineWidth=1.8;
     cx.beginPath();cx.moveTo(arX-12,arY);cx.lineTo(arX+12,arY);cx.stroke();
@@ -1220,7 +1223,7 @@ function drawCircuit(){
     wire(cX,top,cX,midY-6-3);wire(cX,midY+6+3,cX,bot);
     cx.fillStyle=COL_C;cx.fillRect(cX-18,midY-9,36,4);cx.fillRect(cX-18,midY+5,36,4);
     label('C='+fmtCompC(),cX+8,midY-14,COL_C,12,'left');
-    drawGnd((vsX+rx)/2,bot+8);
+    drawGnd(vsX+36,bot);
     [vsX,rX,lX,cX].forEach(x=>{dot(x,top,true);dot(x,bot,true);});
     dot(rx,top,true);dot(rx,bot,true);
     drawVout(top,bot,rx);
