@@ -369,7 +369,7 @@
       <div class="nf-value-col">
         <div class="nf-label">Current value</div>
         <div class="nf-big" id="rbRatioBig">—</div>
-        <div class="nf-formula">f / f<sub>r</sub> = <span id="nfFreqVal" style="color:#ffffff;font-weight:700">—</span> / <span id="nfFrVal" style="color:#34d399;font-weight:700">—</span></div>
+        <div class="nf-formula"><span style="color:#ffffff;font-weight:700">f</span> / <span style="color:#34d399;font-weight:700">f<sub>r</sub></span> = <span id="nfFreqVal" style="color:#ffffff;font-weight:700">—</span> / <span id="nfFrVal" style="color:#34d399;font-weight:700">—</span></div>
       </div>
       <div class="nf-rules-col">
         <div class="ratio-rule">
@@ -628,14 +628,14 @@ function drawLogGrid(cx,fw,fh,pw,ph,yFn,yTicks,yFmt,yAxisLabel,curveCol){
       cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
     });
     const x=PAD.l+pw*(lf-lmin)/(lmax-lmin);
-    cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillStyle='#ffffff';cx.font='8px Share Tech Mono';cx.textAlign='center';
     cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
   }
   yTicks.forEach(v=>{
     const y=yFn(v); if(y<PAD.t-2||y>PAD.t+ph+2) return;
     cx.setLineDash([2,5]);cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;
     cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
-    cx.fillStyle='rgba(200,220,240,.45)';cx.font='9px Share Tech Mono';cx.textAlign='right';
+    cx.fillStyle=curveCol;cx.font='9px Share Tech Mono';cx.textAlign='right';
     cx.fillText(yFmt(v),PAD.l-5,y+4);
   });
   cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
@@ -763,14 +763,14 @@ function drawXL(){
     const x=linX(f);
     cx.setLineDash([2,5]);cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;
     cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
-    cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillStyle='#ffffff';cx.font='8px Share Tech Mono';cx.textAlign='center';
     cx.fillText(formatFreq(f),x,PAD.t+ph+14);
   });
   ticks.forEach(v=>{
     const y=yFn(v); if(y<PAD.t-2||y>PAD.t+ph+2) return;
     cx.setLineDash([2,5]);cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;
     cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
-    cx.fillStyle='rgba(200,220,240,.45)';cx.font='9px Share Tech Mono';cx.textAlign='right';
+    cx.fillStyle=C_PURPLE;cx.font='9px Share Tech Mono';cx.textAlign='right';
     cx.fillText(smartFmt(ticks,'imp')(v),PAD.l-5,y+4);
   });
   cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
@@ -853,14 +853,14 @@ function drawPhase(){
     cx.strokeStyle=d===0?'rgba(0,229,255,.15)':Math.abs(d)===45?'rgba(255,61,154,.3)':'rgba(30,45,74,.7)';
     cx.lineWidth=Math.abs(d)===45||d===0?1.4:1;
     cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
-    cx.fillStyle=Math.abs(d)===45?'rgba(255,61,154,.9)':'rgba(200,220,240,.5)';
+    cx.fillStyle=C_PINK;
     cx.font='9px Share Tech Mono';cx.textAlign='right';cx.fillText(d+'°',PAD.l-5,y+4);
   });
   for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
     const x=lfX(lf); if(x<PAD.l||x>PAD.l+pw) continue;
     cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;cx.setLineDash([2,5]);
     cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
-    cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillStyle='#ffffff';cx.font='8px Share Tech Mono';cx.textAlign='center';
     cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
   }
   [[C_PINK+'44',5,7],[C_PINK,1.8,0]].forEach(([c,lw,bl])=>{
@@ -903,7 +903,7 @@ function drawVoltages(){
 
   const clippedVals=[fnR,fnC,fnL].flatMap(fn=>sweepVals(fn).filter(v=>v!==null&&isFinite(v)));
   const {yFn,ticks}=makeLinY(0,Math.max(...clippedVals,1)*1.05,ph);
-  drawLogGrid(cx,fw,fh,pw,ph,yFn,ticks,smartFmt(ticks,'volt'),'V',C_CYAN);
+  drawLogGrid(cx,fw,fh,pw,ph,yFn,ticks,smartFmt(ticks,'volt'),'V',C_YELLOW);
 
   plotCurve(cx,C_ORANGE,fnR,lfX,yFn,ph);
   plotCurve(cx,C_CYAN,  fnC,lfX,yFn,ph);
@@ -1006,7 +1006,7 @@ function drawBandwidth(){
     cx.strokeStyle=v===db3?'rgba(163,230,53,.4)':v===Q?'rgba(232,121,249,.3)':'rgba(30,45,74,.7)';
     cx.lineWidth=v===db3||v===Q?1.4:1;
     cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
-    cx.fillStyle=v===db3?'#a3e635':v===Q?'#e879f9':'rgba(200,220,240,.45)';
+    cx.fillStyle='#e879f9';
     cx.font='9px Share Tech Mono';cx.textAlign='right';
     cx.fillText(lbl,PAD.l-4,y+4);
   });
@@ -1016,7 +1016,7 @@ function drawBandwidth(){
     const x=lfX(lf); if(x<PAD.l||x>PAD.l+pw) continue;
     cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;cx.setLineDash([2,5]);
     cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
-    cx.fillStyle='rgba(200,220,240,.4)';cx.font='8px Share Tech Mono';cx.textAlign='center';
+    cx.fillStyle='#ffffff';cx.font='8px Share Tech Mono';cx.textAlign='center';
     cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
   }
   cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
@@ -1024,8 +1024,8 @@ function drawBandwidth(){
   cx.fillText('Q Factor',0,0);cx.restore();
 
   // Response curve — scaled to Q
-  [[C_GREEN+'33',5,7],[C_GREEN,1.8,0]].forEach(([c,lw,bl])=>{
-    cx.shadowColor=C_GREEN;cx.shadowBlur=bl;cx.strokeStyle=c;cx.lineWidth=lw;
+  [['#e879f933',5,7],['#e879f9',1.8,0]].forEach(([c,lw,bl])=>{
+    cx.shadowColor='#e879f9';cx.shadowBlur=bl;cx.strokeStyle=c;cx.lineWidth=lw;
     cx.beginPath();
     for(let i=0;i<=N;i++){
       const lf=lmin+(i/N)*(lmax-lmin);
