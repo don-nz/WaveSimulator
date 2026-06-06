@@ -105,7 +105,7 @@
     @media(max-width:860px){.row2{grid-template-columns:1fr;}}
 
     .panel{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:.8rem;}
-    .panel-title{font-size:.56rem;letter-spacing:.2em;color:var(--label);text-transform:uppercase;
+    .panel-title{font-size:.65rem;letter-spacing:.2em;color:var(--label);text-transform:uppercase;
       margin-bottom:.3rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);}
     .graph-formula{
       font-family:'Share Tech Mono',monospace;font-size:.72rem;
@@ -168,7 +168,15 @@
     .graphs .panel{min-width:0;}
     canvas{display:block;width:100%;max-width:100%;}
 
-    /* ── Workings — mirror the 4+3 graph layout ── */
+    /* ── Graph + workings pairs for mobile ── */
+    .graph-pair { display:block; min-width:0; }
+    /* Hide inline workings on desktop — shown in workingsRow divs instead */
+    .graph-pair > div[id^="workingsInline"] { display:none; }
+    @media(max-width:640px){
+      /* On mobile, inline workings appear below their graph */
+      .graph-pair > div[id^="workingsInline"] { display:flex !important; flex-direction:column; gap:.35rem; margin-top:.8rem; }
+      #workingsRow1, #workingsRow2 { display:none !important; }
+    }
     .workings-4{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;}
     .workings-3{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;}
     @media(max-width:1100px){.workings-4{grid-template-columns:repeat(2,1fr);}}
@@ -300,66 +308,107 @@
         </div>
       </div>
       <div class="freq-statement" id="freqStatement">—</div>
+      <div style="text-align:center;margin-top:.3rem;">
+        <button id="btnWorkings" onclick="toggleWorkings()" style="
+          font-family:'Share Tech Mono',monospace;font-size:.62rem;letter-spacing:.15em;
+          text-transform:uppercase;cursor:pointer;
+          border:1px solid #ffffff;border-radius:3px;
+          background:#ffffff;color:#000000;
+          padding:.3rem 1.1rem;transition:all .2s;
+        ">▶ Show Workings</button>
+      </div>
     </div>
   </div>
 
   <!-- ── Graphs row 1: 4 charts (Xc, XL, Impedance, Current) ── -->
   <div class="graphs graphs-4">
-    <div class="panel">
-      <div class="panel-title" style="color:#00e5ff">Capacitive Reactance (<span style="color:#00e5ff">X<sub>C</sub></span>) <span style="color:#fff">vs Frequency</span></div>
-      <div class="graph-formula" id="fmlaXc"><span style="color:#fff"><span style="color:#fff">(</span><span style="color:#00e5ff;font-weight:700">X<sub>C</sub></span><span style="color:#fff">)</span> = 1 / (2π · f · <span style="color:#fff">(</span><span style="color:#2dd4bf;font-weight:700">C</span><span style="color:#fff">)</span>)</span></div>
-      <canvas id="xcCanvas" height="240"></canvas>
+    <div class="graph-pair">
+      <div class="panel">
+        <div class="panel-title" style="color:#00e5ff">Capacitive Reactance (<span style="color:#00e5ff">X<sub>C</sub></span>) <span style="color:#fff">vs Frequency</span></div>
+        <div class="graph-formula" id="fmlaXc"><span style="color:#fff"><span style="color:#fff">(</span><span style="color:#00e5ff;font-weight:700">X<sub>C</sub></span><span style="color:#fff">)</span> = 1 / (2π · f · <span style="color:#fff">(</span><span style="color:#2dd4bf;font-weight:700">C</span><span style="color:#fff">)</span>)</span></div>
+        <canvas id="xcCanvas" height="240"></canvas>
+      </div>
+      <div id="workingsInlineXc"></div>
     </div>
-    <div class="panel">
-      <div class="panel-title" style="color:#818cf8">Inductive Reactance (<span style="color:#818cf8">X<sub>L</sub></span>) <span style="color:#fff">vs Frequency</span></div>
-      <div class="graph-formula" id="fmlaXl"><span style="color:#fff"><span style="color:#fff">(</span><span style="color:#818cf8;font-weight:700">X<sub>L</sub></span><span style="color:#fff">)</span> = 2π · f · <span style="color:#fff">(</span><span style="color:#c4a0ff;font-weight:700">L</span><span style="color:#fff">)</span></span></div>
-      <canvas id="xlCanvas" height="240"></canvas>
+    <div class="graph-pair">
+      <div class="panel">
+        <div class="panel-title" style="color:#818cf8">Inductive Reactance (<span style="color:#818cf8">X<sub>L</sub></span>) <span style="color:#fff">vs Frequency</span></div>
+        <div class="graph-formula" id="fmlaXl"><span style="color:#fff"><span style="color:#fff">(</span><span style="color:#818cf8;font-weight:700">X<sub>L</sub></span><span style="color:#fff">)</span> = 2π · f · <span style="color:#fff">(</span><span style="color:#c4a0ff;font-weight:700">L</span><span style="color:#fff">)</span></span></div>
+        <canvas id="xlCanvas" height="240"></canvas>
+      </div>
+      <div id="workingsInlineXl"></div>
     </div>
-    <div class="panel">
-      <div class="panel-title" style="color:#ff9500">Impedance |<span style="color:#ff9500">Z</span>| <span style="color:#fff">vs Frequency</span></div>
-      <div class="graph-formula" id="fmlaZ"></div>
-      <canvas id="impCanvas" height="240"></canvas>
+    <div class="graph-pair">
+      <div class="panel">
+        <div class="panel-title" style="color:#ff9500">Impedance |<span style="color:#ff9500">Z</span>| <span style="color:#fff">vs Frequency</span></div>
+        <div class="graph-formula" id="fmlaZ"></div>
+        <canvas id="impCanvas" height="240"></canvas>
+      </div>
+      <div id="workingsInlineZ"></div>
     </div>
-    <div class="panel">
-      <div class="panel-title" style="color:#00ff99">Circuit Current (<span style="color:#00ff99">I</span>) <span style="color:#fff">vs Frequency</span></div>
-      <div class="graph-formula" id="fmlaI"></div>
-      <canvas id="currCanvas" height="240"></canvas>
+    <div class="graph-pair">
+      <div class="panel">
+        <div class="panel-title" style="color:#00ff99">Circuit Current (<span style="color:#00ff99">I</span>) <span style="color:#fff">vs Frequency</span></div>
+        <div class="graph-formula" id="fmlaI"></div>
+        <canvas id="currCanvas" height="240"></canvas>
+      </div>
+      <div id="workingsInlineI"></div>
     </div>
   </div>
 
-  <!-- ── Workings row 1: aligned under graphs row 1 ── -->
+  <!-- ── Workings row 1 (toggleable) ── -->
+  <div id="workingsSection" style="display:none">
   <div class="workings-4" id="workingsRow1"></div>
+  </div>
 
-  <!-- ── Graphs row 2: 3 charts (Voltages, Bandwidth/Q, Phase) ── -->
+  <!-- ── Graphs row 2: always visible ── -->
   <div class="graphs graphs-3">
-    <div class="panel">
-      <div class="panel-title" style="color:#ffe600">Voltages (<span style="color:#ff9500">V<sub>R</sub></span>) · (<span style="color:#818cf8">V<sub>L</sub></span>) · (<span style="color:#00e5ff">V<sub>C</sub></span>) <span style="color:#fff">vs Frequency</span></div>
-      <div class="graph-formula" id="fmlaVolt">
-        <span style="color:#ff9500">VR = <span id="fmlaVR_val">—</span></span>
-        <span style="color:rgba(200,220,240,.3)"> &nbsp;|&nbsp; </span>
-        <span style="color:#818cf8">VL = <span id="fmlaVL_val">—</span></span>
-        <span style="color:rgba(200,220,240,.3)"> &nbsp;|&nbsp; </span>
-        <span style="color:#00e5ff">VC = <span id="fmlaVC_val">—</span></span>
+    <div class="graph-pair">
+      <div class="panel">
+        <div class="panel-title" style="color:#ffe600">Voltages (<span style="color:#ff9500">V<sub>R</sub></span>) · (<span style="color:#818cf8">V<sub>L</sub></span>) · (<span style="color:#00e5ff">V<sub>C</sub></span>) <span style="color:#fff">vs Frequency</span></div>
+        <div class="graph-formula" id="fmlaVolt">
+          <span style="color:#ff9500">VR = <span id="fmlaVR_val">—</span></span>
+          <span style="color:rgba(200,220,240,.3)"> &nbsp;|&nbsp; </span>
+          <span style="color:#818cf8">VL = <span id="fmlaVL_val">—</span></span>
+          <span style="color:rgba(200,220,240,.3)"> &nbsp;|&nbsp; </span>
+          <span style="color:#00e5ff">VC = <span id="fmlaVC_val">—</span></span>
+        </div>
+        <canvas id="voltCanvas" height="240"></canvas>
       </div>
-      <canvas id="voltCanvas" height="240"></canvas>
+      <div id="workingsInlineVolt"></div>
     </div>
-    <div class="panel">
-      <div class="panel-title" style="color:var(--label)"><span style="color:#e879f9">Q Factor</span> (<span style="color:#e879f9">Q</span>) &amp; <span style="color:#a3e635">Bandwidth</span> (<span style="color:#a3e635">BW</span>) <span style="color:#fff">vs Frequency</span></div>
-      <div class="graph-formula" id="fmlaBW" style="display:flex;justify-content:space-between;align-items:center;">
-        <span><span style="color:#e879f9;font-weight:700">Q</span><span style="color:rgba(200,220,240,.5)"> = (1/<span style="color:#ff9500;font-weight:700">R</span>) × √(<span style="color:#c4a0ff;font-weight:700">L</span>/<span style="color:#2dd4bf;font-weight:700">C</span>)</span></span>
-        <span style="color:rgba(200,220,240,.2)">—</span>
-        <span><span style="color:#a3e635;font-weight:700">BW</span><span style="color:rgba(200,220,240,.5)"> = <span style="color:#34d399;font-weight:700">f<sub>r</sub></span> / <span style="color:#e879f9;font-weight:700">Q</span></span></span>
+    <div class="graph-pair">
+      <div class="panel">
+        <div class="panel-title" style="color:var(--label)"><span style="color:#e879f9">Q Factor</span> (<span style="color:#e879f9">Q</span>) &amp; <span style="color:#a3e635">Bandwidth</span> (<span style="color:#a3e635">BW</span>) <span style="color:#fff">vs Frequency</span></div>
+        <div class="graph-formula" id="fmlaBW" style="display:flex;flex-direction:column;gap:.25rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span><span style="color:#e879f9;font-weight:700">Q</span><span style="color:rgba(200,220,240,.5)"> = (1/<span style="color:#ff9500;font-weight:700">R</span>) × √(<span style="color:#c4a0ff;font-weight:700">L</span>/<span style="color:#2dd4bf;font-weight:700">C</span>)</span></span>
+            <span style="color:rgba(200,220,240,.2)">—</span>
+            <span><span style="color:#a3e635;font-weight:700">BW</span><span style="color:rgba(200,220,240,.5)"> = <span style="color:#34d399;font-weight:700">f<sub>r</sub></span> / <span style="color:#e879f9;font-weight:700">Q</span></span></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:.65rem;">
+            <span style="flex:1;display:flex;justify-content:center;gap:2rem;">
+              <span id="fmlaF1"><span style="color:#34d399;font-weight:700">f<sub>1</sub></span><span style="color:rgba(200,220,240,.5)"> = <span style="color:#34d399;font-weight:700">f<sub>r</sub></span> − <span style="color:#a3e635;font-weight:700">BW</span>/2</span></span>
+              <span id="fmlaF2"><span style="color:#34d399;font-weight:700">f<sub>2</sub></span><span style="color:rgba(200,220,240,.5)"> = <span style="color:#34d399;font-weight:700">f<sub>r</sub></span> + <span style="color:#a3e635;font-weight:700">BW</span>/2</span></span>
+            </span>
+          </div>
+        </div>
+        <canvas id="bwCanvas" height="240"></canvas>
       </div>
-      <canvas id="bwCanvas" height="240"></canvas>
+      <div id="workingsInlineBW"></div>
     </div>
-    <div class="panel">
-      <div class="panel-title" style="color:#ff3d9a">Phase Angle (<span style="color:#ff3d9a">φ</span>) <span style="color:#fff">vs Frequency</span></div>
-      <div class="graph-formula" id="fmlaPhase"></div>
-      <canvas id="phaseCanvas" height="240"></canvas>
+    <div class="graph-pair">
+      <div class="panel">
+        <div class="panel-title" style="color:#ff3d9a">Phase Angle (<span style="color:#ff3d9a">φ</span>) <span style="color:#fff">vs Frequency</span></div>
+        <div class="graph-formula" id="fmlaPhase"></div>
+        <canvas id="phaseCanvas" height="240"></canvas>
+      </div>
+      <div id="workingsInlinePhase"></div>
     </div>
   </div>
 
-  <!-- ── Workings row 2: aligned under graphs row 2 ── -->
+  <!-- ── Workings row 2 + NF panel (toggleable) ── -->
+  <div id="workingsSection2" style="display:none">
   <div class="workings-3" id="workingsRow2"></div>
 
   <!-- ── Normalised Frequency ── -->
@@ -391,11 +440,27 @@
     </div>
   </div>
 
+  </div> <!-- end workingsSection2 -->
+
 </div>
 
 
 
 <script>
+// ── Show/Hide workings ────────────────────────────────────────────────────────
+let workingsVisible=false;
+function toggleWorkings(){
+  workingsVisible=!workingsVisible;
+  const d=workingsVisible?'':'none';
+  document.getElementById('workingsSection').style.display=d;
+  document.getElementById('workingsSection2').style.display=d;
+  const btn=document.getElementById('btnWorkings');
+  btn.textContent=workingsVisible?'▼ Hide Workings':'▶ Show Workings';
+  btn.style.background=workingsVisible?'rgba(0,0,0,.3)':'#ffffff';
+  btn.style.color=workingsVisible?'var(--label)':'#000';
+  btn.style.borderColor=workingsVisible?'var(--border)':'#ffffff';
+}
+
 // ── State ────────────────────────────────────────────────────────────────────
 let circuitType = 'series';
 let R = 10, C = 500e-9, L = 100e-6, Vs = 10;
@@ -405,7 +470,7 @@ const C_CYAN='#00e5ff', C_ORANGE='#ff9500', C_GREEN='#00ff99',
       C_YELLOW='#ffe600', C_PURPLE='#818cf8', C_PINK='#ff3d9a',
       C_TEXT='#c8d8e8', C_RED='#ff4444';
 const C_FR   = '#34d399';  // emerald — resonant frequency fr
-const C_FREQ = '#ffffff';  // white   — selected frequency f
+const C_FREQ = '#fbbf24';  // warm gold — selected frequency marker dot
 
 // Graph line colours — match exactly what's plotted
 const COL_XC = C_CYAN;      // #00e5ff — XC reactance line
@@ -572,8 +637,8 @@ function onFreq(){
   const fr=resonantFreq();
   const frPos=Math.round(sliderFromF(fr));
   const snapped=Math.abs(raw-frPos)<=SNAP_RADIUS;
-  if(snapped){ sl.value=frPos; fVal=fFromSlider(frPos); }
-  else { fVal=fFromSlider(raw); }
+  if(snapped){ sl.value=frPos; }
+  fVal=fFromSlider(Math.round(parseFloat(sl.value)));
   update();
 }
 
@@ -605,7 +670,8 @@ const circuitCanvas=document.getElementById('circuitCanvas');
 const PAD={l:60,r:16,t:16,b:36};
 
 function resizeAll(){
-  [xcCanvas,xlCanvas,impCanvas,currCanvas,voltCanvas,bwCanvas,phaseCanvas].forEach(cv=>sizeCanvas(cv,240));
+  [xcCanvas,xlCanvas,impCanvas,currCanvas,voltCanvas,phaseCanvas].forEach(cv=>sizeCanvas(cv,240));
+  sizeCanvas(bwCanvas,240);
   sizeCanvas(circuitCanvas,240);
 }
 
@@ -938,10 +1004,10 @@ function drawVoltages(){
   if(isParallel){
     if(xF>vlCliffX){
       cx.fillStyle=C_PURPLE;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
-      cx.fillText('VL is outside chart boundaries',vlCliffX,PAD.t+10);
+      cx.fillText('VL out of chart y-axis boundary',vlCliffX,PAD.t+10);
     } else if(xF<vcCliffX){
       cx.fillStyle=C_CYAN;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
-      cx.fillText('VC is outside chart boundaries',vcCliffX,PAD.t+10);
+      cx.fillText('VC out of chart y-axis boundary',vcCliffX,PAD.t+10);
     }
 
     if(xF>=PAD.l&&xF<=PAD.l+pw){
@@ -961,7 +1027,7 @@ function drawVoltages(){
       [[d.VC,C_CYAN,'VC'],[d.VL,C_PURPLE,'VL']].forEach(([v,col,name],idx)=>{
         if(yFn(v)<PAD.t){
           cx.fillStyle=col;cx.font='bold 9px Share Tech Mono';cx.textAlign='center';
-          cx.fillText(`${name} is outside chart boundaries`,xF,PAD.t+10+(idx*12));
+          cx.fillText(`${name} out of chart y-axis boundary`,xF,PAD.t+10+(idx*12));
         } else {
           const yv=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(v)));
           cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=8;
@@ -975,9 +1041,12 @@ function drawVoltages(){
 // ── Bandwidth / Q chart ───────────────────────────────────────────────────────
 function drawBandwidth(){
   const cv=bwCanvas,cx=cv.getContext('2d');
-  const fw=cW(cv),fh=cH(cv),pw=fw-PAD.l-PAD.r,ph=fh-PAD.t-PAD.b;
+  const fw=cW(cv),fh=cH(cv);
+  // Local padding — larger bottom to fit 3 rows of x-axis labels
+  const pad={l:PAD.l,r:PAD.r,t:PAD.t,b:58};
+  const pw=fw-pad.l-pad.r,ph=fh-pad.t-pad.b;
   cx.clearRect(0,0,fw,fh);
-  const lfX=makeLogX(cv);
+  const lfX=lf=>pad.l+pw*(lf-Math.log10(F_MIN))/(Math.log10(F_MAX)-Math.log10(F_MIN));
   const lmin=Math.log10(F_MIN),lmax=Math.log10(F_MAX);
 
   // fr, Q, BW needed throughout
@@ -996,7 +1065,7 @@ function drawBandwidth(){
 
   // Y axis: 0 → Q (peak of curve = Q)
   const yMax=Q*1.05;
-  const yFn=v=>PAD.t+ph*(1-(v/yMax));
+  const yFn=v=>pad.t+ph*(1-(v/yMax));
 
   // Y grid lines: 0, 0.707Q (-3dB), Q (peak)
   const db3=0.707*Q;
@@ -1005,21 +1074,21 @@ function drawBandwidth(){
     cx.setLineDash(v===db3?[4,4]:[2,5]);
     cx.strokeStyle=v===db3?'rgba(163,230,53,.4)':v===Q?'rgba(232,121,249,.3)':'rgba(30,45,74,.7)';
     cx.lineWidth=v===db3||v===Q?1.4:1;
-    cx.beginPath();cx.moveTo(PAD.l,y);cx.lineTo(PAD.l+pw,y);cx.stroke();cx.setLineDash([]);
+    cx.beginPath();cx.moveTo(pad.l,y);cx.lineTo(pad.l+pw,y);cx.stroke();cx.setLineDash([]);
     cx.fillStyle='#e879f9';
     cx.font='9px Share Tech Mono';cx.textAlign='right';
-    cx.fillText(lbl,PAD.l-4,y+4);
+    cx.fillText(lbl,pad.l-4,y+4);
   });
 
   // Vertical freq grid
   for(let lf=Math.ceil(lmin);lf<=Math.floor(lmax);lf++){
-    const x=lfX(lf); if(x<PAD.l||x>PAD.l+pw) continue;
+    const x=lfX(lf); if(x<pad.l||x>pad.l+pw) continue;
     cx.strokeStyle='rgba(30,45,74,.7)';cx.lineWidth=1;cx.setLineDash([2,5]);
-    cx.beginPath();cx.moveTo(x,PAD.t);cx.lineTo(x,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+    cx.beginPath();cx.moveTo(x,pad.t);cx.lineTo(x,pad.t+ph);cx.stroke();cx.setLineDash([]);
     cx.fillStyle='#ffffff';cx.font='8px Share Tech Mono';cx.textAlign='center';
-    cx.fillText(formatFreq(Math.pow(10,lf)),x,PAD.t+ph+14);
+    cx.fillText(formatFreq(Math.pow(10,lf)),x,pad.t+ph+14);
   }
-  cx.save();cx.translate(11,PAD.t+ph/2);cx.rotate(-Math.PI/2);
+  cx.save();cx.translate(11,pad.t+ph/2);cx.rotate(-Math.PI/2);
   cx.fillStyle='rgba(200,220,240,.3)';cx.font='8px Share Tech Mono';cx.textAlign='center';
   cx.fillText('Q Factor',0,0);cx.restore();
 
@@ -1030,7 +1099,7 @@ function drawBandwidth(){
     for(let i=0;i<=N;i++){
       const lf=lmin+(i/N)*(lmax-lmin);
       const qScaled=((Ivals[i]-Imin)/Irange)*Q;
-      const x=lfX(lf),y=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(qScaled)));
+      const x=lfX(lf),y=Math.max(pad.t,Math.min(pad.t+ph,yFn(qScaled)));
       i===0?cx.moveTo(x,y):cx.lineTo(x,y);
     }
     cx.stroke();cx.shadowBlur=0;
@@ -1043,28 +1112,32 @@ function drawBandwidth(){
   const xF2=f2<F_MAX?lfX(Math.log10(f2)):null;
 
   cx.strokeStyle=C_FR+'99';cx.lineWidth=1.5;cx.setLineDash([4,4]);
-  cx.beginPath();cx.moveTo(xFr,PAD.t);cx.lineTo(xFr,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+  cx.beginPath();cx.moveTo(xFr,pad.t);cx.lineTo(xFr,pad.t+ph);cx.stroke();cx.setLineDash([]);
   cx.fillStyle=C_FR;cx.font='bold 8px Share Tech Mono';cx.textAlign='center';
-  cx.fillText('fr',xFr,PAD.t+ph+14);
+  cx.fillText('fr',xFr,pad.t+ph+26);
 
   // -3dB line at 0.707*Q
   const y707=yFn(db3);
 
   // BW shaded region (keep shading)
-  const bwX1=xF1||PAD.l, bwX2=xF2||PAD.l+pw;
+  const bwX1=xF1||pad.l, bwX2=xF2||pad.l+pw;
   cx.fillStyle='rgba(163,230,53,.06)';  // lime tint matching BW colour
-  cx.fillRect(bwX1,PAD.t,bwX2-bwX1,ph);
+  cx.fillRect(bwX1,pad.t,bwX2-bwX1,ph);
 
-  // Dotted vertical lines from Q peak down to just above x-axis label area (PAD.t+ph)
+  // Dotted vertical lines from Q peak down to just above x-axis label area (pad.t+ph)
   // for the f1 and f2 bandwidth edges
   const COL_BW_loc='#a3e635';
   if(xF1){
     cx.strokeStyle=COL_BW_loc+'88';cx.lineWidth=1;cx.setLineDash([3,4]);
-    cx.beginPath();cx.moveTo(xF1,y707);cx.lineTo(xF1,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+    cx.beginPath();cx.moveTo(xF1,y707);cx.lineTo(xF1,pad.t+ph);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle=COL_BW_loc;cx.font='bold 8px Share Tech Mono';cx.textAlign='center';
+    cx.fillText('f₁',xF1,pad.t+ph+26);
   }
   if(xF2){
     cx.strokeStyle=COL_BW_loc+'88';cx.lineWidth=1;cx.setLineDash([3,4]);
-    cx.beginPath();cx.moveTo(xF2,y707);cx.lineTo(xF2,PAD.t+ph);cx.stroke();cx.setLineDash([]);
+    cx.beginPath();cx.moveTo(xF2,y707);cx.lineTo(xF2,pad.t+ph);cx.stroke();cx.setLineDash([]);
+    cx.fillStyle=COL_BW_loc;cx.font='bold 8px Share Tech Mono';cx.textAlign='center';
+    cx.fillText('f₂',xF2,pad.t+ph+26);
   }
 
   // -3dB horizontal bracket at 0.707*Q level
@@ -1078,14 +1151,14 @@ function drawBandwidth(){
 
   // BW label below fr on x-axis (instead of above bracket)
   cx.fillStyle=COL_BW_loc;cx.font='bold 8px Share Tech Mono';cx.textAlign='center';
-  cx.fillText('BW = '+formatFreq(BW),xFr,PAD.t+ph+26);
+  cx.fillText('BW = '+formatFreq(BW),xFr,pad.t+ph+38);
 
   // Slider marker — yellow to match other charts
   const xF=lfX(Math.log10(Math.max(fVal,F_MIN)));
   const iNorm=(calc(fVal).I-Imin)/Irange;
   const qScaledVal=iNorm*Q;
-  const yDot=Math.max(PAD.t,Math.min(PAD.t+ph,yFn(qScaledVal)));
-  if(xF>=PAD.l&&xF<=PAD.l+pw) drawMarker(cx,xF,yDot,C_FREQ,qScaledVal.toFixed(3),pw);
+  const yDot=Math.max(pad.t,Math.min(pad.t+ph,yFn(qScaledVal)));
+  if(xF>=pad.l&&xF<=pad.l+pw) drawMarker(cx,xF,yDot,C_FREQ,qScaledVal.toFixed(3),pw);
 }
 
 // ── Circuit diagram ────────────────────────────────────────────────────────────
@@ -1382,6 +1455,11 @@ function updateWorkingsRow1(){
   </div>`;
 
   document.getElementById('workingsRow1').innerHTML=pane1+pane2+pane3+pane4;
+  // Also populate inline mobile placeholders
+  document.getElementById('workingsInlineXc').innerHTML=pane1;
+  document.getElementById('workingsInlineXl').innerHTML=pane2;
+  document.getElementById('workingsInlineZ').innerHTML=pane3;
+  document.getElementById('workingsInlineI').innerHTML=pane4;
 }
 
 // ── Workings — row 2 (aligned under 3 charts) ────────────────────────────────
@@ -1414,6 +1492,9 @@ function updateWorkingsRow2(){
   const QCalc=isSeries
     ?`(1/<span style="color:${COL_R};font-weight:700">${fmtVal(R)}</span>) × √(<span style="color:${COL_L};font-weight:700">${fmtCompL()}</span>/<span style="color:${COL_C};font-weight:700">${fmtCompC()}</span>)`
     :`<span style="color:${COL_R};font-weight:700">${fmtVal(R)}</span> × √(<span style="color:${COL_C};font-weight:700">${fmtCompC()}</span>/<span style="color:${COL_L};font-weight:700">${fmtCompL()}</span>)`;
+  const f1=fr-BW/2, f2=fr+BW/2;
+  const f1_s=()=>`<span style="color:${C_FR};font-weight:700">f<sub>1</sub></span>`;
+  const f2_s=()=>`<span style="color:${C_FR};font-weight:700">f<sub>2</sub></span>`;
   const pane2=`<div class="wk-pane">
     <div class="wk-title" style="color:${COL_Q}">(Q) Factor &amp; <span style="color:${COL_BW}">(BW) Bandwidth</span></div>
     <div class="wk-line"><span class="sym">${Q_s()}</span><span class="eq">=</span><span class="formula">${QFormula}</span></div>
@@ -1422,6 +1503,12 @@ function updateWorkingsRow2(){
     <div class="wk-line"><span class="sym">${BW_s()}</span><span class="eq">=</span><span class="formula">${fr_s()} / ${Q_s()}</span></div>
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc"><span style="color:${C_FR};font-weight:700">${formatFreq(fr)}</span> / <span style="color:${COL_Q};font-weight:700">${Q.toFixed(4)}</span></span></div>
     <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${COL_BW}">${formatFreq(BW)}</span></div>
+    <div class="wk-line"><span class="sym">${f1_s()}</span><span class="eq">=</span><span class="formula">${fr_s()} − ${BW_s()}/2</span></div>
+    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc"><span style="color:${C_FR};font-weight:700">${formatFreq(fr)}</span> − <span style="color:${COL_BW};font-weight:700">${formatFreq(BW)}</span>/2</span></div>
+    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${C_FR}">${formatFreq(f1)}</span></div>
+    <div class="wk-line"><span class="sym">${f2_s()}</span><span class="eq">=</span><span class="formula">${fr_s()} + ${BW_s()}/2</span></div>
+    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="calc"><span style="color:${C_FR};font-weight:700">${formatFreq(fr)}</span> + <span style="color:${COL_BW};font-weight:700">${formatFreq(BW)}</span>/2</span></div>
+    <div class="wk-line"><span class="sym"></span><span class="eq">=</span><span class="result" style="color:${C_FR}">${formatFreq(f2)}</span></div>
   </div>`;
 
   // Pane 3: Phase
@@ -1435,6 +1522,10 @@ function updateWorkingsRow2(){
   </div>`;
 
   document.getElementById('workingsRow2').innerHTML=pane1+pane2+pane3;
+  // Also populate inline mobile placeholders
+  document.getElementById('workingsInlineVolt').innerHTML=pane1;
+  document.getElementById('workingsInlineBW').innerHTML=pane2;
+  document.getElementById('workingsInlinePhase').innerHTML=pane3;
 }
 
 function update(){
