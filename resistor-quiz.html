@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parallel Resistor Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --bg:#0a0d14;--panel:#0f1420;--border:#1e2d4a;
+      --accent:#00e5ff;--accent2:#ff6b35;--accent3:#00ff99;
+      --accent4:#ff3d9a;--accent5:#a78bfa;
+      --grid:rgba(0,229,255,0.06);--text:#c8d8e8;--label:#5a7a9a;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      background:var(--bg);color:var(--text);
+      font-family:'Share Tech Mono',monospace;
+      min-height:100vh;display:flex;flex-direction:column;
+      align-items:center;padding:2rem 1rem;
+      background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+      background-size:40px 40px;
+    }
+    header{text-align:center;margin-bottom:2rem;}
+    header h1{font-family:'Orbitron',sans-serif;font-size:clamp(1.4rem,4vw,2.2rem);font-weight:900;letter-spacing:.12em;color:var(--accent);text-shadow:0 0 30px rgba(0,229,255,.5);text-transform:uppercase;}
+    header p{margin-top:.5rem;color:var(--label);font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;}
+    .quiz-wrap{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:1.5rem;}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:1.6rem;}
+    .circuit-panel{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:4px;padding:.8rem;margin-bottom:1.6rem;}
+    .circuit-panel svg{width:100%;height:auto;display:block;}
+    .panel-label{font-size:.58rem;letter-spacing:.18em;color:var(--label);text-transform:uppercase;text-align:center;margin-bottom:6px;}
+    .q-row{display:flex;flex-direction:column;gap:1rem;}
+    .q-panel{display:flex;flex-direction:column;gap:1rem;}
+    .q-text{color:#d0e4f0;font-size:.9rem;font-weight:bold;line-height:1.6;}
+    .options{display:flex;flex-direction:column;gap:.6rem;}
+    .option-btn{width:100%;padding:.7rem 1rem;border-radius:3px;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.82rem;text-align:left;cursor:pointer;transition:border-color .15s,background .15s;display:flex;align-items:center;gap:.7rem;}
+    .option-btn:hover:not(:disabled){border-color:rgba(0,229,255,.4);background:rgba(0,229,255,.05);}
+    .option-btn.selected{border-color:rgba(0,229,255,.6);background:rgba(0,229,255,.08);color:var(--accent);}
+    .option-btn.correct{border-color:var(--accent3);background:rgba(0,255,153,.08);color:var(--accent3);}
+    .option-btn.wrong{border-color:var(--accent4);background:rgba(255,61,154,.08);color:var(--accent4);}
+    .option-btn.dimmed{opacity:.35;}
+    .option-letter{font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;min-width:22px;}
+    .result-icon{font-size:1.1rem;margin-left:auto;}
+    .btn-row{display:flex;gap:.6rem;flex-wrap:wrap;}
+    .btn{padding:.5rem 1.2rem;border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;border:1px solid;}
+    .btn-check{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.4);color:var(--accent);}
+    .btn-check:hover{background:rgba(0,229,255,.2);}
+    .btn-check:disabled{opacity:.35;cursor:default;}
+    .btn-next{background:rgba(0,255,153,.1);border-color:rgba(0,255,153,.4);color:var(--accent3);display:none;}
+    .btn-next:hover{background:rgba(0,255,153,.2);}
+    .result-banner{display:none;padding:.65rem 1rem;border-radius:3px;font-size:.78rem;font-family:'Orbitron',sans-serif;align-items:center;gap:.6rem;line-height:1.5;}
+    .result-banner.correct{display:flex;background:rgba(0,255,153,.08);border:1px solid rgba(0,255,153,.3);color:var(--accent3);}
+    .result-banner.wrong{display:flex;background:rgba(255,61,154,.08);border:1px solid rgba(255,61,154,.3);color:var(--accent4);}
+    .working-box{display:none;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:4px;padding:1.1rem 1.3rem;}
+    .working-box.visible{display:block;}
+    .working-title{font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:.2em;color:var(--label);text-transform:uppercase;margin-bottom:.7rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);}
+    .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;}
+    .frac .num{border-bottom:1.5px solid currentColor;padding:0 4px 2px;text-align:center;width:100%;}
+    .frac .den{padding:2px 4px 0;text-align:center;width:100%;}
+    .formula-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1;padding:.6rem 0;}
+    .formula-row .op{font-size:.9rem;}
+    .wline .wv{color:var(--accent);}
+    .wline .wv2{color:var(--accent2);}
+    .wline .wv3{color:var(--accent3);}
+    .wline .wv4{color:var(--accent5);}
+    .wline.total{margin-top:.4rem;padding-top:.4rem;border-top:1px solid var(--border);color:var(--text);font-size:.85rem;}
+    footer{margin-top:2rem;font-size:.65rem;color:var(--label);opacity:.5;letter-spacing:.15em;text-transform:uppercase;}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Resistor Network Quiz</h1>
+  <p>Series &amp; Parallel · Equivalent Resistance</p>
+</header>
+
+<div class="quiz-wrap">
+ <div class="card">
+  <div class="circuit-panel">
+    <div class="panel-label">Circuit Diagram — 10 V Source</div>
+    <!--
+      viewBox: 960 x 860  (doubled height)
+
+      Key coordinates:
+        Top rail    y = 340   (R1,R2,R3 and R5 midline)
+        Bottom rail y = 660   (R7,R8,R9,R10)
+
+      Parallel bank R4,R5,R6:
+        Left rail  x = 520
+        Right rail x = 720
+
+        R6 top:    y = 200  → resistor body y=186..214
+        R5 middle: y = 340  → on the top rail
+        R4 bottom: y = 480  → resistor body y=466..494
+
+        Left rail runs ONLY from R6-centre(y=200) to R4-centre(y=480)
+        Right rail runs ONLY from R6-centre(y=200) to R4-centre(y=480)
+
+        Top junction (left):  x=520, y=340  — top rail meets left bank rail
+        Top junction (right): x=720, y=340  — top rail continues right from right bank rail
+        Bot junction (left):  x=520, y=660  — bottom rail meets left bank rail  (via wire down from y=480)
+        Bot junction (right): x=720, y=660  — bottom rail meets right bank rail (via wire down from y=480)
+
+        Wire from left  rail bottom (480) down to bottom rail (660): x=520, y=480→660
+        Wire from right rail bottom (480) down to bottom rail (660): x=720, y=480→660
+
+      Right wall: x=900, y=340→660
+      Battery:    x=50,  y=340→660
+    -->
+    <svg viewBox="0 0 960 880" xmlns="http://www.w3.org/2000/svg"
+         font-family="'Share Tech Mono',monospace">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- ══════════════════════════════
+           BATTERY  x=50
+           top rail y=340, bottom rail y=660
+      ══════════════════════════════ -->
+      <line x1="50" y1="200" x2="50" y2="414" stroke="#00e5ff" stroke-width="2"/>
+      <line x1="26" y1="414" x2="74" y2="414" stroke="#ff3333" stroke-width="4"/>
+      <line x1="34" y1="446" x2="66" y2="446" stroke="#ff3333" stroke-width="2"/>
+      <line x1="50" y1="446" x2="50" y2="660" stroke="#00e5ff" stroke-width="2"/>
+      <text x="84"  y="418" fill="#ff3333" font-size="16" font-weight="bold">+</text>
+      <text x="84"  y="450" fill="#ff3333" font-size="16" font-weight="bold">−</text>
+      <text x="22"  y="438" fill="#ff3333" font-size="15" text-anchor="middle">10V</text>
+      <circle cx="50" cy="200" r="5" fill="#00e5ff"/>
+      <circle cx="50" cy="660" r="5" fill="#00e5ff"/>
+
+      <!-- ══════════════════════════════
+           TOP RAIL  y=340
+           battery+ → R1 → R2 → R3 → junctionL(520,340)
+      ══════════════════════════════ -->
+      <line x1="50"  y1="200" x2="100" y2="200" stroke="#00e5ff" stroke-width="2"/>
+
+      <!-- R1 -->
+      <rect x="100" y="182" width="90" height="36" rx="3" fill="#0f1420" stroke="#00e5ff" stroke-width="2" filter="url(#glow)"/>
+      <text x="145" y="170" fill="#00e5ff" text-anchor="middle" font-size="16" font-weight="bold">R1</text>
+      <text id="lblR1" x="145" y="236" fill="#00e5ff" text-anchor="middle" font-size="15">—</text>
+      <line x1="190" y1="200" x2="230" y2="200" stroke="#00e5ff" stroke-width="2"/>
+
+      <!-- R2 -->
+      <rect x="230" y="182" width="90" height="36" rx="3" fill="#0f1420" stroke="#00e5ff" stroke-width="2" filter="url(#glow)"/>
+      <text x="275" y="170" fill="#00e5ff" text-anchor="middle" font-size="16" font-weight="bold">R2</text>
+      <text id="lblR2" x="275" y="236" fill="#00e5ff" text-anchor="middle" font-size="15">—</text>
+      <line x1="320" y1="200" x2="360" y2="200" stroke="#00e5ff" stroke-width="2"/>
+
+      <!-- R3 -->
+      <rect x="360" y="182" width="90" height="36" rx="3" fill="#0f1420" stroke="#00e5ff" stroke-width="2" filter="url(#glow)"/>
+      <text x="405" y="170" fill="#00e5ff" text-anchor="middle" font-size="16" font-weight="bold">R3</text>
+      <text id="lblR3" x="405" y="236" fill="#00e5ff" text-anchor="middle" font-size="15">—</text>
+
+      <!-- R3 → junctionL -->
+      <line x1="450" y1="200" x2="520" y2="200" stroke="#00e5ff" stroke-width="2"/>
+
+      <!-- ══════════════════════════════
+           PARALLEL BANK  R4, R5, R6 (shown for Q1)
+      ══════════════════════════════ -->
+      <g id="bankExpanded">
+        <!-- Left bank rail -->
+        <line x1="520" y1="60" x2="520" y2="340" stroke="#a78bfa" stroke-width="2"/>
+        <!-- Right bank rail -->
+        <line x1="720" y1="60" x2="720" y2="340" stroke="#a78bfa" stroke-width="2"/>
+
+        <!-- R6 (top) y=60 -->
+        <line x1="520" y1="60" x2="560" y2="60" stroke="#a78bfa" stroke-width="2"/>
+        <rect x="560" y="42" width="120" height="36" rx="3" fill="#0f1420" stroke="#a78bfa" stroke-width="2" filter="url(#glow)"/>
+        <text x="620" y="30" fill="#a78bfa" text-anchor="middle" font-size="16" font-weight="bold">R6</text>
+        <text id="lblR6" x="620" y="94" fill="#a78bfa" text-anchor="middle" font-size="15">—</text>
+        <line x1="680" y1="60" x2="720" y2="60" stroke="#a78bfa" stroke-width="2"/>
+
+        <!-- R5 (middle) y=200 -->
+        <line x1="520" y1="200" x2="560" y2="200" stroke="#a78bfa" stroke-width="2"/>
+        <rect x="560" y="182" width="120" height="36" rx="3" fill="#0f1420" stroke="#a78bfa" stroke-width="2" filter="url(#glow)"/>
+        <text x="620" y="170" fill="#a78bfa" text-anchor="middle" font-size="16" font-weight="bold">R5</text>
+        <text id="lblR5" x="620" y="236" fill="#a78bfa" text-anchor="middle" font-size="15">—</text>
+        <line x1="680" y1="200" x2="720" y2="200" stroke="#a78bfa" stroke-width="2"/>
+
+        <!-- R4 (bottom) y=340 -->
+        <line x1="520" y1="340" x2="560" y2="340" stroke="#a78bfa" stroke-width="2"/>
+        <rect x="560" y="322" width="120" height="36" rx="3" fill="#0f1420" stroke="#a78bfa" stroke-width="2" filter="url(#glow)"/>
+        <text x="620" y="310" fill="#a78bfa" text-anchor="middle" font-size="16" font-weight="bold">R4</text>
+        <text id="lblR4" x="620" y="376" fill="#a78bfa" text-anchor="middle" font-size="15">—</text>
+        <line x1="680" y1="340" x2="720" y2="340" stroke="#a78bfa" stroke-width="2"/>
+
+        <!-- Junction dots -->
+        <circle cx="520" cy="200" r="7" fill="#a78bfa" filter="url(#glow)"/>
+        <circle cx="720" cy="200" r="7" fill="#a78bfa" filter="url(#glow)"/>
+      </g>
+
+      <!-- ══════════════════════════════
+           EQUIVALENT RESISTOR R4,5,6 (shown for Q2)
+      ══════════════════════════════ -->
+      <g id="bankCollapsed" display="none">
+        <!-- Single resistor on the top rail y=200 -->
+        <line x1="520" y1="200" x2="560" y2="200" stroke="#a78bfa" stroke-width="2"/>
+        <rect x="560" y="182" width="120" height="36" rx="3" fill="#0f1420" stroke="#a78bfa" stroke-width="2" filter="url(#glow)"/>
+        <text x="620" y="170" fill="#a78bfa" text-anchor="middle" font-size="13" font-weight="bold">R4,5,6</text>
+        <text id="lblR456" x="620" y="236" fill="#a78bfa" text-anchor="middle" font-size="15">—</text>
+        <line x1="680" y1="200" x2="720" y2="200" stroke="#a78bfa" stroke-width="2"/>
+      </g>
+
+      <!-- ══════════════════════════════
+           TOP RAIL continued
+           junctionR(720,340) → right corner(900,340)
+      ══════════════════════════════ -->
+      <line x1="720" y1="200" x2="900" y2="200" stroke="#00e5ff" stroke-width="2"/>
+
+      <!-- Right wall -->
+      <line x1="900" y1="200" x2="900" y2="660" stroke="#00e5ff" stroke-width="2"/>
+      <circle cx="900" cy="200" r="5" fill="#00e5ff"/>
+      <circle cx="900" cy="660" r="5" fill="#00e5ff"/>
+
+      <!-- ══════════════════════════════
+           BOTTOM SECTION
+
+           Orange rectangle bank centred same as purple: x=520 to x=720
+             Top-left:    (520, 600)   Top-right:    (720, 600)
+             Bottom-left: (520, 760)   Bottom-right: (720, 760)
+             Left junction:  (520, 680) — mid-height left side
+             Right junction: (720, 680) — mid-height right side
+
+           Cyan wire: right junction (720,680) → right corner (900,680) → up to (900,660)
+           R10 (cyan): left of bank at y=680, from battery− to left junction
+      ══════════════════════════════ -->
+
+      <!-- Orange rectangle outline — stretched vertically -->
+      <line x1="520" y1="565" x2="720" y2="565" stroke="#ff6b35" stroke-width="2"/>
+      <line x1="520" y1="795" x2="720" y2="795" stroke="#ff6b35" stroke-width="2"/>
+      <line x1="520" y1="565" x2="520" y2="795" stroke="#ff6b35" stroke-width="2"/>
+      <line x1="720" y1="565" x2="720" y2="795" stroke="#ff6b35" stroke-width="2"/>
+
+      <!-- Top branch: R8 → gap → R9, y=565 -->
+      <rect x="530" y="547" width="80" height="36" rx="3" fill="#0f1420" stroke="#ff6b35" stroke-width="2" filter="url(#glow)"/>
+      <text x="570" y="535" fill="#ff6b35" text-anchor="middle" font-size="16" font-weight="bold">R8</text>
+      <text id="lblR8" x="570" y="599" fill="#ff6b35" text-anchor="middle" font-size="15">—</text>
+
+      <rect x="630" y="547" width="80" height="36" rx="3" fill="#0f1420" stroke="#ff6b35" stroke-width="2" filter="url(#glow)"/>
+      <text x="670" y="535" fill="#ff6b35" text-anchor="middle" font-size="16" font-weight="bold">R9</text>
+      <text id="lblR9" x="670" y="599" fill="#ff6b35" text-anchor="middle" font-size="15">—</text>
+
+      <!-- Bottom branch: R7 centred, y=795 -->
+      <rect x="570" y="777" width="100" height="36" rx="3" fill="#0f1420" stroke="#ff6b35" stroke-width="2" filter="url(#glow)"/>
+      <text x="620" y="765" fill="#ff6b35" text-anchor="middle" font-size="16" font-weight="bold">R7</text>
+      <text id="lblR7" x="620" y="831" fill="#ff6b35" text-anchor="middle" font-size="15">—</text>
+
+      <!-- Junction dots at mid-height (565+795)/2 = 680 — unchanged -->
+      <circle cx="520" cy="680" r="7" fill="#ff6b35" filter="url(#glow)"/>
+      <circle cx="720" cy="680" r="7" fill="#ff6b35" filter="url(#glow)"/>
+
+      <!-- Cyan wire: right junction (720,680) → right wall → up to (900,660) -->
+      <line x1="720" y1="680" x2="900" y2="680" stroke="#00e5ff" stroke-width="2"/>
+      <line x1="900" y1="680" x2="900" y2="660" stroke="#00e5ff" stroke-width="2"/>
+
+      <!-- R10 (cyan): battery− → R10 → left junction (520,680) -->
+      <line x1="50"  y1="660" x2="50"  y2="680" stroke="#00e5ff" stroke-width="2"/>
+      <line x1="50"  y1="680" x2="180" y2="680" stroke="#00e5ff" stroke-width="2"/>
+      <rect x="180" y="662" width="160" height="36" rx="3" fill="#0f1420" stroke="#00e5ff" stroke-width="2" filter="url(#glow)"/>
+      <text x="260" y="650" fill="#00e5ff" text-anchor="middle" font-size="16" font-weight="bold">R10</text>
+      <text id="lblR10" x="260" y="714" fill="#00e5ff" text-anchor="middle" font-size="15">—</text>
+      <line x1="340" y1="680" x2="520" y2="680" stroke="#00e5ff" stroke-width="2"/>
+
+
+
+      <!-- ══════════════════════════════
+           COLOUR KEY
+      ══════════════════════════════ -->
+    </svg>
+  </div>
+
+  <!-- QUESTION ROW -->
+  <div class="q-row" id="questionRow">
+
+    <!-- Q1 panel -->
+    <div class="q-panel" id="q1Panel">
+      <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:1.2rem;align-items:start;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent);padding-top:.2rem;white-space:nowrap;">Q1</div>
+        <div class="q-text">What is the equivalent resistance of <span style="color:var(--accent5)">R4, R5 and R6</span> in parallel?</div>
+        <div class="options" id="q1Options"></div>
+      </div>
+      <div class="result-banner" id="q1Banner"><span id="q1Icon"></span>&nbsp;<span id="q1Text"></span></div>
+      <div class="working-box" id="q1Working">
+        <div class="working-title">Worked Solution</div>
+        <div id="q1WorkingContent"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-check" id="q1Check" onclick="checkQ1()" disabled>Check</button>
+        <button class="btn btn-next"  id="q1Next"  onclick="showQ2()" style="display:none">Next →</button>
+        <button class="btn btn-shuffle" onclick="newQuestion()">↺ New Values</button>
+      </div>
+    </div>
+
+    <!-- Q1 summary (shown after Next is clicked) -->
+    <div id="q1Summary" style="display:none;background:rgba(0,0,0,.15);border:1px solid var(--border);border-radius:4px;padding:.8rem 1.2rem;">
+      <div style="display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:var(--accent);">Q1</div>
+        <div class="q-text" style="font-size:.82rem;">What is the equivalent resistance of <span style="color:var(--accent5)">R4, R5 and R6</span> in parallel?</div>
+        <div id="q1SummaryAnswer" style="font-family:'Orbitron',sans-serif;font-size:.95rem;color:var(--accent3);white-space:nowrap;"></div>
+      </div>
+    </div>
+
+    <!-- Q2 panel (hidden until Next clicked) -->
+    <div class="q-panel" id="q2Panel" style="display:none;">
+      <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:1.2rem;align-items:start;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent);padding-top:.2rem;white-space:nowrap;">Q2</div>
+        <div class="q-text">What is the equivalent resistance of <span style="color:var(--accent2)">R7, R8 and R9</span>? <span style="font-weight:normal;font-size:.8rem;color:var(--label);">(R8 and R9 are in series, parallel with R7)</span></div>
+        <div class="options" id="q2Options"></div>
+      </div>
+      <div class="result-banner" id="q2Banner"><span id="q2Icon"></span>&nbsp;<span id="q2Text"></span></div>
+      <div class="working-box" id="q2Working">
+        <div class="working-title">Worked Solution</div>
+        <div id="q2WorkingContent"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-check" id="q2Check" onclick="checkQ2()" disabled>Check</button>
+        <button class="btn btn-shuffle" onclick="newQuestion()">↺ New Values</button>
+      </div>
+    </div>
+
+  </div>
+
+ </div>
+</div>
+<footer>Barry Duncan · Resistor Network Quiz</footer>
+
+<script>
+const E12_BASE=[10,12,15,18,22,27,33,39,47,56,68,82];
+const E12=[];
+[1,10,100].forEach(m=>E12_BASE.forEach(v=>E12.push(v*m)));
+function pickN(arr,n){const a=[...arr],r=[];for(let i=0;i<n;i++){const idx=Math.floor(Math.random()*a.length);r.push(a.splice(idx,1)[0]);}return r;}
+function parallelOf(...v){return 1/v.reduce((s,x)=>s+1/x,0);}
+function fmt(v){return v.toFixed(2);}
+function fmtΩ(v){return v>=1000?(v/1000).toFixed(2)+'kΩ':v+'Ω';}
+function frac(num,den,cls='wv'){
+  return `<span class="frac ${cls}"><span class="num">${num}</span><span class="den">${den}</span></span>`;
+}
+const LETTERS=['A','B','C','D'];
+let currentQ={};
+let q1SelectedIdx=null, q1CorrectIdx=null, q1Answered=false;
+let q2SelectedIdx=null, q2CorrectIdx=null, q2Answered=false;
+
+function makeOptions(correct, wrong1, wrong2, wrong3){
+  const options=[
+    {value:correct, label:`${fmt(correct)} Ω`, type:'correct'},
+    {value:wrong1,  label:`${fmt(wrong1)} Ω`,  type:'wrong1'},
+    {value:wrong2,  label:`${fmt(wrong2)} Ω`,  type:'wrong2'},
+    {value:wrong3,  label:`${fmt(wrong3)} Ω`,  type:'wrong3'},
+  ];
+  for(let i=options.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[options[i],options[j]]=[options[j],options[i]];}
+  return options;
+}
+
+function newQuestion(){
+  // Reset state
+  q1SelectedIdx=null; q1CorrectIdx=null; q1Answered=false;
+  q2SelectedIdx=null; q2CorrectIdx=null; q2Answered=false;
+
+  const all=pickN(E12,10);
+  const [r1,r2,r3,r4,r5,r6,r7,r8,r9,r10]=all;
+
+  // Q1: R4 ∥ R5 ∥ R6
+  const q1Correct=parallelOf(r4,r5,r6);
+  const q1Wrong1=r4+r5+r6;
+  const q1Wrong2=1/(r4+r5+r6);
+  let q1Wrong3; do{const p=(0.06+Math.random()*0.18)*(Math.random()<.5?1:-1);q1Wrong3=q1Correct*(1+p);}while(Math.abs(q1Wrong3-q1Correct)<0.02||q1Wrong3<=0);
+
+  // Q2: R7 ∥ (R8+R9)
+  const r89=r8+r9;
+  const q2Correct=parallelOf(r7,r89);
+  const q2Wrong1=r7+r89;
+  const q2Wrong2=1/(r7+r89);
+  let q2Wrong3; do{const p=(0.06+Math.random()*0.18)*(Math.random()<.5?1:-1);q2Wrong3=q2Correct*(1+p);}while(Math.abs(q2Wrong3-q2Correct)<0.02||q2Wrong3<=0);
+
+  const q1Options=makeOptions(q1Correct,q1Wrong1,q1Wrong2,q1Wrong3);
+  const q2Options=makeOptions(q2Correct,q2Wrong1,q2Wrong2,q2Wrong3);
+  q1CorrectIdx=q1Options.findIndex(o=>o.type==='correct');
+  q2CorrectIdx=q2Options.findIndex(o=>o.type==='correct');
+
+  currentQ={r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,
+    q1Correct,q1Wrong1,q1Wrong2,q1Options,
+    q2Correct,q2Wrong1,q2Wrong2,q2Options,r89};
+
+  // Update circuit labels
+  ['R1','R2','R3','R4','R5','R6','R7','R8','R9','R10'].forEach(id=>{
+    const el=document.getElementById('lbl'+id);
+    if(el)el.textContent=fmtΩ(currentQ[id.toLowerCase()]);
+  });
+
+  // Restore circuit to expanded bank
+  document.getElementById('bankExpanded').setAttribute('display','inline');
+  document.getElementById('bankCollapsed').setAttribute('display','none');
+
+  // Reset UI
+  document.getElementById('q1Panel').style.display='flex';
+  document.getElementById('q1Summary').style.display='none';
+  document.getElementById('q2Panel').style.display='none';
+  document.getElementById('q1Banner').className='result-banner';
+  document.getElementById('q1Working').className='working-box';
+  document.getElementById('q1Check').disabled=true;
+  document.getElementById('q1Next').style.display='none';
+  renderOptions('q1Options', q1Options, 'q1');
+}
+
+function renderOptions(containerId, options, prefix){
+  const c=document.getElementById(containerId); c.innerHTML='';
+  options.forEach((opt,i)=>{
+    const btn=document.createElement('button'); btn.className='option-btn';
+    btn.innerHTML=`<span class="option-letter">${LETTERS[i]}</span><span>${opt.label}</span>`;
+    btn.addEventListener('click',()=>selectOption(prefix,i));
+    c.appendChild(btn);
+  });
+}
+
+function selectOption(prefix,idx){
+  if(prefix==='q1'&&q1Answered)return;
+  if(prefix==='q2'&&q2Answered)return;
+  if(prefix==='q1'){q1SelectedIdx=idx; document.getElementById('q1Check').disabled=false;}
+  else              {q2SelectedIdx=idx; document.getElementById('q2Check').disabled=false;}
+  document.querySelectorAll(`#${prefix}Options .option-btn`).forEach((b,i)=>b.classList.toggle('selected',i===idx));
+}
+
+function checkQ1(){
+  if(q1Answered||q1SelectedIdx===null)return;
+  q1Answered=true;
+  const q=currentQ; const isCorrect=q1SelectedIdx===q1CorrectIdx;
+  document.querySelectorAll('#q1Options .option-btn').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===q1CorrectIdx){btn.classList.remove('selected');btn.classList.add('correct');btn.innerHTML+=`<span class="result-icon">✓</span>`;}
+    else if(i===q1SelectedIdx&&!isCorrect){btn.classList.remove('selected');btn.classList.add('wrong');btn.innerHTML+=`<span class="result-icon">✗</span>`;}
+    else btn.classList.add('dimmed');
+  });
+  const banner=document.getElementById('q1Banner');
+  document.getElementById('q1Icon').textContent=isCorrect?'✓':'✗';
+  if(isCorrect){
+    banner.className='result-banner correct';
+    document.getElementById('q1Text').textContent=`Correct! ${fmt(q.q1Correct)} Ω`;
+  }else{
+    banner.className='result-banner wrong';
+    const chosen=q.q1Options[q1SelectedIdx];
+    let hint=`Nice try — but the answer is ${fmt(q.q1Correct)} Ω. See the workings below.`;
+    if(chosen.type==='wrong1')hint=`Those resistances were added directly. Use the reciprocal formula for parallel resistors.`;
+    else if(chosen.type==='wrong2')hint=`Close — but 1/(R4+R5+R6) isn't correct. Take the reciprocal of the sum of reciprocals.`;
+    document.getElementById('q1Text').textContent=hint;
+  }
+  showQ1Working(q);
+  document.getElementById('q1Check').disabled=true;
+  document.getElementById('q1Next').style.display='inline-block';
+}
+
+function showQ1Working(q){
+  const rec4=1/q.r4,rec5=1/q.r5,rec6=1/q.r6,recSum=rec4+rec5+rec6;
+  document.getElementById('q1Working').className='working-box visible';
+  document.getElementById('q1WorkingContent').innerHTML=`
+    <div class="wline" style="margin-bottom:.3rem;">Formula:</div>
+    <div class="formula-row" style="color:var(--accent5);">
+      R<sub>eq</sub> &nbsp;=&nbsp; ${frac('1',`${frac('1','R4')} + ${frac('1','R5')} + ${frac('1','R6')}`, 'wv4')}
+    </div>
+    <div class="wline" style="margin-top:.6rem;">Substituting values:</div>
+    <div class="formula-row" style="color:var(--accent5);">
+      R<sub>eq</sub> &nbsp;=&nbsp; ${frac('1',`${frac('1',fmtΩ(q.r4))} + ${frac('1',fmtΩ(q.r5))} + ${frac('1',fmtΩ(q.r6))}`, 'wv4')}
+    </div>
+    <div class="wline" style="margin-top:.6rem;">Calculating denominators:</div>
+    <div class="formula-row" style="color:var(--accent5);">
+      R<sub>eq</sub> &nbsp;=&nbsp; ${frac('1',`${rec4.toFixed(5)} + ${rec5.toFixed(5)} + ${rec6.toFixed(5)}`, 'wv4')}
+    </div>
+    <div class="wline" style="margin-top:.6rem;">Summing:</div>
+    <div class="formula-row" style="color:var(--accent5);">
+      R<sub>eq</sub> &nbsp;=&nbsp; ${frac('1', recSum.toFixed(5), 'wv4')}
+    </div>
+    <div class="wline total" style="margin-top:.8rem;">
+      <span class="wv4">R<sub>eq</sub></span> = <span class="wv3">${fmt(q.q1Correct)} Ω</span>
+    </div>`;
+}
+
+function showQ2(){
+  // Collapse Q1 to summary
+  document.getElementById('q1Panel').style.display='none';
+  document.getElementById('q1Summary').style.display='block';
+  document.getElementById('q1SummaryAnswer').textContent=`${fmt(currentQ.q1Correct)} Ω`;
+
+  // Swap circuit: hide expanded bank, show collapsed equivalent
+  document.getElementById('bankExpanded').setAttribute('display','none');
+  document.getElementById('bankCollapsed').setAttribute('display','inline');
+  document.getElementById('lblR456').textContent=`${fmt(currentQ.q1Correct)} Ω`;
+
+  // Show Q2
+  document.getElementById('q2Panel').style.display='flex';
+  document.getElementById('q2Banner').className='result-banner';
+  document.getElementById('q2Working').className='working-box';
+  document.getElementById('q2Check').disabled=true;
+  renderOptions('q2Options', currentQ.q2Options, 'q2');
+}
+
+function checkQ2(){
+  if(q2Answered||q2SelectedIdx===null)return;
+  q2Answered=true;
+  const q=currentQ; const isCorrect=q2SelectedIdx===q2CorrectIdx;
+  document.querySelectorAll('#q2Options .option-btn').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===q2CorrectIdx){btn.classList.remove('selected');btn.classList.add('correct');btn.innerHTML+=`<span class="result-icon">✓</span>`;}
+    else if(i===q2SelectedIdx&&!isCorrect){btn.classList.remove('selected');btn.classList.add('wrong');btn.innerHTML+=`<span class="result-icon">✗</span>`;}
+    else btn.classList.add('dimmed');
+  });
+  const banner=document.getElementById('q2Banner');
+  document.getElementById('q2Icon').textContent=isCorrect?'✓':'✗';
+  if(isCorrect){
+    banner.className='result-banner correct';
+    document.getElementById('q2Text').textContent=`Correct! ${fmt(q.q2Correct)} Ω`;
+  }else{
+    banner.className='result-banner wrong';
+    const chosen=q.q2Options[q2SelectedIdx];
+    let hint=`Nice try — but the answer is ${fmt(q.q2Correct)} Ω. See the workings below.`;
+    if(chosen.type==='wrong1')hint=`Those resistances were added directly. R8+R9 are in series first, then parallel with R7.`;
+    else if(chosen.type==='wrong2')hint=`Close — remember R8 and R9 must be added first, then use the parallel formula.`;
+    document.getElementById('q2Text').textContent=hint;
+  }
+  showQ2Working(q);
+  document.getElementById('q2Check').disabled=true;
+}
+
+function showQ2Working(q){
+  const r89=q.r8+q.r9;
+  const rec7=1/q.r7, rec89=1/r89, recSum=rec7+rec89;
+  document.getElementById('q2Working').className='working-box visible';
+  document.getElementById('q2WorkingContent').innerHTML=`
+    <div class="wline" style="margin-bottom:.3rem;">R8 and R9 are in series — add them first:</div>
+    <div class="formula-row" style="color:var(--accent2);">
+      R<sub>89</sub> = ${fmtΩ(q.r8)} + ${fmtΩ(q.r9)} = <span class="wv2">${fmtΩ(r89)}</span>
+    </div>
+    <div class="wline" style="margin-top:.6rem;">Formula — R7 parallel with R89:</div>
+    <div class="formula-row" style="color:var(--accent2);">
+      R<sub>eq</sub> &nbsp;=&nbsp; ${frac('1',`${frac('1','R7')} + ${frac('1','R<sub>89</sub>')}`, 'wv2')}
+    </div>
+    <div class="wline" style="margin-top:.6rem;">Substituting values:</div>
+    <div class="formula-row" style="color:var(--accent2);">
+      R<sub>eq</sub> &nbsp;=&nbsp; ${frac('1',`${frac('1',fmtΩ(q.r7))} + ${frac('1',fmtΩ(r89))}`, 'wv2')}
+    </div>
+    <div class="wline" style="margin-top:.6rem;">Calculating denominators:</div>
+    <div class="formula-row" style="color:var(--accent2);">
+      R<sub>eq</sub> &nbsp;=&nbsp; ${frac('1',`${rec7.toFixed(5)} + ${rec89.toFixed(5)}`, 'wv2')}
+    </div>
+    <div class="wline" style="margin-top:.6rem;">Summing:</div>
+    <div class="formula-row" style="color:var(--accent2);">
+      R<sub>eq</sub> &nbsp;=&nbsp; ${frac('1', recSum.toFixed(5), 'wv2')}
+    </div>
+    <div class="wline total" style="margin-top:.8rem;">
+      <span class="wv2">R<sub>eq</sub></span> = <span class="wv3">${fmt(q.q2Correct)} Ω</span>
+    </div>`;
+}
+
+newQuestion();
+</script>
+</body>
+</html>
