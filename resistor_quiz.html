@@ -1049,8 +1049,9 @@ function showQ3Working(q){
       R<sub>total</sub> &nbsp;=&nbsp;
       <span class="wv">R1 + R2 + R3 + R<sub>456</sub> + R<sub>789</sub> + R10</span>
     </div>
+    <div class="wline" style="margin-top:.6rem;">Substituting values:</div>
     <div class="formula-row" style="color:var(--accent);flex-wrap:wrap;font-size:.82rem;">
-      = ${fmtΩ(q.r1)} + ${fmtΩ(q.r2)} + ${fmtΩ(q.r3)} + ${fmt(q.q1Correct)} Ω + ${fmt(q.q2Correct)} Ω + ${fmtΩ(q.r10)}
+      R<sub>total</sub> &nbsp;=&nbsp; ${fmtΩ(q.r1)} + ${fmtΩ(q.r2)} + ${fmtΩ(q.r3)} + ${fmt(q.q1Correct)} Ω + ${fmt(q.q2Correct)} Ω + ${fmtΩ(q.r10)}
     </div>
     <div class="wline total" style="margin-top:.8rem;">
       <span class="wv">R<sub>total</sub></span> = <span class="wv3">${fmt(q.q3Correct)} Ω</span>
