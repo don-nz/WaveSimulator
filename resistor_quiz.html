@@ -179,7 +179,7 @@
         </g>
 
         <!-- Q6 markers -->
-        <g id="q6Markers" display="none">
+        <g id="q6Markers" style="display:none">
           <line x1="490" y1="200" x2="490" y2="440" stroke="#ff3333" stroke-width="3.5" stroke-dasharray="8,5"/>
           <line x1="750" y1="200" x2="750" y2="440" stroke="#ff3333" stroke-width="3.5" stroke-dasharray="8,5"/>
           <line x1="490" y1="440" x2="578" y2="440" stroke="#ff3333" stroke-width="3.5" stroke-dasharray="8,5"/>
@@ -842,7 +842,7 @@ function showQ6(){
   document.getElementById('lblR456total').textContent=`${fmt(currentQ.q1Correct)} Ω`;
   document.getElementById('lblR789total').textContent=`${fmt(currentQ.q2Correct)} Ω`;
   document.getElementById('q5Marker').setAttribute('display','none');
-  document.getElementById('q6Markers').setAttribute('display','inline');
+  document.getElementById('q6Markers').style.display='inline';
   document.getElementById('r6BigCircle').setAttribute('display','inline');
   document.getElementById('r6SmallCircle').setAttribute('display','inline');
   document.getElementById('r6BigValue').textContent=fmtVNum(currentQ.q5Correct);
@@ -885,7 +885,7 @@ function showQ7(){
   document.getElementById('q6Panel').style.display='none';
   addAnswerRow('Q6',`Voltage over <span style="color:var(--accent5)">R6</span> (same as R4,5,6)`,`${fmtV(currentQ.q5Correct)}`);
   document.getElementById('r6SmallCircle').setAttribute('display','none');
-  document.getElementById('q6Markers').setAttribute('display','inline');
+  document.getElementById('q6Markers').style.display='inline';
   document.getElementById('q7Marker').setAttribute('display','inline');
   const correct=currentQ.q7Correct;
   const wrong1=currentQ.q5Correct/currentQ.r4;
@@ -1147,7 +1147,7 @@ function goBack(toQ){
     document.getElementById('r789Label').setAttribute('display','none');
     document.getElementById('currentIndicators').setAttribute('display','none');
     document.getElementById('q5Marker').setAttribute('display','none');
-    document.getElementById('q6Markers').setAttribute('display','none');
+    document.getElementById('q6Markers').style.display='none';
     document.getElementById('q7Marker').setAttribute('display','none');
     document.getElementById('r6BigCircle').setAttribute('display','none');
     document.getElementById('r6SmallCircle').setAttribute('display','none');
@@ -1171,7 +1171,7 @@ function goBack(toQ){
     document.getElementById('r789Label').setAttribute('display','none');
     document.getElementById('currentIndicators').setAttribute('display','none');
     document.getElementById('q5Marker').setAttribute('display','none');
-    document.getElementById('q6Markers').setAttribute('display','none');
+    document.getElementById('q6Markers').style.display='none';
     document.getElementById('q7Marker').setAttribute('display','none');
     document.getElementById('r6BigCircle').setAttribute('display','none');
     document.getElementById('r6SmallCircle').setAttribute('display','none');
@@ -1196,7 +1196,7 @@ function goBack(toQ){
     document.getElementById('r789Label').setAttribute('display','none');
     document.getElementById('currentIndicators').setAttribute('display','none');
     document.getElementById('q5Marker').setAttribute('display','none');
-    document.getElementById('q6Markers').setAttribute('display','none');
+    document.getElementById('q6Markers').style.display='none';
     document.getElementById('q7Marker').setAttribute('display','none');
     document.getElementById('r6BigCircle').setAttribute('display','none');
     document.getElementById('r6SmallCircle').setAttribute('display','none');
@@ -1222,7 +1222,7 @@ function goBack(toQ){
     document.getElementById('r789Label').setAttribute('display','none');
     document.getElementById('currentIndicators').setAttribute('display','none');
     document.getElementById('q5Marker').setAttribute('display','none');
-    document.getElementById('q6Markers').setAttribute('display','none');
+    document.getElementById('q6Markers').style.display='none';
     document.getElementById('q7Marker').setAttribute('display','none');
     document.getElementById('r6BigCircle').setAttribute('display','none');
     document.getElementById('r6SmallCircle').setAttribute('display','none');
@@ -1248,7 +1248,7 @@ function goBack(toQ){
     document.getElementById('r456Label').setAttribute('display','none');
     document.getElementById('r789Label').setAttribute('display','none');
     document.getElementById('q5Marker').setAttribute('display','inline');
-    document.getElementById('q6Markers').setAttribute('display','none');
+    document.getElementById('q6Markers').style.display='none';
     document.getElementById('q7Marker').setAttribute('display','none');
     document.getElementById('r6BigCircle').setAttribute('display','none');
     document.getElementById('r6SmallCircle').setAttribute('display','none');
@@ -1274,7 +1274,7 @@ function goBack(toQ){
     document.getElementById('lblR789total').textContent=`${fmt(currentQ.q2Correct)} Ω`;
     document.getElementById('currentIndicators').setAttribute('display','none');
     document.getElementById('q5Marker').setAttribute('display','none');
-    document.getElementById('q6Markers').setAttribute('display','inline');
+    document.getElementById('q6Markers').style.display='inline';
     document.getElementById('r6BigCircle').setAttribute('display','inline');
     document.getElementById('r6BigValue').textContent=fmtVNum(currentQ.q5Correct);
     document.getElementById('r6BigUnit').textContent=fmtVUnit(currentQ.q5Correct);
