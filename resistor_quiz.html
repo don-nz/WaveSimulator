@@ -27,25 +27,35 @@
     header p{margin-top:.5rem;color:var(--label);font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;}
 
     /* ── LAYOUT WRAPPER ── */
-    .quiz-wrap{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:1.5rem;}
+    .quiz-wrap{width:100%;max-width:1400px;display:flex;flex-direction:column;gap:1.5rem;}
 
     /* Desktop: side-by-side */
     @media(min-width:900px){
       .quiz-wrap{
         display:grid;
-        grid-template-columns:minmax(280px,38%) 1fr;
+        grid-template-columns:minmax(340px,52%) 1fr;
         grid-template-rows:auto;
-        gap:1.5rem;
+        gap:1.2rem;
         align-items:start;
       }
       .circuit-col{
         position:sticky;
         top:1.5rem;
-        /* stays put while questions scroll */
       }
       .questions-col{
-        min-width:0; /* prevent grid blowout */
+        min-width:0;
       }
+      /* Tighter question card on desktop */
+      .questions-col .card{padding:1rem 1.1rem;}
+      /* Smaller option buttons on desktop */
+      .questions-col .option-btn{padding:.4rem .65rem;font-size:.74rem;}
+      .questions-col .q-text{font-size:.82rem;}
+      .questions-col .result-banner{font-size:.72rem;padding:.5rem .8rem;}
+      .questions-col .btn{width:105px;font-size:.64rem;}
+      .questions-col .working-box{padding:.75rem .9rem;}
+      .questions-col .q-row{gap:.7rem;}
+      .questions-col .q-panel{gap:.7rem;}
+      .questions-col .options{gap:.35rem;}
     }
 
     .card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:1.6rem;}
@@ -54,7 +64,7 @@
     .panel-label{font-size:.58rem;letter-spacing:.18em;color:var(--label);text-transform:uppercase;text-align:center;margin-bottom:6px;}
     .q-row{display:flex;flex-direction:column;gap:1rem;}
     .q-panel{display:flex;flex-direction:column;gap:1rem;}
-    .q-text{color:#d0e4f0;font-size:.9rem;font-weight:bold;line-height:1.6;}
+    .q-text{color:#d0e4f0;font-size:.9rem;font-weight:bold;line-height:1.5;}
     .options{display:flex;flex-direction:column;gap:.6rem;}
     .option-btn{width:100%;padding:.7rem 1rem;border-radius:3px;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.82rem;text-align:left;cursor:pointer;transition:border-color .15s,background .15s;display:flex;align-items:center;gap:.7rem;}
     .option-btn:hover:not(:disabled){border-color:rgba(0,229,255,.4);background:rgba(0,229,255,.05);}
@@ -90,10 +100,6 @@
     .wline .wv3{color:var(--accent3);}
     .wline .wv4{color:var(--accent5);}
     .wline.total{margin-top:.4rem;padding-top:.4rem;border-top:1px solid var(--border);color:var(--text);font-size:.85rem;}
-    .ans-row{display:grid;grid-template-columns:3rem 1fr auto;gap:1rem;align-items:center;padding:.55rem 1rem;border-top:1px solid var(--border);font-size:.82rem;}
-    .ans-row:hover{background:rgba(255,255,255,.02);}
-    .ans-q{font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;color:var(--accent);}
-    .ans-val{font-family:'Orbitron',sans-serif;font-size:.9rem;color:var(--accent3);white-space:nowrap;text-align:right;}
 
     /* On desktop the q-panel grid keeps 3 columns; on narrow screens stack */
     .q-grid{display:grid;grid-template-columns:auto 1fr 1fr;gap:1.2rem;align-items:start;}
@@ -114,7 +120,7 @@
   <!-- LEFT COLUMN: circuit diagram (sticky on desktop) -->
   <div class="circuit-col">
     <div class="circuit-panel">
-      <div class="panel-label">Circuit Diagram — 10 V Source</div>
+      <div class="panel-label">Circuit Diagram — <span id="panelVoltLabel">10 V</span> Source</div>
       <svg id="circuitSvg" viewBox="0 0 960 880" xmlns="http://www.w3.org/2000/svg"
            font-family="'Share Tech Mono',monospace">
         <defs>
@@ -329,17 +335,6 @@
           <button class="btn btn-shuffle" onclick="newQuestion()">↺ Restart Quiz</button>
         </div>
       </div>
-
-      <!-- Collapsible answers table -->
-      <div id="answersTable" style="display:none;border:1px solid var(--border);border-radius:4px;overflow:hidden;">
-        <div id="answersHeader" onclick="toggleAnswers()"
-             style="display:flex;align-items:center;gap:.8rem;padding:.55rem 1rem;cursor:pointer;background:rgba(0,0,0,.2);user-select:none;">
-          <span id="answersToggle" style="font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:var(--accent);min-width:16px;">+</span>
-          <span style="font-size:.68rem;letter-spacing:.18em;color:var(--label);text-transform:uppercase;">Previous Answers</span>
-        </div>
-        <div id="answersBody" style="display:none;">
-          <div id="answersRows"></div>
-        </div>
       </div>
 
       <!-- Q2 panel -->
@@ -412,7 +407,7 @@
       <div class="q-panel" id="q5Panel" style="display:none;">
         <div class="q-grid">
           <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent);padding-top:.2rem;white-space:nowrap;">Q5</div>
-          <div class="q-text">What is the <span style="color:#ff3333">voltage</span> over the combined resistor <span style="color:var(--accent5)">R4,5,6</span>?</div>
+          <div class="q-text">What is the <span style="color:#ff3333">potential difference</span> over the combined resistor <span style="color:var(--accent5)">R4,5,6</span>?</div>
           <div class="options" id="q5Options"></div>
         </div>
         <div class="result-banner" id="q5Banner"><span id="q5Icon"></span>&nbsp;<span id="q5Text"></span></div>
@@ -434,7 +429,7 @@
       <div class="q-panel" id="q6Panel" style="display:none;">
         <div class="q-grid">
           <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent);padding-top:.2rem;white-space:nowrap;">Q6</div>
-          <div class="q-text">What is the <span style="color:#ff3333">voltage</span> over <span style="color:var(--accent5)">R6</span>?</div>
+          <div class="q-text">What is the <span style="color:#ff3333">potential difference</span> over <span style="color:var(--accent5)">R6</span>?</div>
           <div class="options" id="q6Options"></div>
         </div>
         <div class="result-banner" id="q6Banner"><span id="q6Icon"></span>&nbsp;<span id="q6Text"></span></div>
@@ -489,7 +484,6 @@
 
 </div><!-- end .quiz-wrap -->
 
-<footer style="margin-top:2rem;font-size:.65rem;color:var(--label);letter-spacing:.1em;">Barry Duncan · Resistor Network Quiz</footer>
 
 <script>
 const E12_BASE=[10,12,15,18,22,27,33,39,47,56,68,82];
@@ -538,12 +532,13 @@ let q7SelectedIdx=null,q7CorrectIdx=null,q7Answered=false;
 
 function dedup(correct,bases,fmtFn){
   const correctLabel=fmtFn(correct);
-  const used=new Set([correctLabel]);
+  const zeroLabel=fmtFn(0);
+  const used=new Set([correctLabel,zeroLabel]);
   const results=[];
   for(let base of bases){
     let val=base,label=fmtFn(val),attempts=0;
-    while((used.has(label)||Math.abs(val)<1e-12)&&attempts<200){
-      const p=(0.15+Math.random()*0.4)*(Math.random()<0.5?1:-1);
+    while((used.has(label)||val<=0||label===zeroLabel)&&attempts<200){
+      const p=(0.2+Math.random()*0.4)*(Math.random()<0.5?1:-1);
       val=correct*(1+p);label=fmtFn(val);attempts++;
     }
     used.add(label);
@@ -566,8 +561,8 @@ function makeOptions(correct,wrong1,wrong2,wrong3){
 }
 
 function makeCurrentOptions(correct){
-  const wrong1=currentQ.q3Correct/10;
-  const wrong2=10*currentQ.q3Correct;
+  const wrong1=currentQ.q3Correct/currentQ.vsrc;
+  const wrong2=currentQ.vsrc*currentQ.q3Correct;
   const wrong3=correct*1.5;
   const wrongs=dedup(correct,[wrong1,wrong2,wrong3],fmtA);
   const options=[
@@ -604,7 +599,9 @@ function newQuestion(){
   const q3Wrong1=r1+r2+r3+r4+r5+r6+r7+r8+r9+r10;
   const q3Wrong2=r1+r2+r3+q1Correct+r7+r8+r9+r10;
   let q3Wrong3;do{const p=(0.06+Math.random()*0.18)*(Math.random()<.5?1:-1);q3Wrong3=q3Correct*(1+p);}while(Math.abs(q3Wrong3-q3Correct)<0.02||q3Wrong3<=0);
-  const q4Correct=10/q3Correct;
+  const vs=[8,10,12,14,16,18];
+  const vsrc=vs[Math.floor(Math.random()*vs.length)];
+  const q4Correct=vsrc/q3Correct;
   const q5Correct=q4Correct*q1Correct;
   const q7Correct=q5Correct/r5;
   const q1Options=makeOptions(q1Correct,q1Wrong1,q1Wrong2,q1Wrong3);
@@ -617,12 +614,16 @@ function newQuestion(){
     q1Correct,q1Wrong1,q1Wrong2,q1Options,
     q2Correct,q2Wrong1,q2Wrong2,q2Options,
     q3Correct,q3Wrong1,q3Wrong2,q3Options,
-    q4Correct,q5Correct,q7Correct};
+    vsrc,q4Correct,q5Correct,q7Correct};
 
   ['R1','R2','R3','R4','R5','R6','R7','R8','R9','R10'].forEach(id=>{
     const el=document.getElementById('lbl'+id);
     if(el)el.textContent=fmtΩ(currentQ[id.toLowerCase()]);
   });
+
+  document.getElementById('BattVoltLabel').textContent=currentQ.vsrc+'V';
+  const pvl=document.getElementById('panelVoltLabel');
+  if(pvl)pvl.textContent=currentQ.vsrc+' V';
 
   document.getElementById('currentIndicators').setAttribute('display','none');
   document.getElementById('rtotalLabel').setAttribute('display','none');
@@ -633,6 +634,7 @@ function newQuestion(){
   document.getElementById('iR5Label').setAttribute('display','none');
   document.getElementById('r6BigCircle').setAttribute('display','none');
   document.getElementById('r6SmallCircle').setAttribute('display','none');
+  document.getElementById('q6Markers').style.display='none';
   document.getElementById('bankExpanded').setAttribute('display','inline');
   document.getElementById('bankCollapsed').setAttribute('display','none');
   document.getElementById('orangeExpanded').setAttribute('display','inline');
@@ -641,10 +643,6 @@ function newQuestion(){
 
   document.getElementById('summaryPanel').style.display='none';
   document.getElementById('summaryContent').innerHTML='';
-  document.getElementById('answersTable').style.display='none';
-  document.getElementById('answersRows').innerHTML='';
-  document.getElementById('answersBody').style.display='none';
-  document.getElementById('answersToggle').textContent='+';
   [1,2,3,4,5,6,7].forEach(n=>{
     const p=document.getElementById(`q${n}Panel`);
     if(p)p.style.display='none';
@@ -753,7 +751,6 @@ function checkQ3(){
 
 function showQ4(){
   document.getElementById('q3Panel').style.display='none';
-  addAnswerRow('Q3','Total resistance of the circuit',`${fmt(currentQ.q3Correct)} Ω`);
   document.getElementById('rtotalLabel').setAttribute('display','inline');
   document.getElementById('lblRtotal').textContent=`${fmt(currentQ.q3Correct)} Ω`;
   const q4Options=makeCurrentOptions(currentQ.q4Correct);
@@ -782,7 +779,6 @@ function checkQ4(){
 
 function showQ5(){
   document.getElementById('q4Panel').style.display='none';
-  addAnswerRow('Q4','Circuit current',fmtA(currentQ.q4Correct));
   const iAmps=currentQ.q4Correct;
   const iNum=iAmps>=1?iAmps.toFixed(3):iAmps>=0.001?(iAmps*1000).toFixed(3):(iAmps*1000000).toFixed(3);
   const iUnit=iAmps>=1?'A':iAmps>=0.001?'mA':'µA';
@@ -830,7 +826,6 @@ function checkQ5(){
 
 function showQ6(){
   document.getElementById('q5Panel').style.display='none';
-  addAnswerRow('Q5','Voltage over combined resistor <span style="color:var(--accent5)">R4,5,6</span>',`${fmtV(currentQ.q5Correct)}`);
   document.getElementById('bankExpanded').setAttribute('display','inline');
   document.getElementById('bankCollapsed').setAttribute('display','none');
   document.getElementById('orangeExpanded').setAttribute('display','inline');
@@ -883,7 +878,6 @@ function checkQ6(){
 
 function showQ7(){
   document.getElementById('q6Panel').style.display='none';
-  addAnswerRow('Q6',`Voltage over <span style="color:var(--accent5)">R6</span> (same as R4,5,6)`,`${fmtV(currentQ.q5Correct)}`);
   document.getElementById('r6SmallCircle').setAttribute('display','none');
   document.getElementById('q6Markers').style.display='inline';
   document.getElementById('q7Marker').setAttribute('display','inline');
@@ -977,7 +971,7 @@ function showQ4Working(q){
     </div>
     <div class="wline" style="margin-top:.6rem;">Substituting values:</div>
     <div class="formula-row" style="color:var(--accent3);">
-      I &nbsp;=&nbsp; ${frac('10 V',fmt(q.q3Correct)+' Ω','wv3')}
+      I &nbsp;=&nbsp; ${frac(q.vsrc+' V',fmt(q.q3Correct)+' Ω','wv3')}
     </div>
     <div class="wline total" style="margin-top:.8rem;">
       <span class="wv3">I</span> = <span class="wv3">${fmtA(q.q4Correct)}</span>
@@ -1132,9 +1126,6 @@ function goBack(toQ){
     const p=document.getElementById(`q${n}Panel`);
     if(p)p.style.display='none';
   });
-  const rows=document.getElementById('answersRows');
-  while(rows.children.length>=toQ){rows.removeChild(rows.lastChild);}
-  if(rows.children.length===0)document.getElementById('answersTable').style.display='none';
 
   if(toQ===1){
     q1SelectedIdx=null;q1Answered=false;
@@ -1293,7 +1284,6 @@ function goBack(toQ){
 
 function showSummary(){
   document.getElementById('q7Panel').style.display='none';
-  addAnswerRow('Q7',`Current through <span style="color:var(--accent5)">R5</span>`,fmtA(currentQ.q7Correct));
   document.getElementById('q7Marker').setAttribute('display','none');
   document.getElementById('iR5Label').setAttribute('display','inline');
   document.getElementById('iR5Value').textContent=fmtA(currentQ.q7Correct);
@@ -1303,7 +1293,7 @@ function showSummary(){
   const q=currentQ;
   const circuitValues=`
     <div style="background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:4px;padding:.9rem 1.2rem;margin-bottom:1.2rem;font-size:.82rem;line-height:2.2;">
-      <span style="color:#ff3333;font-weight:bold;">Vs</span> = <span style="color:#ff3333;">10 V</span>&nbsp;&nbsp;
+      <span style="color:#ff3333;font-weight:bold;">Vs</span> = <span style="color:#ff3333;">${q.vsrc} V</span>&nbsp;&nbsp;
       <span style="color:#00e5ff;font-weight:bold;">R1</span> = <span style="color:#00e5ff;">${fmtΩ(q.r1)}</span>&nbsp;&nbsp;
       <span style="color:#00e5ff;font-weight:bold;">R2</span> = <span style="color:#00e5ff;">${fmtΩ(q.r2)}</span>&nbsp;&nbsp;
       <span style="color:#00e5ff;font-weight:bold;">R3</span> = <span style="color:#00e5ff;">${fmtΩ(q.r3)}</span>&nbsp;&nbsp;
@@ -1345,27 +1335,10 @@ function showSummary(){
   }).join('');
 }
 
-function toggleAnswers(){
-  const body=document.getElementById('answersBody');
-  const toggle=document.getElementById('answersToggle');
-  const open=body.style.display==='none';
-  body.style.display=open?'block':'none';
-  toggle.textContent=open?'−':'+';
-}
 
-function addAnswerRow(qLabel,questionHtml,answerText){
-  const table=document.getElementById('answersTable');
-  const rows=document.getElementById('answersRows');
-  table.style.display='block';
-  const row=document.createElement('div');
-  row.className='ans-row';
-  row.innerHTML=`<div class="ans-q">${qLabel}</div><div class="q-text" style="font-size:.8rem;">${questionHtml}</div><div class="ans-val">${answerText}</div>`;
-  rows.appendChild(row);
-}
 
 function showQ2(){
   document.getElementById('q1Panel').style.display='none';
-  addAnswerRow('Q1','Equivalent resistance of <span style="color:var(--accent5)">R4, R5, R6</span> in parallel',`${fmt(currentQ.q1Correct)} Ω`);
   document.getElementById('bankExpanded').setAttribute('display','none');
   document.getElementById('bankCollapsed').setAttribute('display','inline');
   document.getElementById('lblR456').textContent=`${fmt(currentQ.q1Correct)} Ω`;
@@ -1379,7 +1352,6 @@ function showQ2(){
 
 function showQ3(){
   document.getElementById('q2Panel').style.display='none';
-  addAnswerRow('Q2','Equivalent resistance of <span style="color:var(--accent2)">R7, R8, R9</span> (R8+R9 in series ∥ R7)',`${fmt(currentQ.q2Correct)} Ω`);
   document.getElementById('orangeExpanded').setAttribute('display','none');
   document.getElementById('orangeCollapsed').setAttribute('display','inline');
   document.getElementById('lblR789').textContent=`${fmt(currentQ.q2Correct)} Ω`;
